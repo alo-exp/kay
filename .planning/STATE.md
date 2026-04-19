@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0.0
 milestone_name: milestone
-status: phase_2_planned
-stopped_at: Phase 2 planning complete (10 plans, plan-checker 3 iterations 9→4→0, VERIFICATION PASSED); ready to execute
-last_updated: "2026-04-20T00:00:00.000Z"
-last_activity: 2026-04-20 -- Phase 2 plans committed as a434e37; 22 tasks across 10 serial waves
+status: phase_2_in_progress
+stopped_at: Phase 2 Plan 01 complete (Wave 0 test scaffolding); 9 plans remaining (02-02..02-10)
+last_updated: "2026-04-19T18:25:37Z"
+last_activity: 2026-04-19 -- Phase 2 Plan 01 executed (2 tasks, 2 commits b107e7e + 50d8020); Wave 0 test scaffolding landed ahead of kay-core rename
 progress:
   total_phases: 13
   completed_phases: 1
-  total_plans: 6
-  completed_plans: 6
-  percent: 8
+  total_plans: 16
+  completed_plans: 7
+  percent: 10
 ---
 
 # Project State
@@ -26,30 +26,31 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 ## Current Position
 
 Phase: 2 of 12 (Provider HAL + Tolerant JSON Parser)
-Plan: 0 of 10 executed in current phase
-Status: Planning complete (VERIFICATION PASSED); ready to execute
-Last activity: 2026-04-20 -- Phase 2 plans committed (10 plans, 22 tasks, 10 waves serial); execute next
+Plan: 1 of 10 executed in current phase (02-01 Wave 0 complete; 02-02..02-10 remaining)
+Status: Wave 1 in progress; Wave 0 test scaffolding landed
+Last activity: 2026-04-19 -- Plan 02-01 executed (b107e7e + 50d8020); cargo check -p kay-provider-openrouter --tests clean; wave_0_complete flag flipped in 02-VALIDATION.md
 
-Progress: [█░░░░░░░░░░░] 8% (1 of 12 phases done; Phase 2 discuss step complete)
+Progress: [█░░░░░░░░░░░] 10% (1 of 12 phases done; Phase 2: 1 of 10 plans done)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 6 (all Phase 1)
-- Average duration: ~5 min/plan
-- Total execution time: ~30 min of direct plan execution (excludes review loops, fixes, release)
+- Total plans completed: 7 (6 in Phase 1 + 1 in Phase 2)
+- Average duration: ~8 min/plan (weighted across phases)
+- Total execution time: ~45 min of direct plan execution (excludes review loops, fixes, release)
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01    | 6     | 6     | ~5 min   |
+| 02    | 1     | 10    | ~15 min  |
 
 **Recent Trend:**
 
-- Last 5 plans: 01-02, 01-03, 01-04, 01-05, 01-06 (all PASS with amendments documented)
-- Trend: Stable; goal-backward verifier + 2×2 consecutive-clean review closes gates cleanly
+- Last 5 plans: 01-03, 01-04, 01-05, 01-06, 02-01 (all PASS; 02-01 executed in sequential/main-worktree mode with DCO signoff)
+- Trend: Stable; Phase 2 Wave 0 shipped with zero deviations
 
 *Updated after each plan completion*
 
@@ -67,6 +68,9 @@ Recent decisions affecting current work:
 - Phase 1 D-OP-01: parity-gate **scaffold only** in Phase 1; actual run re-scoped to EVAL-01a follow-on (unblocks on OpenRouter key + ~$100 budget).
 - Phase 1 D-OP-04: `forgecode-parity-baseline` tag left unsigned (v0.0.x pre-stable carve-out); v0.1.0+ release signing mandatory.
 - Phase 1 release policy: semver with **never-major** policy — breaking bumps treated as minor releases.
+- Phase 2 Plan 01: chose standalone MockServer (no kay-core import) so Wave 0 scaffolding can merge in parallel with the 02-02..02-05 kay-core rename plans — self-contained helper that mirrors the ForgeCode `forge_repo/provider/mock_server.rs` analog shape.
+- Phase 2 Plan 01: JSONL-per-line SSE cassette format (one JSON object per non-blank line; loader adds `data: ` prefix at mockito assembly time) — keeps fixtures diff-readable and isolates the SSE-wrapping concern in the loader.
+- Phase 2 Plan 01: Inline `_comment` field in `allowlist.json` (serde-ignored extra field) documents `openai/gpt-5.4` provisional status without requiring a sidecar README — flagged for plan 02-07 to decide between permissive struct and sidecar file.
 
 ### Pending Todos
 
@@ -92,6 +96,6 @@ Items acknowledged and carried forward:
 
 ## Session Continuity
 
-Last session: 2026-04-20 — Phase 2 discuss + plan complete (auto-resolved + auto-chained)
-Stopped at: Phase 2 plans ready to execute; proceeding to `/gsd-execute-phase 2 --auto`
-Resume file: `.planning/phases/02-provider-hal-tolerant-json-parser/02-01-PLAN.md`
+Last session: 2026-04-19 — Phase 2 Plan 01 executed (Wave 0 test scaffolding)
+Stopped at: Plan 02-01 complete (2 tasks, 2 atomic commits b107e7e + 50d8020, DCO-signed); proceeding to plan 02-02 (kay-core structural rename)
+Resume file: `.planning/phases/02-provider-hal-tolerant-json-parser/02-02-PLAN.md`
