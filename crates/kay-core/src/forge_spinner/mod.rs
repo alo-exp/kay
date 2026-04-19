@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use anyhow::Result;
 use colored::Colorize;
-use forge_domain::ConsoleWriter;
+use crate::forge_domain::ConsoleWriter;
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use rand::RngExt;
 
