@@ -3,14 +3,14 @@ use std::sync::Arc;
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use chrono::Utc;
-use crate::forge_app::GrpcInfra;
-use crate::forge_domain::{
+use forge_app::GrpcInfra;
+use forge_domain::{
     ApiKey, FileUploadInfo, Node, UserId, WorkspaceAuth, WorkspaceId, WorkspaceIndexRepository,
     WorkspaceInfo,
 };
 
-use crate::forge_repo::proto_generated::forge_service_client::ForgeServiceClient;
-use crate::forge_repo::proto_generated::{self, *};
+use crate::proto_generated::forge_service_client::ForgeServiceClient;
+use crate::proto_generated::{self, *};
 
 // TryFrom implementations for converting proto types to domain types
 

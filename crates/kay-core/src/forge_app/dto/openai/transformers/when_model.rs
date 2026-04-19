@@ -1,6 +1,6 @@
 use regex::Regex;
 
-use crate::forge_app::dto::openai::Request;
+use crate::dto::openai::Request;
 
 /// Creates a condition function that matches requests when the model name
 /// matches the given regex pattern.

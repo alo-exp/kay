@@ -5,7 +5,7 @@ use std::time::Duration;
 use chrono::Local;
 use tokio::sync::Notify;
 
-use crate::forge_domain::{ToolCallFull, ToolName, ToolResult};
+use crate::{ToolCallFull, ToolName, ToolResult};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ChatResponseContent {

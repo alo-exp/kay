@@ -7,11 +7,11 @@ use std::fmt::{self, Display};
 
 use convert_case::{Case, Casing};
 use derive_setters::Setters;
-use crate::forge_config::ForgeConfig;
-use crate::forge_domain::{AgentId, ModelId, TokenCount};
+use forge_config::ForgeConfig;
+use forge_domain::{AgentId, ModelId, TokenCount};
 
 use super::style::{ZshColor, ZshStyle};
-use crate::forge_main::utils::humanize_number;
+use crate::utils::humanize_number;
 
 /// ZSH right prompt displaying agent, model, and token count.
 ///

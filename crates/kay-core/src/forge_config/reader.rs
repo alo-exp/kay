@@ -4,8 +4,8 @@ use std::sync::LazyLock;
 use config::ConfigBuilder;
 use config::builder::DefaultState;
 
-use crate::forge_config::ForgeConfig;
-use crate::forge_config::legacy::LegacyConfig;
+use crate::ForgeConfig;
+use crate::legacy::LegacyConfig;
 
 /// Loads all `.env` files found while walking up from the current working
 /// directory to the root, with priority given to closer (lower) directories.

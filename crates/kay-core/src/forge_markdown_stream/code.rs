@@ -6,7 +6,7 @@ use syntect::highlighting::ThemeSet;
 use syntect::parsing::SyntaxSet;
 use syntect::util::as_24_bit_terminal_escaped;
 
-use crate::forge_markdown_stream::utils::{ThemeMode, detect_theme_mode};
+use crate::utils::{ThemeMode, detect_theme_mode};
 
 const RESET: &str = "\x1b[0m";
 

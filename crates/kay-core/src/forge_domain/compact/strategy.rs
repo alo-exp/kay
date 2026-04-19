@@ -1,4 +1,4 @@
-use crate::forge_domain::{Context, Role};
+use crate::{Context, Role};
 
 /// Strategy for context compaction that unifies different compaction approaches
 #[derive(Debug, Clone)]

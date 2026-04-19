@@ -1,5 +1,5 @@
 use super::Transformer;
-use crate::forge_domain::{Context, ContextMessage};
+use crate::{Context, ContextMessage};
 
 /// Transformer that handles image processing in tool results
 /// Converts image outputs from tool results into separate user messages with

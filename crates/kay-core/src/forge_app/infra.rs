@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use bytes::Bytes;
-use crate::forge_domain::{
+use forge_domain::{
     AuthCodeParams, CommandOutput, ConfigOperation, Environment, FileInfo, McpServerConfig,
     OAuthConfig, OAuthTokenResponse, ToolDefinition, ToolName, ToolOutput,
 };
@@ -14,7 +14,7 @@ use reqwest_eventsource::EventSource;
 use serde::de::DeserializeOwned;
 use url::Url;
 
-use crate::forge_app::{WalkedFile, Walker};
+use crate::{WalkedFile, Walker};
 
 /// Infrastructure trait for accessing environment configuration, system
 /// variables, and persisted application configuration.

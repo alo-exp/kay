@@ -3,7 +3,7 @@ use std::ops::Deref;
 
 use derive_more::derive::{Display, From};
 use derive_setters::Setters;
-use crate::forge_template::Element;
+use forge_template::Element;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
@@ -14,10 +14,10 @@ fn is_false(value: &bool) -> bool {
     !value
 }
 
-use crate::forge_domain::temperature::Temperature;
-use crate::forge_domain::top_k::TopK;
-use crate::forge_domain::top_p::TopP;
-use crate::forge_domain::{
+use crate::temperature::Temperature;
+use crate::top_k::TopK;
+use crate::top_p::TopP;
+use crate::{
     Attachment, AttachmentContent, ConversationId, EventValue, Image, MessagePhase, ModelId,
     ReasoningFull, ToolChoice, ToolDefinition, ToolOutput, ToolValue, Usage,
 };

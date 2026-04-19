@@ -1,4 +1,4 @@
-use crate::forge_domain::{Todo, TodoStatus};
+use forge_domain::{Todo, TodoStatus};
 
 /// Controls the styling applied to a rendered todo line.
 enum TodoLineStyle {

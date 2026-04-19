@@ -3,7 +3,7 @@ use derive_setters::Setters;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::forge_domain::WorkspaceId;
+use crate::WorkspaceId;
 
 /// Progress events emitted during workspace indexing
 #[derive(Debug, Clone, PartialEq)]

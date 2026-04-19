@@ -2,7 +2,7 @@ use derive_setters::Setters;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
-use crate::forge_domain::{Agent, Environment, File, Model, Skill};
+use crate::{Agent, Environment, File, Model, Skill};
 
 /// Statistics for a file extension
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

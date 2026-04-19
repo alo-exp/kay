@@ -1,7 +1,7 @@
 use std::collections::{BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 
-use crate::forge_domain::{FileHash, FileStatus, SyncProgress, SyncStatus};
+use forge_domain::{FileHash, FileStatus, SyncProgress, SyncStatus};
 
 /// Result of comparing local and server files
 ///

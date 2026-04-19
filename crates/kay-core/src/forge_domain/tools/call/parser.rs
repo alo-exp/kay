@@ -6,7 +6,7 @@ use nom::multi::many0;
 use nom::{IResult, Parser};
 
 use super::ToolCallFull;
-use crate::forge_domain::{Error, ToolCallArguments, ToolName};
+use crate::{Error, ToolCallArguments, ToolName};
 
 #[derive(Debug, PartialEq)]
 pub struct ToolCallParsed {

@@ -1,7 +1,7 @@
 use derive_setters::Setters;
 use serde::{Deserialize, Serialize};
 
-use crate::forge_domain::ToolKind;
+use crate::ToolKind;
 
 /// Tracks metrics for individual file changes
 #[derive(Debug, Clone, PartialEq, Setters, Serialize, Deserialize)]

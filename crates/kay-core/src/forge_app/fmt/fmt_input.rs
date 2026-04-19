@@ -1,9 +1,9 @@
 use std::path::{Path, PathBuf};
 
-use crate::forge_domain::{ChatResponseContent, Environment, TitleFormat, ToolCatalog};
+use forge_domain::{ChatResponseContent, Environment, TitleFormat, ToolCatalog};
 
-use crate::forge_app::fmt::content::FormatContent;
-use crate::forge_app::utils::format_display_path;
+use crate::fmt::content::FormatContent;
+use crate::utils::format_display_path;
 
 impl FormatContent for ToolCatalog {
     fn to_content(&self, env: &Environment) -> Option<ChatResponseContent> {

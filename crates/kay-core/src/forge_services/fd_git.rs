@@ -2,10 +2,10 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use crate::forge_app::CommandInfra;
+use forge_app::CommandInfra;
 use tracing::info;
 
-use crate::forge_services::fd::{FileDiscovery, filter_and_resolve};
+use crate::fd::{FileDiscovery, filter_and_resolve};
 
 /// File discovery implementation backed by `git ls-files`.
 ///

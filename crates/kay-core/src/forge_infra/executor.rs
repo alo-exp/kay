@@ -2,13 +2,13 @@ use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use crate::forge_app::CommandInfra;
-use crate::forge_domain::{CommandOutput, ConsoleWriter as OutputPrinterTrait, Environment};
+use forge_app::CommandInfra;
+use forge_domain::{CommandOutput, ConsoleWriter as OutputPrinterTrait, Environment};
 use tokio::io::AsyncReadExt;
 use tokio::process::Command;
 use tokio::sync::Mutex;
 
-use crate::forge_infra::console::StdConsoleWriter;
+use crate::console::StdConsoleWriter;
 
 /// Service for executing shell commands
 #[derive(Clone, Debug)]

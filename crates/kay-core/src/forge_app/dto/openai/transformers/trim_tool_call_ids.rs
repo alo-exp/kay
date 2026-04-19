@@ -1,6 +1,6 @@
-use crate::forge_domain::Transformer;
+use forge_domain::Transformer;
 
-use crate::forge_app::dto::openai::Request;
+use crate::dto::openai::Request;
 
 /// Trims tool call IDs to a maximum of 40 characters for OpenAI compatibility.
 /// OpenAI requires tool call IDs to be max 40 characters.

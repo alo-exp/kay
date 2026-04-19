@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use crate::forge_domain::{
+use forge_domain::{
     Conversation, EndPayload, EventData, EventHandle, RequestPayload, ResponsePayload,
     StartPayload, ToolcallEndPayload, ToolcallStartPayload,
 };

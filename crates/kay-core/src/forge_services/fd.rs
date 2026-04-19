@@ -3,13 +3,13 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, LazyLock};
 
 use async_trait::async_trait;
-use crate::forge_app::{CommandInfra, WalkerInfra};
-use crate::forge_domain::WorkspaceId;
+use forge_app::{CommandInfra, WalkerInfra};
+use forge_domain::WorkspaceId;
 use tracing::{info, warn};
 
-use crate::forge_services::error::Error as ServiceError;
-use crate::forge_services::fd_git::FsGit;
-use crate::forge_services::fd_walker::FdWalker;
+use crate::error::Error as ServiceError;
+use crate::fd_git::FsGit;
+use crate::fd_walker::FdWalker;
 
 pub(crate) static ALLOWED_EXTENSIONS: LazyLock<HashSet<String>> = LazyLock::new(|| {
     let extensions_str = include_str!("allowed_extensions.txt");

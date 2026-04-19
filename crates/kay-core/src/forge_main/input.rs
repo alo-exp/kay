@@ -1,12 +1,12 @@
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
-use crate::forge_api::Environment;
+use forge_api::Environment;
 
-use crate::forge_main::editor::{ForgeEditor, ReadResult};
-use crate::forge_main::model::{AppCommand, ForgeCommandManager};
-use crate::forge_main::prompt::ForgePrompt;
-use crate::forge_main::tracker;
+use crate::editor::{ForgeEditor, ReadResult};
+use crate::model::{AppCommand, ForgeCommandManager};
+use crate::prompt::ForgePrompt;
+use crate::tracker;
 
 /// Console implementation for handling user input via command line.
 pub struct Console {

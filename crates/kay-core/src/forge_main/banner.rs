@@ -1,7 +1,7 @@
 use std::{fmt, io};
 
 use colored::Colorize;
-use crate::forge_tracker::VERSION;
+use forge_tracker::VERSION;
 
 const BANNER: &str = include_str!("banner");
 

@@ -7,7 +7,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use strum_macros::{Display as StrumDisplay, EnumString};
 
-use crate::forge_domain::{
+use crate::{
     Compact, Error, EventContext, MaxTokens, Model, ModelId, ProviderId, Result, SystemContext,
     Temperature, Template, ToolDefinition, ToolName, TopK, TopP,
 };

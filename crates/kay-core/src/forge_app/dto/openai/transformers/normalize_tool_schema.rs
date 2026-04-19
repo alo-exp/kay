@@ -1,7 +1,7 @@
-use crate::forge_domain::Transformer;
+use forge_domain::Transformer;
 
-use crate::forge_app::dto::openai::{Request, ResponseFormat};
-use crate::forge_app::utils::enforce_strict_schema;
+use crate::dto::openai::{Request, ResponseFormat};
+use crate::utils::enforce_strict_schema;
 
 /// Normalizes tool schemas for OpenAI compatibility
 /// Remove duplicate title and description from parameters.

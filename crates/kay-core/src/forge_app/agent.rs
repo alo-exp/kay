@@ -1,16 +1,16 @@
 use std::sync::Arc;
 
-use crate::forge_config::ForgeConfig;
-use crate::forge_domain::{
+use forge_config::ForgeConfig;
+use forge_domain::{
     Agent, ChatCompletionMessage, Compact, Context, Conversation, Effort, MaxTokens, ModelId,
     ProviderId, ReasoningConfig, ResultStream, Temperature, ToolCallContext, ToolCallFull,
     ToolResult, TopK, TopP,
 };
 use merge::Merge;
 
-use crate::forge_app::services::AppConfigService;
-use crate::forge_app::tool_registry::ToolRegistry;
-use crate::forge_app::{ConversationService, EnvironmentInfra, ProviderService, Services};
+use crate::services::AppConfigService;
+use crate::tool_registry::ToolRegistry;
+use crate::{ConversationService, EnvironmentInfra, ProviderService, Services};
 
 /// Agent service trait that provides core chat and tool call functionality.
 /// This trait abstracts the essential operations needed by the Orchestrator.

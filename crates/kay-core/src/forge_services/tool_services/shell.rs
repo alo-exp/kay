@@ -2,8 +2,8 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use anyhow::bail;
-use crate::forge_app::domain::Environment;
-use crate::forge_app::{CommandInfra, EnvironmentInfra, ShellOutput, ShellService};
+use forge_app::domain::Environment;
+use forge_app::{CommandInfra, EnvironmentInfra, ShellOutput, ShellService};
 use strip_ansi_escapes::strip;
 
 // Strips out the ansi codes from content.

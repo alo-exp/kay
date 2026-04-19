@@ -5,7 +5,7 @@ use regex::Regex;
 use termimad::crossterm::style::{Attribute, Color};
 use termimad::{CompoundStyle, LineStyle, MadSkin};
 
-use crate::forge_display::code::{CodeBlockParser, SyntaxHighlighter};
+use crate::code::{CodeBlockParser, SyntaxHighlighter};
 
 /// MarkdownFormat provides functionality for formatting markdown text for
 /// terminal display.

@@ -1,6 +1,6 @@
-use crate::forge_domain::Transformer;
+use forge_domain::Transformer;
 
-use crate::forge_app::dto::openai::Request;
+use crate::dto::openai::Request;
 
 /// Transformer that applies minimax-specific parameter adjustments
 ///

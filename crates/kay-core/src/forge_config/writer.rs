@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::forge_config::ForgeConfig;
+use crate::ForgeConfig;
 
 /// Writes a [`ForgeConfig`] to the user configuration file on disk.
 pub struct ConfigWriter {

@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use super::operation::PermissionOperation;
 use super::policy::Policy;
 use super::types::Permission;
-use crate::forge_domain::Rule;
+use crate::Rule;
 
 /// Collection of policies
 #[derive(Default, Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]

@@ -1,9 +1,9 @@
-use crate::forge_app::OAuthHttpProvider;
-use crate::forge_domain::{AuthCodeParams, OAuthConfig, OAuthTokenResponse};
+use forge_app::OAuthHttpProvider;
+use forge_domain::{AuthCodeParams, OAuthConfig, OAuthTokenResponse};
 use oauth2::{CsrfToken, PkceCodeChallenge, Scope};
 use serde::Serialize;
 
-use crate::forge_infra::auth::util::*;
+use crate::auth::util::*;
 
 /// Standard RFC-compliant OAuth provider
 pub struct StandardHttpProvider;

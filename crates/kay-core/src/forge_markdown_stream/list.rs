@@ -4,8 +4,8 @@ use streamdown_ansi::utils::visible_length;
 use streamdown_parser::ListBullet;
 use streamdown_render::text::text_wrap;
 
-use crate::forge_markdown_stream::inline::render_inline_content;
-use crate::forge_markdown_stream::style::{InlineStyler, ListStyler};
+use crate::inline::render_inline_content;
+use crate::style::{InlineStyler, ListStyler};
 
 /// Bullet characters for dash lists at different nesting levels.
 const BULLETS_DASH: [&str; 4] = ["•", "◦", "▪", "‣"];

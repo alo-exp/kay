@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::forge_domain::{Agent, ToolDefinition, ToolName};
+use forge_domain::{Agent, ToolDefinition, ToolName};
 use glob::Pattern;
 
 /// Service that resolves tool definitions for agents based on their configured

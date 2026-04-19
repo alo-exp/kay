@@ -1,6 +1,6 @@
 use gh_workflow::*;
 
-use crate::forge_ci::jobs::release_build_job::release_build_job;
+use crate::jobs::release_build_job::release_build_job;
 
 /// Create a build job for drafts
 pub fn create_build_release_job_for_publishing() -> Job {

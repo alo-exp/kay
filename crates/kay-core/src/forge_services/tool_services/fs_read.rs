@@ -2,14 +2,14 @@ use std::path::Path;
 use std::sync::Arc;
 
 use anyhow::Context;
-use crate::forge_app::{
+use forge_app::{
     Content, EnvironmentInfra, FileInfoInfra, FileReaderInfra as InfraFsReadService, FsReadService,
     ReadOutput, compute_hash,
 };
-use crate::forge_domain::{FileInfo, Image};
+use forge_domain::{FileInfo, Image};
 
-use crate::forge_services::range::resolve_range;
-use crate::forge_services::utils::assert_absolute_path;
+use crate::range::resolve_range;
+use crate::utils::assert_absolute_path;
 
 /// Truncates a line to the maximum length if it exceeds the limit
 fn truncate_line(line: &str, max_length: usize) -> String {

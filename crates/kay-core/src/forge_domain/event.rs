@@ -5,7 +5,7 @@ use derive_setters::Setters;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::forge_domain::{Attachment, NamedTool, Template, TerminalContext, ToolName};
+use crate::{Attachment, NamedTool, Template, TerminalContext, ToolName};
 
 /// Represents a partial event structure used for CLI event dispatching
 ///

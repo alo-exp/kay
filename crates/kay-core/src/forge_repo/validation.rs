@@ -3,12 +3,12 @@ use std::sync::Arc;
 
 use anyhow::{Context, Result};
 use async_trait::async_trait;
-use crate::forge_app::GrpcInfra;
-use crate::forge_domain::{SyntaxError, ValidationRepository};
+use forge_app::GrpcInfra;
+use forge_domain::{SyntaxError, ValidationRepository};
 use tracing::{debug, warn};
 
-use crate::forge_repo::proto_generated::forge_service_client::ForgeServiceClient;
-use crate::forge_repo::proto_generated::{self, File, ValidateFilesRequest};
+use crate::proto_generated::forge_service_client::ForgeServiceClient;
+use crate::proto_generated::{self, File, ValidateFilesRequest};
 
 /// gRPC implementation of ValidationRepository
 pub struct ForgeValidationRepository<I> {

@@ -3,8 +3,8 @@
 use streamdown_ansi::utils::visible_length;
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
-use crate::forge_markdown_stream::inline::render_inline_content;
-use crate::forge_markdown_stream::style::{InlineStyler, TableStyler};
+use crate::inline::render_inline_content;
+use crate::style::{InlineStyler, TableStyler};
 
 /// Render a table with proper column widths, shrinking and wrapping if needed.
 pub fn render_table<S: TableStyler + InlineStyler>(

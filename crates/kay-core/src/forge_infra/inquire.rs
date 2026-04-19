@@ -1,6 +1,6 @@
 use anyhow::Result;
-use crate::forge_app::UserInfra;
-use crate::forge_select::ForgeWidget;
+use forge_app::UserInfra;
+use forge_select::ForgeWidget;
 
 pub struct ForgeInquire;
 

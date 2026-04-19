@@ -1,8 +1,8 @@
 use gh_workflow::generate::Generate;
 use gh_workflow::*;
 
-use crate::forge_ci::jobs::{self, ReleaseBuilderJob};
-use crate::forge_ci::steps::setup_protoc;
+use crate::jobs::{self, ReleaseBuilderJob};
+use crate::steps::setup_protoc;
 
 /// Generate the main CI workflow
 pub fn generate_ci_workflow() {

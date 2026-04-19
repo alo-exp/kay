@@ -1,5 +1,5 @@
 use derive_setters::Setters;
-use crate::forge_domain::{
+use forge_domain::{
     Agent, AgentId, Compact, EventContext, MaxTokens, ModelId, ProviderId, ReasoningConfig,
     SystemContext, Temperature, Template, ToolName, TopK, TopP,
 };

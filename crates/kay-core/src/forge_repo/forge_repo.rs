@@ -3,13 +3,13 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use bytes::Bytes;
-use crate::forge_app::{
+use forge_app::{
     AgentRepository, CommandInfra, DirectoryReaderInfra, EnvironmentInfra, FileDirectoryInfra,
     FileInfoInfra, FileReaderInfra, FileRemoverInfra, FileWriterInfra, GrpcInfra, HttpInfra,
     KVStore, McpServerInfra, StrategyFactory, UserInfra, WalkedFile, Walker, WalkerInfra,
 };
-use crate::forge_config::ForgeConfig;
-use crate::forge_domain::{
+use forge_config::ForgeConfig;
+use forge_domain::{
     AnyProvider, AuthCredential, ChatCompletionMessage, ChatRepository, CommandOutput, Context,
     Conversation, ConversationId, ConversationRepository, Environment, FileInfo,
     FuzzySearchRepository, McpServerConfig, MigrationResult, Model, ModelId, Provider, ProviderId,
@@ -17,21 +17,21 @@ use crate::forge_domain::{
     SnapshotRepository,
 };
 // Re-export CacacheStorage from forge_infra
-pub use crate::forge_infra::CacacheStorage;
+pub use forge_infra::CacacheStorage;
 use reqwest::Response;
 use reqwest::header::HeaderMap;
 use reqwest_eventsource::EventSource;
 use url::Url;
 
-use crate::forge_repo::agent::ForgeAgentRepository;
-use crate::forge_repo::context_engine::ForgeContextEngineRepository;
-use crate::forge_repo::conversation::ConversationRepositoryImpl;
-use crate::forge_repo::database::{DatabasePool, PoolConfig};
-use crate::forge_repo::fs_snap::ForgeFileSnapshotService;
-use crate::forge_repo::fuzzy_search::ForgeFuzzySearchRepository;
-use crate::forge_repo::provider::{ForgeChatRepository, ForgeProviderRepository};
-use crate::forge_repo::skill::ForgeSkillRepository;
-use crate::forge_repo::validation::ForgeValidationRepository;
+use crate::agent::ForgeAgentRepository;
+use crate::context_engine::ForgeContextEngineRepository;
+use crate::conversation::ConversationRepositoryImpl;
+use crate::database::{DatabasePool, PoolConfig};
+use crate::fs_snap::ForgeFileSnapshotService;
+use crate::fuzzy_search::ForgeFuzzySearchRepository;
+use crate::provider::{ForgeChatRepository, ForgeProviderRepository};
+use crate::skill::ForgeSkillRepository;
+use crate::validation::ForgeValidationRepository;
 
 /// Repository layer that implements all domain repository traits
 ///

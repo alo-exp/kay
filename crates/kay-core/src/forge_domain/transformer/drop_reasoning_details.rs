@@ -1,4 +1,4 @@
-use crate::forge_domain::{Context, Transformer};
+use crate::{Context, Transformer};
 
 #[derive(Default)]
 pub struct DropReasoningDetails;

@@ -1,4 +1,4 @@
-use crate::forge_domain::SyncProgress;
+use forge_domain::SyncProgress;
 
 /// Extensions for formatting `SyncProgress` events as human-readable strings.
 ///

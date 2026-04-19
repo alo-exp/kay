@@ -1,7 +1,7 @@
 use gh_workflow::generate::Generate;
 use gh_workflow::*;
 
-use crate::forge_ci::jobs::draft_release_update_job;
+use crate::jobs::draft_release_update_job;
 
 /// Generate release drafter workflow
 pub fn generate_release_drafter_workflow() {

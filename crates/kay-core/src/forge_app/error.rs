@@ -1,4 +1,4 @@
-use crate::forge_domain::{ConversationId, InterruptionReason, ToolCallArgumentError, ToolName};
+use forge_domain::{ConversationId, InterruptionReason, ToolCallArgumentError, ToolName};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {

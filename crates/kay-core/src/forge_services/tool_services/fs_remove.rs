@@ -1,10 +1,10 @@
 use std::path::Path;
 use std::sync::Arc;
 
-use crate::forge_app::{FileReaderInfra, FileRemoverInfra, FsRemoveOutput, FsRemoveService};
-use crate::forge_domain::SnapshotRepository;
+use forge_app::{FileReaderInfra, FileRemoverInfra, FsRemoveOutput, FsRemoveService};
+use forge_domain::SnapshotRepository;
 
-use crate::forge_services::utils::assert_absolute_path;
+use crate::utils::assert_absolute_path;
 
 /// Service for removing files with snapshot coordination
 ///

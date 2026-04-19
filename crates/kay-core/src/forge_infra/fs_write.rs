@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use bytes::Bytes;
-use crate::forge_app::FileWriterInfra;
+use forge_app::FileWriterInfra;
 
 /// Low-level file write service
 ///

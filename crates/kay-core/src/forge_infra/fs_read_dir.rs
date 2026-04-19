@@ -1,9 +1,9 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
-use crate::forge_app::DirectoryReaderInfra;
-use crate::forge_fs::ForgeFS;
-use crate::forge_walker::Walker;
+use forge_app::DirectoryReaderInfra;
+use forge_fs::ForgeFS;
+use forge_walker::Walker;
 use futures::StreamExt;
 use glob::Pattern;
 

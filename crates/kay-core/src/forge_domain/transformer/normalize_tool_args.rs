@@ -1,5 +1,5 @@
 use super::Transformer;
-use crate::forge_domain::{Context, ContextMessage};
+use crate::{Context, ContextMessage};
 
 /// Normalizes tool call arguments before provider-specific request conversion.
 ///

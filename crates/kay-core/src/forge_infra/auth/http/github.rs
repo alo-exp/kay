@@ -1,8 +1,8 @@
-use crate::forge_app::OAuthHttpProvider;
-use crate::forge_domain::{AuthCodeParams, OAuthConfig, OAuthTokenResponse};
+use forge_app::OAuthHttpProvider;
+use forge_domain::{AuthCodeParams, OAuthConfig, OAuthTokenResponse};
 
 use super::standard::StandardHttpProvider;
-use crate::forge_infra::auth::util::build_http_client;
+use crate::auth::util::build_http_client;
 
 /// GitHub Provider - HTTP 200 responses may contain errors
 pub struct GithubHttpProvider;

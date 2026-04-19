@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::forge_app::FileRemoverInfra;
+use forge_app::FileRemoverInfra;
 
 /// Low-level file remove service
 ///

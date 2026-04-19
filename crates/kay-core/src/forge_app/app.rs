@@ -2,26 +2,26 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use chrono::Local;
-use crate::forge_config::ForgeConfig;
-use crate::forge_domain::*;
-use crate::forge_stream::MpscStream;
+use forge_config::ForgeConfig;
+use forge_domain::*;
+use forge_stream::MpscStream;
 
-use crate::forge_app::apply_tunable_parameters::ApplyTunableParameters;
-use crate::forge_app::changed_files::ChangedFiles;
-use crate::forge_app::dto::ToolsOverview;
-use crate::forge_app::hooks::{
+use crate::apply_tunable_parameters::ApplyTunableParameters;
+use crate::changed_files::ChangedFiles;
+use crate::dto::ToolsOverview;
+use crate::hooks::{
     CompactionHandler, DoomLoopDetector, PendingTodosHandler, TitleGenerationHandler,
     TracingHandler,
 };
-use crate::forge_app::init_conversation_metrics::InitConversationMetrics;
-use crate::forge_app::orch::Orchestrator;
-use crate::forge_app::services::{AgentRegistry, CustomInstructionsService, ProviderAuthService};
-use crate::forge_app::set_conversation_id::SetConversationId;
-use crate::forge_app::system_prompt::SystemPrompt;
-use crate::forge_app::tool_registry::ToolRegistry;
-use crate::forge_app::tool_resolver::ToolResolver;
-use crate::forge_app::user_prompt::UserPromptGenerator;
-use crate::forge_app::{
+use crate::init_conversation_metrics::InitConversationMetrics;
+use crate::orch::Orchestrator;
+use crate::services::{AgentRegistry, CustomInstructionsService, ProviderAuthService};
+use crate::set_conversation_id::SetConversationId;
+use crate::system_prompt::SystemPrompt;
+use crate::tool_registry::ToolRegistry;
+use crate::tool_resolver::ToolResolver;
+use crate::user_prompt::UserPromptGenerator;
+use crate::{
     AgentExt, AgentProviderResolver, ConversationService, EnvironmentInfra, FileDiscoveryService,
     ProviderService, Services,
 };

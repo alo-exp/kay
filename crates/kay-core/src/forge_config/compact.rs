@@ -5,7 +5,7 @@ use fake::Dummy;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::forge_config::Percentage;
+use crate::Percentage;
 
 /// Frequency at which forge checks for updates
 #[derive(Default, Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, fake::Dummy)]

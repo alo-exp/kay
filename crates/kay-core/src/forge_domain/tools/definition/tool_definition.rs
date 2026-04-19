@@ -2,7 +2,7 @@ use derive_setters::Setters;
 use schemars::Schema;
 use serde::{Deserialize, Serialize};
 
-use crate::forge_domain::ToolName;
+use crate::ToolName;
 
 ///
 /// Refer to the specification over here:

@@ -4,17 +4,17 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, LazyLock};
 
 use chrono::{DateTime, Utc};
-use crate::forge_domain::Conversation;
+use forge_domain::Conversation;
 use sysinfo::System;
 use tokio::process::Command;
 use tokio::sync::Mutex;
 
 use super::Result;
-use crate::forge_tracker::can_track::can_track;
-use crate::forge_tracker::collect::{Collect, posthog};
-use crate::forge_tracker::event::Identity;
-use crate::forge_tracker::rate_limit::RateLimiter;
-use crate::forge_tracker::{Event, EventKind, client_id};
+use crate::can_track::can_track;
+use crate::collect::{Collect, posthog};
+use crate::event::Identity;
+use crate::rate_limit::RateLimiter;
+use crate::{Event, EventKind, client_id};
 
 const POSTHOG_API_SECRET: &str = match option_env!("POSTHOG_API_SECRET") {
     Some(val) => val,

@@ -1,8 +1,8 @@
 use derive_setters::Setters;
-use crate::forge_template::Element;
+use forge_template::Element;
 use serde::{Deserialize, Serialize};
 
-use crate::forge_domain::{ConversationId, Image, ToolCallFull, ToolCallId, ToolName};
+use crate::{ConversationId, Image, ToolCallFull, ToolCallId, ToolName};
 
 const REFLECTION_PROMPT: &str =
     include_str!("../../../../templates/forge-partial-tool-error-reflection.md");

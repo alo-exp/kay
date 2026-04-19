@@ -1,7 +1,7 @@
-use crate::forge_select::confirm::ConfirmBuilder;
-use crate::forge_select::input::InputBuilder;
-use crate::forge_select::multi::MultiSelectBuilder;
-use crate::forge_select::select::SelectBuilder;
+use crate::confirm::ConfirmBuilder;
+use crate::input::InputBuilder;
+use crate::multi::MultiSelectBuilder;
+use crate::select::SelectBuilder;
 
 /// Centralized fzf-based select functionality with consistent error handling.
 ///

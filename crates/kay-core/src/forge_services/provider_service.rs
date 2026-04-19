@@ -2,11 +2,11 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use anyhow::Result;
-use crate::forge_app::ProviderService;
-use crate::forge_app::domain::{
+use forge_app::ProviderService;
+use forge_app::domain::{
     AnyProvider, ChatCompletionMessage, Model, ModelId, ProviderId, ResultStream,
 };
-use crate::forge_domain::{
+use forge_domain::{
     AuthCredential, ChatRepository, Context, MigrationResult, ModelSource, Provider,
     ProviderRepository, ProviderTemplate,
 };

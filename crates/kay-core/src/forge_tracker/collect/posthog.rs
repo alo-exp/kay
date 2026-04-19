@@ -9,7 +9,7 @@ use serde_json::Value;
 
 use super::super::Result;
 use super::Collect;
-use crate::forge_tracker::Event;
+use crate::Event;
 
 pub struct Tracker {
     api_secret: &'static str,

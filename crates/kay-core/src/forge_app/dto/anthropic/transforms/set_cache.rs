@@ -1,6 +1,6 @@
-use crate::forge_domain::Transformer;
+use forge_domain::Transformer;
 
-use crate::forge_app::dto::anthropic::Request;
+use crate::dto::anthropic::Request;
 
 /// Transformer that implements a simple two-breakpoint cache strategy:
 /// - Always caches the first message in the conversation

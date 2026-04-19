@@ -2,7 +2,7 @@
 
 use streamdown_parser::{InlineElement, InlineParser};
 
-use crate::forge_markdown_stream::style::InlineStyler;
+use crate::style::InlineStyler;
 
 /// Render inline elements to a string using a styler.
 pub fn render_inline_content<S: InlineStyler>(content: &str, styler: &S) -> String {

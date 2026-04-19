@@ -1,9 +1,9 @@
 use std::collections::HashSet;
 
 use convert_case::{Case, Casing};
-use crate::forge_api::{ToolName, ToolsOverview};
+use forge_api::{ToolName, ToolsOverview};
 
-use crate::forge_main::info::Info;
+use crate::info::Info;
 
 /// Formats the tools overview for display using the Info component,
 /// organized by categories with availability checkboxes.

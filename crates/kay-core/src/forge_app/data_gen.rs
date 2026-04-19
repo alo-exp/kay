@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use anyhow::{Context as _, Result};
-use crate::forge_domain::{
+use forge_domain::{
     Context, ContextMessage, DataGenerationParameters, ResultStreamExt, Template, ToolDefinition,
 };
 use futures::StreamExt;
@@ -10,7 +10,7 @@ use futures::stream::{self, BoxStream};
 use schemars::Schema;
 use tracing::{debug, info};
 
-use crate::forge_app::{AppConfigService, FsReadService, ProviderService, Services, TemplateEngine};
+use crate::{AppConfigService, FsReadService, ProviderService, Services, TemplateEngine};
 
 pub struct DataGenerationApp<A> {
     services: Arc<A>,

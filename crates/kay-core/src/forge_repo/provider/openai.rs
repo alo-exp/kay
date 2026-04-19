@@ -1,22 +1,22 @@
 use std::sync::{Arc, LazyLock};
 
 use anyhow::{Context as _, Result};
-use crate::forge_app::domain::{
+use forge_app::domain::{
     ChatCompletionMessage, Context as ChatContext, Model, ModelId, ProviderId, ResultStream,
     Transformer,
 };
-use crate::forge_app::dto::openai::{ListModelResponse, ProviderPipeline, Request, Response};
-use crate::forge_app::{EnvironmentInfra, HttpInfra};
-use crate::forge_domain::{ChatRepository, Provider};
-use crate::forge_infra::sanitize_headers;
+use forge_app::dto::openai::{ListModelResponse, ProviderPipeline, Request, Response};
+use forge_app::{EnvironmentInfra, HttpInfra};
+use forge_domain::{ChatRepository, Provider};
+use forge_infra::sanitize_headers;
 use reqwest::header::AUTHORIZATION;
 use tokio_stream::StreamExt;
 use tracing::{debug, info};
 use url::Url;
 
-use crate::forge_repo::provider::event::into_chat_completion_message;
-use crate::forge_repo::provider::retry::into_retry;
-use crate::forge_repo::provider::utils::{create_headers, format_http_context, join_url};
+use crate::provider::event::into_chat_completion_message;
+use crate::provider::retry::into_retry;
+use crate::provider::utils::{create_headers, format_http_context, join_url};
 
 /// Enhances error messages with provider-specific helpful information
 fn enhance_error(error: anyhow::Error, provider_id: &ProviderId) -> anyhow::Error {

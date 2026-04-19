@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
-use crate::forge_domain::CodeRequest;
+use forge_domain::CodeRequest;
 use tiny_http::{Header, Method, Request, Response, Server, StatusCode};
 use url::{Host, Url};
 

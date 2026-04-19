@@ -1,14 +1,14 @@
 use std::sync::Arc;
 
-use crate::forge_app::domain::{
+use forge_app::domain::{
     Attachment, AttachmentContent, DirectoryEntry, FileTag, Image, LineNumbers,
 };
-use crate::forge_app::utils::format_display_path;
-use crate::forge_app::{
+use forge_app::utils::format_display_path;
+use forge_app::{
     AttachmentService, DirectoryReaderInfra, EnvironmentInfra, FileInfoInfra, FileReaderInfra,
 };
 
-use crate::forge_services::range::resolve_range;
+use crate::range::resolve_range;
 
 #[derive(Clone)]
 pub struct ForgeChatRequest<F> {

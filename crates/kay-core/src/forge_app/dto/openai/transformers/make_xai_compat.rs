@@ -1,6 +1,6 @@
-use crate::forge_domain::Transformer;
+use forge_domain::Transformer;
 
-use crate::forge_app::dto::openai::Request;
+use crate::dto::openai::Request;
 
 /// Makes the Request compatible with xAI's API.
 /// xAI's /v1/chat/completions is OpenAI-compatible but rejects several

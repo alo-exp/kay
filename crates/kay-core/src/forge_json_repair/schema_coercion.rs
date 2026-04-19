@@ -2,7 +2,7 @@ use schemars::Schema;
 use serde::de::Error as _;
 use serde_json::Value;
 
-use crate::forge_json_repair::json_repair;
+use crate::json_repair;
 
 /// Coerces a JSON value to match the expected types defined in a JSON schema.
 ///

@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use derive_more::From;
 use derive_setters::Setters;
 
-use crate::forge_domain::{Agent, ChatCompletionMessageFull, Conversation, ModelId, ToolCallFull, ToolResult};
+use crate::{Agent, ChatCompletionMessageFull, Conversation, ModelId, ToolCallFull, ToolResult};
 
 /// A container for lifecycle events with agent and model ID context
 ///

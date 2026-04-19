@@ -1,30 +1,30 @@
 use std::sync::Arc;
 
-use crate::forge_app::{
+use forge_app::{
     AgentRepository, CommandInfra, DirectoryReaderInfra, EnvironmentInfra, FileDirectoryInfra,
     FileInfoInfra, FileReaderInfra, FileRemoverInfra, FileWriterInfra, HttpInfra, KVStore,
     McpServerInfra, Services, StrategyFactory, UserInfra, WalkerInfra,
 };
-use crate::forge_domain::{
+use forge_domain::{
     ChatRepository, ConversationRepository, FuzzySearchRepository, ProviderRepository,
     SkillRepository, SnapshotRepository, ValidationRepository, WorkspaceIndexRepository,
 };
 
-use crate::forge_services::ForgeProviderAuthService;
-use crate::forge_services::agent_registry::ForgeAgentRegistryService;
-use crate::forge_services::app_config::ForgeAppConfigService;
-use crate::forge_services::attachment::ForgeChatRequest;
-use crate::forge_services::auth::ForgeAuthService;
-use crate::forge_services::command::CommandLoaderService as ForgeCommandLoaderService;
-use crate::forge_services::conversation::ForgeConversationService;
-use crate::forge_services::discovery::ForgeDiscoveryService;
-use crate::forge_services::fd::FdDefault;
-use crate::forge_services::instructions::ForgeCustomInstructionsService;
-use crate::forge_services::mcp::{ForgeMcpManager, ForgeMcpService};
-use crate::forge_services::policy::ForgePolicyService;
-use crate::forge_services::provider_service::ForgeProviderService;
-use crate::forge_services::template::ForgeTemplateService;
-use crate::forge_services::tool_services::{
+use crate::ForgeProviderAuthService;
+use crate::agent_registry::ForgeAgentRegistryService;
+use crate::app_config::ForgeAppConfigService;
+use crate::attachment::ForgeChatRequest;
+use crate::auth::ForgeAuthService;
+use crate::command::CommandLoaderService as ForgeCommandLoaderService;
+use crate::conversation::ForgeConversationService;
+use crate::discovery::ForgeDiscoveryService;
+use crate::fd::FdDefault;
+use crate::instructions::ForgeCustomInstructionsService;
+use crate::mcp::{ForgeMcpManager, ForgeMcpService};
+use crate::policy::ForgePolicyService;
+use crate::provider_service::ForgeProviderService;
+use crate::template::ForgeTemplateService;
+use crate::tool_services::{
     ForgeFetch, ForgeFollowup, ForgeFsPatch, ForgeFsRead, ForgeFsRemove, ForgeFsSearch,
     ForgeFsUndo, ForgeFsWrite, ForgeImageRead, ForgePlanCreate, ForgeShell, ForgeSkillFetch,
 };

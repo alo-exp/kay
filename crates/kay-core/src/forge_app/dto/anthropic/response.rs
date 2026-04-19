@@ -1,4 +1,4 @@
-use crate::forge_domain::{
+use forge_domain::{
     ChatCompletionMessage, Content, ModelId, Reasoning, ReasoningPart, TokenCount, ToolCallId,
     ToolCallPart, ToolName,
 };
@@ -13,7 +13,7 @@ pub enum StringOrF64 {
 }
 
 use super::request::Role;
-use crate::forge_app::dto::anthropic::Error;
+use crate::dto::anthropic::Error;
 
 #[derive(Deserialize)]
 pub struct ListModelResponse {

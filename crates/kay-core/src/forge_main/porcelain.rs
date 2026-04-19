@@ -3,8 +3,8 @@ use std::fmt;
 
 use indexmap::IndexSet;
 
-use crate::forge_main::display_constants::headers;
-use crate::forge_main::info::{Info, Section};
+use crate::display_constants::headers;
+use crate::info::{Info, Section};
 
 /// Porcelain is an intermediate representation that converts Info into a flat,
 /// tabular structure suitable for machine-readable output.

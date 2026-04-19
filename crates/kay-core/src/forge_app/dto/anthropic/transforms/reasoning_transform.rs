@@ -1,4 +1,4 @@
-use crate::forge_domain::{Context, Transformer};
+use forge_domain::{Context, Transformer};
 
 pub struct ReasoningTransform;
 

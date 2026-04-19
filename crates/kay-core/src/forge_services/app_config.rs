@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use crate::forge_app::{AppConfigService, EnvironmentInfra};
-use crate::forge_domain::{ConfigOperation, Effort, ModelConfig, ModelId, ProviderId, ProviderRepository};
+use forge_app::{AppConfigService, EnvironmentInfra};
+use forge_domain::{ConfigOperation, Effort, ModelConfig, ModelId, ProviderId, ProviderRepository};
 use tracing::debug;
 
 /// Service for managing user preferences for default providers and models.

@@ -5,7 +5,7 @@ use derive_more::Display;
 use derive_setters::Setters;
 use serde::{Deserialize, Serialize};
 
-use crate::forge_domain::{Effort, ModelConfig};
+use crate::{Effort, ModelConfig};
 
 /// All discrete mutations that can be applied to the application configuration.
 ///

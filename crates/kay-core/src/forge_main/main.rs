@@ -4,10 +4,10 @@ use std::path::PathBuf;
 
 use anyhow::{Context, Result};
 use clap::Parser;
-use crate::forge_api::ForgeAPI;
-use crate::forge_config::ForgeConfig;
-use crate::forge_domain::TitleFormat;
-use crate::forge_main::{Cli, Sandbox, TitleDisplayExt, UI, tracker};
+use forge_api::ForgeAPI;
+use forge_config::ForgeConfig;
+use forge_domain::TitleFormat;
+use forge_main::{Cli, Sandbox, TitleDisplayExt, UI, tracker};
 
 /// Enables ENABLE_VIRTUAL_TERMINAL_PROCESSING on the stdout console handle.
 ///

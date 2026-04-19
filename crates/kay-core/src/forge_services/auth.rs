@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::forge_app::{AuthService, EnvironmentInfra, HttpInfra, User, UserUsage};
+use forge_app::{AuthService, EnvironmentInfra, HttpInfra, User, UserUsage};
 use reqwest::Url;
 use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
 

@@ -1,4 +1,4 @@
-use crate::forge_tracker::Event;
+use crate::Event;
 
 pub mod posthog;
 

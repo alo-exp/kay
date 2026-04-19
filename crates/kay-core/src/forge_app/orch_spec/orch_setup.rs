@@ -3,15 +3,15 @@ use std::path::PathBuf;
 
 use chrono::{DateTime, Local};
 use derive_setters::Setters;
-use crate::forge_config::ForgeConfig;
-use crate::forge_domain::{
+use forge_config::ForgeConfig;
+use forge_domain::{
     Agent, AgentId, Attachment, ChatCompletionMessage, ChatResponse, Conversation, Environment,
     Event, File, MessageEntry, Metrics, ModelId, ProviderId, Role, Template, ToolCallFull,
     ToolDefinition, ToolResult,
 };
 
-use crate::forge_app::ShellOutput;
-use crate::forge_app::orch_spec::orch_runner::Runner;
+use crate::ShellOutput;
+use crate::orch_spec::orch_runner::Runner;
 
 // User prompt
 const USER_PROMPT: &str = r#"

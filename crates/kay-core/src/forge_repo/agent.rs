@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
-use crate::forge_app::{AgentRepository, DirectoryReaderInfra, EnvironmentInfra, FileInfoInfra};
-use crate::forge_config::ForgeConfig;
-use crate::forge_domain::{ModelId, ProviderId, Template, ToolName};
+use forge_app::{AgentRepository, DirectoryReaderInfra, EnvironmentInfra, FileInfoInfra};
+use forge_config::ForgeConfig;
+use forge_domain::{ModelId, ProviderId, Template, ToolName};
 use gray_matter::Matter;
 use gray_matter::engine::YAML;
 
-use crate::forge_repo::agent_definition::AgentDefinition;
+use crate::agent_definition::AgentDefinition;
 
 /// Infrastructure implementation for loading agent definitions from multiple
 /// sources:

@@ -1,9 +1,9 @@
 use std::collections::BTreeMap;
 
-use crate::forge_app::McpServerInfra;
-use crate::forge_domain::{Environment, McpServerConfig};
+use forge_app::McpServerInfra;
+use forge_domain::{Environment, McpServerConfig};
 
-use crate::forge_infra::mcp_client::ForgeMcpClient;
+use crate::mcp_client::ForgeMcpClient;
 
 #[derive(Clone)]
 pub struct ForgeMcpServer;

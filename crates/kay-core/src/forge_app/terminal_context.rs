@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use crate::forge_domain::{TerminalCommand, TerminalContext};
+use forge_domain::{TerminalCommand, TerminalContext};
 
-use crate::forge_app::EnvironmentInfra;
+use crate::EnvironmentInfra;
 
 /// Environment variable exported by the zsh plugin containing
 /// `\x1F`-separated (ASCII Unit Separator) command strings.

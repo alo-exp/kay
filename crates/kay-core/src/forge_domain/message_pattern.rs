@@ -1,6 +1,6 @@
 use serde_json::json;
 
-use crate::forge_domain::{
+use crate::{
     Context, ContextMessage, MessageEntry, ModelId, ToolCallFull, ToolCallId, ToolName, ToolResult,
 };
 

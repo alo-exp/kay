@@ -3,23 +3,23 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::Result;
-use crate::forge_app::dto::ToolsOverview;
-use crate::forge_app::{
+use forge_app::dto::ToolsOverview;
+use forge_app::{
     AgentProviderResolver, AgentRegistry, AppConfigService, AuthService, CommandInfra,
     CommandLoaderService, ConversationService, DataGenerationApp, EnvironmentInfra,
     FileDiscoveryService, ForgeApp, GitApp, GrpcInfra, McpConfigManager, McpService,
     ProviderAuthService, ProviderService, Services, User, UserUsage, Walker, WorkspaceService,
 };
-use crate::forge_config::ForgeConfig;
-use crate::forge_domain::{Agent, ConsoleWriter, *};
-use crate::forge_infra::ForgeInfra;
-use crate::forge_repo::ForgeRepo;
-use crate::forge_services::ForgeServices;
-use crate::forge_stream::MpscStream;
+use forge_config::ForgeConfig;
+use forge_domain::{Agent, ConsoleWriter, *};
+use forge_infra::ForgeInfra;
+use forge_repo::ForgeRepo;
+use forge_services::ForgeServices;
+use forge_stream::MpscStream;
 use futures::stream::BoxStream;
 use url::Url;
 
-use crate::forge_api::API;
+use crate::API;
 
 pub struct ForgeAPI<S, F> {
     services: Arc<S>,
@@ -34,8 +34,8 @@ impl<A, F> ForgeAPI<A, F> {
     /// Creates a ForgeApp instance with the current services and latest config.
     fn app(&self) -> ForgeApp<A>
     where
-        A: Services + EnvironmentInfra<Config = crate::forge_config::ForgeConfig>,
-        F: EnvironmentInfra<Config = crate::forge_config::ForgeConfig>,
+        A: Services + EnvironmentInfra<Config = forge_config::ForgeConfig>,
+        F: EnvironmentInfra<Config = forge_config::ForgeConfig>,
     {
         ForgeApp::new(self.services.clone())
     }
@@ -56,16 +56,16 @@ impl ForgeAPI<ForgeServices<ForgeRepo<ForgeInfra>>, ForgeRepo<ForgeInfra>> {
     }
 
     pub async fn get_skills_internal(&self) -> Result<Vec<Skill>> {
-        use crate::forge_domain::SkillRepository;
+        use forge_domain::SkillRepository;
         self.infra.load_skills().await
     }
 }
 
 #[async_trait::async_trait]
 impl<
-    A: Services + EnvironmentInfra<Config = crate::forge_config::ForgeConfig>,
+    A: Services + EnvironmentInfra<Config = forge_config::ForgeConfig>,
     F: CommandInfra
-        + EnvironmentInfra<Config = crate::forge_config::ForgeConfig>
+        + EnvironmentInfra<Config = forge_config::ForgeConfig>
         + SkillRepository
         + GrpcInfra,
 > API for ForgeAPI<A, F>
@@ -106,7 +106,7 @@ impl<
         max_diff_size: Option<usize>,
         diff: Option<String>,
         additional_context: Option<String>,
-    ) -> Result<crate::forge_app::CommitResult> {
+    ) -> Result<forge_app::CommitResult> {
         let git_app = GitApp::new(self.services.clone());
         let result = git_app
             .commit_message(max_diff_size, diff, additional_context)
@@ -234,12 +234,12 @@ impl<
         agent_provider_resolver.get_provider(Some(agent_id)).await
     }
 
-    async fn update_config(&self, ops: Vec<crate::forge_domain::ConfigOperation>) -> anyhow::Result<()> {
+    async fn update_config(&self, ops: Vec<forge_domain::ConfigOperation>) -> anyhow::Result<()> {
         // Determine whether any op affects provider/model resolution before writing,
         // so we can invalidate the agent cache afterwards.
         let needs_agent_reload = ops
             .iter()
-            .any(|op| matches!(op, crate::forge_domain::ConfigOperation::SetSessionConfig(_)));
+            .any(|op| matches!(op, forge_domain::ConfigOperation::SetSessionConfig(_)));
         let result = self.services.update_config(ops).await;
         if needs_agent_reload {
             let _ = self.services.reload_agents().await;
@@ -274,7 +274,7 @@ impl<
             .credential
             .as_ref()
             .and_then(|c| match &c.auth_details {
-                crate::forge_domain::AuthDetails::ApiKey(key) => Some(key.as_str()),
+                forge_domain::AuthDetails::ApiKey(key) => Some(key.as_str()),
                 _ => None,
             })
         {
@@ -308,7 +308,7 @@ impl<
         self.infra.load_skills().await
     }
     async fn generate_command(&self, prompt: UserPrompt) -> Result<String> {
-        use crate::forge_app::CommandGenerator;
+        use forge_app::CommandGenerator;
         let generator = CommandGenerator::new(self.services.clone());
         generator.generate(prompt).await
     }
@@ -343,34 +343,34 @@ impl<
     async fn sync_workspace(
         &self,
         path: PathBuf,
-    ) -> Result<MpscStream<Result<crate::forge_domain::SyncProgress>>> {
+    ) -> Result<MpscStream<Result<forge_domain::SyncProgress>>> {
         self.services.sync_workspace(path).await
     }
 
     async fn query_workspace(
         &self,
         path: PathBuf,
-        params: crate::forge_domain::SearchParams<'_>,
-    ) -> Result<Vec<crate::forge_domain::Node>> {
+        params: forge_domain::SearchParams<'_>,
+    ) -> Result<Vec<forge_domain::Node>> {
         self.services.query_workspace(path, params).await
     }
 
-    async fn list_workspaces(&self) -> Result<Vec<crate::forge_domain::WorkspaceInfo>> {
+    async fn list_workspaces(&self) -> Result<Vec<forge_domain::WorkspaceInfo>> {
         self.services.list_workspaces().await
     }
 
     async fn get_workspace_info(
         &self,
         path: PathBuf,
-    ) -> Result<Option<crate::forge_domain::WorkspaceInfo>> {
+    ) -> Result<Option<forge_domain::WorkspaceInfo>> {
         self.services.get_workspace_info(path).await
     }
 
-    async fn delete_workspaces(&self, workspace_ids: Vec<crate::forge_domain::WorkspaceId>) -> Result<()> {
+    async fn delete_workspaces(&self, workspace_ids: Vec<forge_domain::WorkspaceId>) -> Result<()> {
         self.services.delete_workspaces(&workspace_ids).await
     }
 
-    async fn get_workspace_status(&self, path: PathBuf) -> Result<Vec<crate::forge_domain::FileStatus>> {
+    async fn get_workspace_status(&self, path: PathBuf) -> Result<Vec<forge_domain::FileStatus>> {
         self.services.get_workspace_status(path).await
     }
 
@@ -378,15 +378,15 @@ impl<
         self.services.is_authenticated().await
     }
 
-    async fn create_auth_credentials(&self) -> Result<crate::forge_domain::WorkspaceAuth> {
+    async fn create_auth_credentials(&self) -> Result<forge_domain::WorkspaceAuth> {
         self.services.init_auth_credentials().await
     }
 
-    async fn init_workspace(&self, path: PathBuf) -> Result<crate::forge_domain::WorkspaceId> {
+    async fn init_workspace(&self, path: PathBuf) -> Result<forge_domain::WorkspaceId> {
         self.services.init_workspace(path).await
     }
 
-    async fn migrate_env_credentials(&self) -> Result<Option<crate::forge_domain::MigrationResult>> {
+    async fn migrate_env_credentials(&self) -> Result<Option<forge_domain::MigrationResult>> {
         Ok(self.services.migrate_env_credentials().await?)
     }
 
@@ -398,7 +398,7 @@ impl<
         app.execute(data_parameters).await
     }
 
-    async fn get_session_config(&self) -> Option<crate::forge_domain::ModelConfig> {
+    async fn get_session_config(&self) -> Option<forge_domain::ModelConfig> {
         self.services.get_session_config().await
     }
 
@@ -407,26 +407,26 @@ impl<
             .services
             .get_session_config()
             .await
-            .ok_or_else(|| crate::forge_domain::Error::NoDefaultSession)?;
+            .ok_or_else(|| forge_domain::Error::NoDefaultSession)?;
         self.services.get_provider(model_config.provider).await
     }
 
     async fn mcp_auth(&self, server_url: &str) -> Result<()> {
         let env = self.services.get_environment().clone();
-        crate::forge_infra::mcp_auth(server_url, &env).await
+        forge_infra::mcp_auth(server_url, &env).await
     }
 
     async fn mcp_logout(&self, server_url: Option<&str>) -> Result<()> {
         let env = self.services.get_environment().clone();
         match server_url {
-            Some(url) => crate::forge_infra::mcp_logout(url, &env).await,
-            None => crate::forge_infra::mcp_logout_all(&env).await,
+            Some(url) => forge_infra::mcp_logout(url, &env).await,
+            None => forge_infra::mcp_logout_all(&env).await,
         }
     }
 
     async fn mcp_auth_status(&self, server_url: &str) -> Result<String> {
         let env = self.services.get_environment().clone();
-        Ok(crate::forge_infra::mcp_auth_status(server_url, &env).await)
+        Ok(forge_infra::mcp_auth_status(server_url, &env).await)
     }
 
     fn hydrate_channel(&self) -> Result<()> {

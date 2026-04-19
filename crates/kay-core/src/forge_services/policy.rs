@@ -3,11 +3,11 @@ use std::sync::{Arc, LazyLock};
 
 use anyhow::Context;
 use bytes::Bytes;
-use crate::forge_app::domain::{
+use forge_app::domain::{
     ExecuteRule, Fetch, Permission, PermissionOperation, Policy, PolicyConfig, PolicyEngine,
     ReadRule, Rule, WriteRule,
 };
-use crate::forge_app::{
+use forge_app::{
     DirectoryReaderInfra, EnvironmentInfra, FileInfoInfra, FileReaderInfra, FileWriterInfra,
     PolicyDecision, PolicyService, UserInfra,
 };

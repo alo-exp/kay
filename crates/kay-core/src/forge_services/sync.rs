@@ -2,12 +2,12 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
-use crate::forge_app::{FileReaderInfra, SyncProgressCounter, WorkspaceStatus, compute_hash};
-use crate::forge_domain::{ApiKey, FileHash, SyncProgress, UserId, WorkspaceId, WorkspaceIndexRepository};
+use forge_app::{FileReaderInfra, SyncProgressCounter, WorkspaceStatus, compute_hash};
+use forge_domain::{ApiKey, FileHash, SyncProgress, UserId, WorkspaceId, WorkspaceIndexRepository};
 use futures::stream::{Stream, StreamExt};
 use tracing::{info, warn};
 
-use crate::forge_services::fd::{FileDiscovery, discover_sync_file_paths};
+use crate::fd::{FileDiscovery, discover_sync_file_paths};
 
 /// Error type for a single file that could not be read during workspace
 /// operations, carrying the file path for downstream reporting.

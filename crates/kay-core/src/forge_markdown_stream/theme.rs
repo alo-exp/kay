@@ -6,7 +6,7 @@
 use colored::{Color, ColoredString, Colorize};
 use streamdown_parser::decode_html_entities;
 
-use crate::forge_markdown_stream::style::{HeadingStyler, InlineStyler, ListStyler, TableStyler};
+use crate::style::{HeadingStyler, InlineStyler, ListStyler, TableStyler};
 
 /// Style configuration for a single element.
 #[derive(Clone, Debug, Default)]

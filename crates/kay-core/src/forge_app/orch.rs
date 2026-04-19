@@ -4,15 +4,15 @@ use std::time::Duration;
 
 use async_recursion::async_recursion;
 use derive_setters::Setters;
-use crate::forge_domain::{Agent, *};
-use crate::forge_template::Element;
+use forge_domain::{Agent, *};
+use forge_template::Element;
 use futures::future::join_all;
 use tokio::sync::Notify;
 use tracing::warn;
 
-use crate::forge_app::agent::AgentService;
-use crate::forge_app::transformers::ModelSpecificReasoning;
-use crate::forge_app::{EnvironmentInfra, TemplateEngine};
+use crate::agent::AgentService;
+use crate::transformers::ModelSpecificReasoning;
+use crate::{EnvironmentInfra, TemplateEngine};
 
 #[derive(Clone, Setters)]
 #[setters(into)]

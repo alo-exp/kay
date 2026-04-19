@@ -5,13 +5,13 @@ use std::io::{self, Write};
 use streamdown_parser::ParseEvent;
 use streamdown_render::text::text_wrap;
 
-use crate::forge_markdown_stream::code::CodeHighlighter;
-use crate::forge_markdown_stream::heading::render_heading;
-use crate::forge_markdown_stream::inline::{render_inline_content, render_inline_elements};
-use crate::forge_markdown_stream::list::{ListState, render_list_item};
-use crate::forge_markdown_stream::style::InlineStyler;
-use crate::forge_markdown_stream::table::render_table;
-use crate::forge_markdown_stream::theme::Theme;
+use crate::code::CodeHighlighter;
+use crate::heading::render_heading;
+use crate::inline::{render_inline_content, render_inline_elements};
+use crate::list::{ListState, render_list_item};
+use crate::style::InlineStyler;
+use crate::table::render_table;
+use crate::theme::Theme;
 
 /// Main renderer for markdown events.
 pub struct Renderer<W: Write> {

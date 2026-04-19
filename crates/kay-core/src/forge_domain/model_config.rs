@@ -1,7 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::forge_domain::{ModelId, ProviderId};
+use crate::{ModelId, ProviderId};
 
 /// Domain-level configuration that pairs a provider with a model.
 ///

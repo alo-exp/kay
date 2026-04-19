@@ -3,8 +3,8 @@ use std::sync::Arc;
 use anyhow::{Context as _, Result};
 use aws_sdk_bedrockruntime::Client;
 use aws_sdk_bedrockruntime::config::Token;
-use crate::forge_config::RetryConfig;
-use crate::forge_domain::{
+use forge_config::RetryConfig;
+use forge_domain::{
     AuthDetails, ChatCompletionMessage, ChatRepository, Context, Model, ModelId, Provider,
     ResultStream, Transformer,
 };
@@ -12,10 +12,10 @@ use reqwest::Url;
 use tokio::sync::OnceCell;
 use tokio_stream::StreamExt;
 
-use crate::forge_repo::provider::bedrock_cache::SetCache;
-use crate::forge_repo::provider::bedrock_sanitize_ids::SanitizeToolIds;
-use crate::forge_repo::provider::retry::into_retry;
-use crate::forge_repo::provider::{FromDomain, IntoDomain};
+use crate::provider::bedrock_cache::SetCache;
+use crate::provider::bedrock_sanitize_ids::SanitizeToolIds;
+use crate::provider::retry::into_retry;
+use crate::provider::{FromDomain, IntoDomain};
 
 /// Provider implementation for Amazon Bedrock using Bearer token authentication
 ///

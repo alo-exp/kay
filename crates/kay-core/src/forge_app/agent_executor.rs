@@ -2,16 +2,16 @@ use std::sync::Arc;
 
 use anyhow::Context;
 use convert_case::{Case, Casing};
-use crate::forge_domain::{
+use forge_domain::{
     AgentId, ChatRequest, ChatResponse, ChatResponseContent, Conversation, ConversationId, Event,
     TitleFormat, ToolCallContext, ToolDefinition, ToolName, ToolOutput,
 };
-use crate::forge_template::Element;
+use forge_template::Element;
 use futures::StreamExt;
 use tokio::sync::RwLock;
 
-use crate::forge_app::error::Error;
-use crate::forge_app::{AgentRegistry, ConversationService, EnvironmentInfra, Services};
+use crate::error::Error;
+use crate::{AgentRegistry, ConversationService, EnvironmentInfra, Services};
 #[derive(Clone)]
 pub struct AgentExecutor<S> {
     services: Arc<S>,

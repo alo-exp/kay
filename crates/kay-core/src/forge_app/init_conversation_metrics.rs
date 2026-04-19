@@ -1,5 +1,5 @@
 use chrono::{DateTime, Local, Utc};
-use crate::forge_domain::Conversation;
+use forge_domain::Conversation;
 
 /// Initializes conversation metrics with start time
 #[derive(Debug, Clone, Copy)]

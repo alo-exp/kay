@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use crate::forge_app::McpClientInfra;
-use crate::forge_app::domain::{ToolName, ToolOutput};
+use forge_app::McpClientInfra;
+use forge_app::domain::{ToolName, ToolOutput};
 
 #[derive(Clone)]
 pub struct McpExecutor<T> {

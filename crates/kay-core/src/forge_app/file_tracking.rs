@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
-use crate::forge_domain::Metrics;
+use forge_domain::Metrics;
 use futures::StreamExt;
 use tracing::debug;
 
-use crate::forge_app::FsReadService;
+use crate::FsReadService;
 
 /// Information about a detected file change
 #[derive(Debug, Clone, PartialEq)]

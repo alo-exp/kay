@@ -1,4 +1,4 @@
-use crate::forge_domain::{Context, Effort, ReasoningConfig, Transformer};
+use forge_domain::{Context, Effort, ReasoningConfig, Transformer};
 use tracing::warn;
 
 /// Default budget applied when converting adaptive-style reasoning into legacy

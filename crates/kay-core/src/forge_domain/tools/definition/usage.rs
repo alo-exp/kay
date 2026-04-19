@@ -4,7 +4,7 @@ use std::fmt::Display;
 use serde::Serialize;
 use serde_json::Value;
 
-use crate::forge_domain::ToolDefinition;
+use crate::ToolDefinition;
 
 pub struct ToolUsagePrompt<'a> {
     tools: &'a Vec<ToolDefinition>,

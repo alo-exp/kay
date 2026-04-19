@@ -1,6 +1,6 @@
-use crate::forge_domain::Transformer;
+use forge_domain::Transformer;
 
-use crate::forge_app::dto::openai::{Request, ThinkingConfig, ThinkingType};
+use crate::dto::openai::{Request, ThinkingConfig, ThinkingType};
 
 /// Transformer that converts standard ReasoningConfig to z.ai's thinking format
 ///

@@ -1,11 +1,11 @@
 use std::collections::BTreeMap;
 
-use crate::forge_json_repair::json_repair;
+use forge_json_repair::json_repair;
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue;
 use serde_json::{Map, Value};
 
-use crate::forge_domain::Error;
+use crate::Error;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ToolCallArguments {

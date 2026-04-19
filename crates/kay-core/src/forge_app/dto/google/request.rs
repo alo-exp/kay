@@ -1,5 +1,5 @@
 use derive_setters::Setters;
-use crate::forge_domain::{Context, ContextMessage};
+use forge_domain::{Context, ContextMessage};
 use serde::Serialize;
 
 #[derive(Serialize, Default, Setters)]

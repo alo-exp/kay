@@ -1,6 +1,6 @@
-use crate::forge_tracker::{EventKind, ToolCallPayload};
+use forge_tracker::{EventKind, ToolCallPayload};
 
-use crate::forge_main::TRACKER;
+use crate::TRACKER;
 
 /// Helper functions to eliminate duplication of tokio::spawn + TRACKER patterns
 /// Generic dispatcher for any event

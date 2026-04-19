@@ -4,20 +4,20 @@ use std::path::{Path, PathBuf};
 
 use console::strip_ansi_codes;
 use derive_setters::Setters;
-use crate::forge_config::ForgeConfig;
-use crate::forge_display::DiffFormat;
-use crate::forge_domain::{
+use forge_config::ForgeConfig;
+use forge_display::DiffFormat;
+use forge_domain::{
     CodebaseSearchResults, Environment, FSMultiPatch, FSPatch, FSRead, FSRemove, FSSearch, FSUndo,
     FSWrite, FileOperation, LineNumbers, Metrics, NetFetch, PlanCreate, ToolKind,
 };
-use crate::forge_template::Element;
+use forge_template::Element;
 
-use crate::forge_app::truncation::{
+use crate::truncation::{
     Stderr, Stdout, TruncationMode, truncate_fetch_content, truncate_search_output,
     truncate_shell_output,
 };
-use crate::forge_app::utils::{compute_hash, format_display_path};
-use crate::forge_app::{
+use crate::utils::{compute_hash, format_display_path};
+use crate::{
     FsRemoveOutput, FsUndoOutput, FsWriteOutput, HttpResponse, PatchOutput, PlanCreateOutput,
     ReadOutput, ResponseContext, SearchResult, ShellOutput,
 };

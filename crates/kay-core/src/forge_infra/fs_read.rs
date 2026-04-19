@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
-use crate::forge_app::FileReaderInfra;
+use forge_app::FileReaderInfra;
 use futures::{StreamExt, stream};
 
 #[derive(Clone)]

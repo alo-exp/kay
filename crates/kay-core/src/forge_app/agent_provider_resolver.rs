@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use crate::forge_domain::{AgentId, ModelId, Provider};
+use forge_domain::{AgentId, ModelId, Provider};
 
-use crate::forge_app::{AgentRegistry, AppConfigService, ProviderAuthService, ProviderService};
+use crate::{AgentRegistry, AppConfigService, ProviderAuthService, ProviderService};
 
 /// Resolver for agent providers and models.
 /// Handles provider resolution, credential refresh, and model lookup.

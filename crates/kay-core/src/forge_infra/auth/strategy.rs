@@ -1,7 +1,7 @@
 use std::time::Duration;
 
-use crate::forge_app::{AuthStrategy, OAuthHttpProvider, StrategyFactory};
-use crate::forge_domain::{
+use forge_app::{AuthStrategy, OAuthHttpProvider, StrategyFactory};
+use forge_domain::{
     ApiKey, ApiKeyRequest, AuthContextRequest, AuthContextResponse, AuthCredential, CodeRequest,
     DeviceCodeRequest, OAuthConfig, OAuthTokenResponse, OAuthTokens, ProviderId, URLParamSpec,
 };
@@ -11,9 +11,9 @@ use oauth2::{ClientId, DeviceAuthorizationUrl, Scope, TokenUrl};
 use reqwest::header::{HeaderMap, HeaderValue};
 use url::Url;
 
-use crate::forge_infra::auth::error::Error as AuthError;
-use crate::forge_infra::auth::http::{AnthropicHttpProvider, GithubHttpProvider, StandardHttpProvider};
-use crate::forge_infra::auth::util::*;
+use crate::auth::error::Error as AuthError;
+use crate::auth::http::{AnthropicHttpProvider, GithubHttpProvider, StandardHttpProvider};
+use crate::auth::util::*;
 
 /// API Key Strategy - Simple static key authentication
 pub struct ApiKeyStrategy {

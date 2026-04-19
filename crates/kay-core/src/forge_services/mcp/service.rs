@@ -2,16 +2,16 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use anyhow::Context;
-use crate::forge_app::domain::{
+use forge_app::domain::{
     McpConfig, McpServerConfig, McpServers, ServerName, ToolCallFull, ToolDefinition, ToolName,
     ToolOutput,
 };
-use crate::forge_app::{
+use forge_app::{
     EnvironmentInfra, KVStore, McpClientInfra, McpConfigManager, McpServerInfra, McpService,
 };
 use tokio::sync::{Mutex, RwLock};
 
-use crate::forge_services::mcp::tool::McpExecutor;
+use crate::mcp::tool::McpExecutor;
 
 #[derive(Clone)]
 pub struct ForgeMcpService<M, I, C> {

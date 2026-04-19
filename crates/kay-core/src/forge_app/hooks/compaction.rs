@@ -1,8 +1,8 @@
 use async_trait::async_trait;
-use crate::forge_domain::{Agent, Conversation, Environment, EventData, EventHandle, ResponsePayload};
+use forge_domain::{Agent, Conversation, Environment, EventData, EventHandle, ResponsePayload};
 use tracing::{debug, info};
 
-use crate::forge_app::compact::Compactor;
+use crate::compact::Compactor;
 
 /// Hook handler that performs context compaction when needed
 ///

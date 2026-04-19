@@ -6,9 +6,9 @@ use fake::Dummy;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::forge_config::reader::ConfigReader;
-use crate::forge_config::writer::ConfigWriter;
-use crate::forge_config::{
+use crate::reader::ConfigReader;
+use crate::writer::ConfigWriter;
+use crate::{
     AutoDumpFormat, Compact, Decimal, HttpConfig, ModelConfig, ReasoningConfig, RetryConfig, Update,
 };
 

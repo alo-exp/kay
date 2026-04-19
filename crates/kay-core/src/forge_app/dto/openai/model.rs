@@ -1,4 +1,4 @@
-use crate::forge_domain::ModelId;
+use forge_domain::ModelId;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

@@ -1,5 +1,5 @@
 use super::Transformer;
-use crate::forge_domain::{Context, ToolOrder};
+use crate::{Context, ToolOrder};
 
 /// Transformer that sorts tools in the context according to a specified
 /// ordering strategy

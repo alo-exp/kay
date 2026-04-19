@@ -2,9 +2,9 @@ use std::cmp;
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use crate::forge_domain::FileInfo;
+use forge_domain::FileInfo;
 
-use crate::forge_fs::error::Error;
+use crate::error::Error;
 
 impl crate::ForgeFS {
     /// Reads a specific range of lines from a file.

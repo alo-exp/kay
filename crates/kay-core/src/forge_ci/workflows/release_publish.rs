@@ -1,7 +1,7 @@
 use gh_workflow::generate::Generate;
 use gh_workflow::*;
 
-use crate::forge_ci::jobs::{ReleaseBuilderJob, release_homebrew_job, release_npm_job};
+use crate::jobs::{ReleaseBuilderJob, release_homebrew_job, release_npm_job};
 
 /// Generate npm release workflow
 pub fn release_publish() {

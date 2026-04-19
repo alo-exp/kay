@@ -4,12 +4,12 @@ use std::path::PathBuf;
 
 use convert_case::{Case, Casing};
 use derive_setters::Setters;
-use crate::forge_api::{AgentId, ModelId, Usage};
+use forge_api::{AgentId, ModelId, Usage};
 use nu_ansi_term::{Color, Style};
 use reedline::{Prompt, PromptHistorySearchStatus};
 
-use crate::forge_main::display_constants::markers;
-use crate::forge_main::utils::humanize_number;
+use crate::display_constants::markers;
+use crate::utils::humanize_number;
 
 // Constants
 const MULTILINE_INDICATOR: &str = "::: ";

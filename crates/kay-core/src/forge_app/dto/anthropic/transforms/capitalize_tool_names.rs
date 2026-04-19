@@ -1,6 +1,6 @@
-use crate::forge_domain::Transformer;
+use forge_domain::Transformer;
 
-use crate::forge_app::dto::anthropic::Request;
+use crate::dto::anthropic::Request;
 
 /// Transformer that capitalizes specific tool names for Anthropic
 /// compatibility.

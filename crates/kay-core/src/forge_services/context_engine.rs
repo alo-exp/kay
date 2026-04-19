@@ -4,17 +4,17 @@ use std::sync::Arc;
 
 use anyhow::{Context, Result};
 use async_trait::async_trait;
-use crate::forge_app::{CommandInfra, EnvironmentInfra, FileReaderInfra, WalkerInfra, WorkspaceService};
-use crate::forge_domain::{
+use forge_app::{CommandInfra, EnvironmentInfra, FileReaderInfra, WalkerInfra, WorkspaceService};
+use forge_domain::{
     AuthCredential, AuthDetails, ProviderId, ProviderRepository, SyncProgress, UserId, WorkspaceId,
     WorkspaceIndexRepository,
 };
-use crate::forge_stream::MpscStream;
+use forge_stream::MpscStream;
 use futures::future::join_all;
 use tracing::info;
 
-use crate::forge_services::fd::FileDiscovery;
-use crate::forge_services::sync::{WorkspaceSyncEngine, canonicalize_path};
+use crate::fd::FileDiscovery;
+use crate::sync::{WorkspaceSyncEngine, canonicalize_path};
 
 /// Service for indexing workspaces and performing semantic search.
 ///

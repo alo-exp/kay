@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 use strum_macros::{EnumString, IntoStaticStr};
 
 use super::{ToolCall, ToolCallFull};
-use crate::forge_domain::TokenCount;
-use crate::forge_domain::reasoning::{Reasoning, ReasoningFull};
+use crate::TokenCount;
+use crate::reasoning::{Reasoning, ReasoningFull};
 
 /// Labels an assistant message as intermediate commentary or the final answer.
 ///

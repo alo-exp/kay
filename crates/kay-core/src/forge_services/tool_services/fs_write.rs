@@ -3,13 +3,13 @@ use std::sync::Arc;
 
 use anyhow::Context;
 use bytes::Bytes;
-use crate::forge_app::{
+use forge_app::{
     FileDirectoryInfra, FileInfoInfra, FileReaderInfra, FileWriterInfra, FsWriteOutput,
     FsWriteService, compute_hash,
 };
-use crate::forge_domain::{SnapshotRepository, ValidationRepository};
+use forge_domain::{SnapshotRepository, ValidationRepository};
 
-use crate::forge_services::utils::assert_absolute_path;
+use crate::utils::assert_absolute_path;
 
 /// Service for creating files with snapshot coordination
 ///

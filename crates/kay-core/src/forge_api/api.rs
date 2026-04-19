@@ -1,14 +1,14 @@
 use std::path::PathBuf;
 
 use anyhow::Result;
-use crate::forge_app::dto::ToolsOverview;
-use crate::forge_app::{User, UserUsage};
-use crate::forge_domain::{AgentId, Effort, ModelId, ProviderModels};
-use crate::forge_stream::MpscStream;
+use forge_app::dto::ToolsOverview;
+use forge_app::{User, UserUsage};
+use forge_domain::{AgentId, Effort, ModelId, ProviderModels};
+use forge_stream::MpscStream;
 use futures::stream::BoxStream;
 use url::Url;
 
-use crate::forge_api::*;
+use crate::*;
 
 #[async_trait::async_trait]
 pub trait API: Sync + Send {
@@ -53,7 +53,7 @@ pub trait API: Sync + Send {
         max_diff_size: Option<usize>,
         diff: Option<String>,
         additional_context: Option<String>,
-    ) -> Result<crate::forge_app::CommitResult>;
+    ) -> Result<forge_app::CommitResult>;
 
     /// Returns the current environment
     fn environment(&self) -> Environment;
@@ -131,7 +131,7 @@ pub trait API: Sync + Send {
     ///
     /// Returns `None` when no session has been configured yet, allowing callers
     /// to distinguish between "not configured" and an actual error.
-    async fn get_session_config(&self) -> Option<crate::forge_domain::ModelConfig>;
+    async fn get_session_config(&self) -> Option<forge_domain::ModelConfig>;
 
     /// Retrieves the provider configuration for the default agent.
     ///
@@ -141,10 +141,10 @@ pub trait API: Sync + Send {
     /// Applies one or more configuration mutations atomically.
     ///
     /// Each operation in `ops` is applied in order and persisted as a single
-    /// atomic write. Use [`crate::forge_domain::ConfigOperation`] variants to describe
+    /// atomic write. Use [`forge_domain::ConfigOperation`] variants to describe
     /// each mutation. Provider and model changes also invalidate the agent
     /// cache so the next request picks up the updated configuration.
-    async fn update_config(&self, ops: Vec<crate::forge_domain::ConfigOperation>) -> anyhow::Result<()>;
+    async fn update_config(&self, ops: Vec<forge_domain::ConfigOperation>) -> anyhow::Result<()>;
 
     /// Retrieves information about the currently authenticated user
     async fn user_info(&self) -> anyhow::Result<Option<User>>;
@@ -163,11 +163,11 @@ pub trait API: Sync + Send {
 
     /// Gets the commit configuration (provider and model for commit message
     /// generation).
-    async fn get_commit_config(&self) -> anyhow::Result<Option<crate::forge_domain::ModelConfig>>;
+    async fn get_commit_config(&self) -> anyhow::Result<Option<forge_domain::ModelConfig>>;
 
     /// Gets the suggest configuration (provider and model for command
     /// suggestion generation).
-    async fn get_suggest_config(&self) -> anyhow::Result<Option<crate::forge_domain::ModelConfig>>;
+    async fn get_suggest_config(&self) -> anyhow::Result<Option<forge_domain::ModelConfig>>;
 
     /// Gets the current reasoning effort setting.
     async fn get_reasoning_effort(&self) -> anyhow::Result<Option<Effort>>;
@@ -206,29 +206,29 @@ pub trait API: Sync + Send {
     async fn sync_workspace(
         &self,
         path: PathBuf,
-    ) -> Result<MpscStream<Result<crate::forge_domain::SyncProgress>>>;
+    ) -> Result<MpscStream<Result<forge_domain::SyncProgress>>>;
 
     /// Query the indexed workspace
     async fn query_workspace(
         &self,
         path: PathBuf,
-        params: crate::forge_domain::SearchParams<'_>,
-    ) -> Result<Vec<crate::forge_domain::Node>>;
+        params: forge_domain::SearchParams<'_>,
+    ) -> Result<Vec<forge_domain::Node>>;
 
     /// List all workspaces
-    async fn list_workspaces(&self) -> Result<Vec<crate::forge_domain::WorkspaceInfo>>;
+    async fn list_workspaces(&self) -> Result<Vec<forge_domain::WorkspaceInfo>>;
 
     /// Get workspace information for a specific path
     async fn get_workspace_info(
         &self,
         path: PathBuf,
-    ) -> Result<Option<crate::forge_domain::WorkspaceInfo>>;
+    ) -> Result<Option<forge_domain::WorkspaceInfo>>;
 
     /// Delete one or more workspaces in parallel
-    async fn delete_workspaces(&self, workspace_ids: Vec<crate::forge_domain::WorkspaceId>) -> Result<()>;
+    async fn delete_workspaces(&self, workspace_ids: Vec<forge_domain::WorkspaceId>) -> Result<()>;
 
     /// Get sync status for all files in workspace
-    async fn get_workspace_status(&self, path: PathBuf) -> Result<Vec<crate::forge_domain::FileStatus>>;
+    async fn get_workspace_status(&self, path: PathBuf) -> Result<Vec<forge_domain::FileStatus>>;
 
     /// Hydrates the gRPC channel
     fn hydrate_channel(&self) -> Result<()>;
@@ -237,15 +237,15 @@ pub trait API: Sync + Send {
     async fn is_authenticated(&self) -> Result<bool>;
 
     /// Create new authentication credentials
-    async fn create_auth_credentials(&self) -> Result<crate::forge_domain::WorkspaceAuth>;
+    async fn create_auth_credentials(&self) -> Result<forge_domain::WorkspaceAuth>;
 
     /// Initialize a new empty workspace
-    async fn init_workspace(&self, path: PathBuf) -> Result<crate::forge_domain::WorkspaceId>;
+    async fn init_workspace(&self, path: PathBuf) -> Result<forge_domain::WorkspaceId>;
 
     /// Migrate environment variable-based credentials to file-based
     /// credentials. This is a one-time migration that runs only if the
     /// credentials file doesn't exist.
-    async fn migrate_env_credentials(&self) -> Result<Option<crate::forge_domain::MigrationResult>>;
+    async fn migrate_env_credentials(&self) -> Result<Option<forge_domain::MigrationResult>>;
 
     async fn generate_data(
         &self,

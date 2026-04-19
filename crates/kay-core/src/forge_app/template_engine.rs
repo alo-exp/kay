@@ -1,6 +1,6 @@
 use std::sync::LazyLock;
 
-use crate::forge_domain::Template;
+use forge_domain::Template;
 use handlebars::{Handlebars, no_escape};
 use include_dir::{Dir, include_dir};
 

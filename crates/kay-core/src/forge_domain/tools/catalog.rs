@@ -7,14 +7,14 @@ use std::sync::LazyLock;
 use convert_case::{Case, Casing};
 use derive_more::From;
 use eserde::Deserialize;
-use crate::forge_tool_macros::ToolDescription;
+use forge_tool_macros::ToolDescription;
 use schemars::{JsonSchema, Schema};
 use serde::Serialize;
 use serde_json::Map;
 use strum::IntoEnumIterator;
 use strum_macros::{AsRefStr, Display, EnumDiscriminants, EnumIter};
 
-use crate::forge_domain::{ToolCallArguments, ToolCallFull, ToolDefinition, ToolDescription, ToolName};
+use crate::{ToolCallArguments, ToolCallFull, ToolDefinition, ToolDescription, ToolName};
 
 /// Enum representing all possible tool input types.
 ///
