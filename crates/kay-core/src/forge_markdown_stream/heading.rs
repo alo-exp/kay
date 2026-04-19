@@ -2,8 +2,8 @@
 
 use streamdown_render::simple_wrap;
 
-use crate::inline::render_inline_content;
-use crate::style::{HeadingStyler, InlineStyler};
+use crate::forge_markdown_stream::inline::render_inline_content;
+use crate::forge_markdown_stream::style::{HeadingStyler, InlineStyler};
 
 /// Render a heading with appropriate styling.
 pub fn render_heading<S: InlineStyler + HeadingStyler>(
