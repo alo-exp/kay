@@ -9,7 +9,7 @@ Requirements for initial release. Each maps to a roadmap phase.
 
 ### Governance (GOV)
 
-- [ ] **GOV-01**: Fork of ForgeCode with upstream attribution in `NOTICE`, `README`, and crate `authors` preserving Apache-2.0 obligations
+- [x] **GOV-01**: Fork of ForgeCode with upstream attribution in `NOTICE`, `README`, and crate `authors` preserving Apache-2.0 obligations
 - [ ] **GOV-02**: Apache-2.0 `LICENSE` present at repo root; `NOTICE` lists all upstream copyright holders
 - [ ] **GOV-03**: DCO (`Signed-off-by: Name <email>`) enforced on every commit via a GitHub Action that blocks unsigned PRs
 - [ ] **GOV-04**: `CONTRIBUTING.md` documents DCO, clean-room attestation, code-style, and PR process
@@ -188,7 +188,7 @@ Every v1 requirement maps to exactly one phase. Populated by the gsd-roadmapper 
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| GOV-01 | Phase 1 | Pending |
+| GOV-01 | Phase 1 | Complete |
 | GOV-02 | Phase 1 | Pending |
 | GOV-03 | Phase 1 | Pending |
 | GOV-04 | Phase 1 | Pending |

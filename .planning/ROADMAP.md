@@ -45,9 +45,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 6 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Workspace scaffold: Cargo.toml, rust-toolchain.toml, 7-crate skeleton (WS-01, WS-02, WS-05)
-- [ ] 01-02-PLAN.md — Governance files: LICENSE, NOTICE, README Acknowledgments, CONTRIBUTING (DCO + clean-room), SECURITY (GOV-01, GOV-02, GOV-04, GOV-06, GOV-07)
-- [ ] 01-03-PLAN.md — ForgeCode import: clone at SHA, copy into kay-core, single import commit, tag forgecode-parity-baseline (unsigned per D-OP-04) (GOV-01)
+- [x] 01-01-PLAN.md — Workspace scaffold: Cargo.toml, rust-toolchain.toml, 7-crate skeleton (WS-01, WS-02, WS-05)
+- [x] 01-02-PLAN.md — Governance files: LICENSE, NOTICE, README Acknowledgments, CONTRIBUTING (DCO + clean-room), SECURITY (GOV-01, GOV-02, GOV-04, GOV-06, GOV-07)
+- [x] 01-03-PLAN.md — ForgeCode import: clone at SHA, copy into kay-core, single import commit, tag forgecode-parity-baseline (unsigned per D-OP-04) (GOV-01)
 - [ ] 01-04-PLAN.md — Supply-chain gates: deny.toml, nightly audit.yml via rustsec/audit-check@v2.0.0 (WS-03, WS-04, WS-05)
 - [ ] 01-05-PLAN.md — DCO + signed-tag gate verification: confirm existing ci.yml jobs; apply Pitfall 6 tag-gate if: hardening; ship governance-invariant checker (GOV-03, GOV-05, WS-05)
 - [ ] 01-06-PLAN.md — Parity-gate scaffold: kay-cli eval tb2 --dry-run shim, ci.yml parity-gate job (workflow_dispatch only), PARITY-DEFERRED.md + manifest-schema.json (EVAL-01 scaffold-only per user amendment)
