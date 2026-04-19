@@ -277,5 +277,24 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 Plans:
 - [ ] TBD (promote with /gsd-review-backlog when ready)
 
+### Phase 999.2: Provider-level circuit breaker (BACKLOG)
+
+**Goal:** [Captured 2026-04-20 via /silver-quality-gates Phase 2 design-time review, Reliability dim advisory] — Phase 2 implements per-request retry bounds (backon, 3 attempts, 8s cap, full jitter) but has no cross-request circuit-breaker state. When OpenRouter has sustained outages across many sessions, each session pays the full retry budget. Post-v1, add a shared circuit-breaker layer (open on 5 consecutive failures or >50% in 60s window; half-open test after 30s) that short-circuits HTTP attempts during outages. Likely a small crate (`kay-circuit-breaker`) or a feature of `kay-provider-openrouter`.
+**Requirements:** TBD (extends PROV-07 posture)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready; earliest targeted slot: between Phase 11 hardening and Phase 12 submission, or as part of a post-v1 reliability phase)
+
+### Phase 999.3: Error message "what-to-do" audit (BACKLOG)
+
+**Goal:** [Captured 2026-04-20 via /silver-quality-gates Phase 2 design-time review, Usability dim advisory] — Phase 2's `ProviderError` uses `thiserror` typed variants with structured fields (ModelNotAllowlisted lists requested+allowed, Auth::Missing names env var, CostCapExceeded shows cap+spent), but the `Display` remediation language per variant has not been user-tested. Post-v1, audit each ProviderError variant's Display impl against the usability "what happened / why / what to do" rubric. Also apply to AgentEvent::Error surfacing in CLI/TUI/GUI (Phase 5/9/9.5 consumers).
+**Requirements:** TBD (extends PROV-08 UX surface)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready; natural slot: during Phase 9.5 TUI work or Phase 10 settings UI)
+
 ---
 *Roadmap created: 2026-04-19*
+*Last backlog update: 2026-04-20 — added 999.2 + 999.3 from Phase 2 quality-gates advisory*
