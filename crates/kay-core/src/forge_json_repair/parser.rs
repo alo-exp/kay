@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use crate::error::{JsonRepairError, Result};
+use crate::forge_json_repair::error::{JsonRepairError, Result};
 
 pub struct JsonRepairParser {
     chars: Vec<char>,
