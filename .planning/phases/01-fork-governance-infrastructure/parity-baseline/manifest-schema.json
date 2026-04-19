@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/alo-exp/kay/parity-baseline/manifest-schema.json",
+  "title": "Kay parity-baseline manifest",
+  "description": "Phase 1 scaffolding. Produced by follow-on task EVAL-01a.",
+  "type": "object",
+  "required": [
+    "docker_shas",
+    "openrouter_model",
+    "run_date",
+    "harbor_commit_sha",
+    "transcript_path",
+    "summary_score",
+    "parity_baseline_tag",
+    "forgecode_upstream_sha"
+  ],
+  "properties": {
+    "docker_shas": {
+      "type": "object",
+      "description": "Map of Docker image name to pulled SHA at run time.",
+      "additionalProperties": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+    },
+    "openrouter_model": {
+      "type": "string",
+      "description": "OpenRouter model path used for the run (e.g. 'anthropic/claude-opus-4.6')."
+    },
+    "run_date": {
+      "type": "string",
+      "format": "date",
+      "description": "ISO-8601 date the run was executed."
+    },
+    "harbor_commit_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$",
+      "description": "Harbor framework commit SHA at run time."
+    },
+    "transcript_path": {
+      "type": "string",
+      "description": "Relative path to transcript.jsonl inside this directory."
+    },
+    "summary_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Percentage score on Terminal-Bench 2.0 (must be >= 80 to pass the gate)."
+    },
+    "parity_baseline_tag": {
+      "type": "string",
+      "pattern": "^forgecode-parity-baseline(-[a-zA-Z0-9.-]+)?$",
+      "description": "Signed git tag name pointing at the commit used for the run."
+    },
+    "forgecode_upstream_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$",
+      "description": "ForgeCode upstream SHA at import (matches .forgecode-upstream-sha)."
+    },
+    "sample_budget_usd": {
+      "type": "number",
+      "description": "Actual OpenRouter credits spent (informational; D-22 budget is $100)."
+    }
+  }
+}
