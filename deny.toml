@@ -1,0 +1,59 @@
+# deny.toml — Kay dependency policy
+# See https://embarkstudios.github.io/cargo-deny/
+
+[graph]
+targets = [
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu",
+    "x86_64-unknown-linux-musl",
+    "aarch64-apple-darwin",
+    "x86_64-apple-darwin",
+    "x86_64-pc-windows-msvc",
+]
+all-features = true
+
+[advisories]
+# Pull RustSec advisories; fail on unmaintained/unsound.
+unmaintained = "workspace"
+unsound = "all"
+yanked = "deny"
+ignore = []  # Add entries here only with written rationale.
+
+[licenses]
+confidence-threshold = 0.93
+# Kay requires Apache-2.0-compatible licenses. No GPL/AGPL/LGPL.
+allow = [
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "MIT",
+    "ISC",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "Unicode-3.0",
+    "Zlib",
+    "CC0-1.0",
+    "MPL-2.0",  # Weak copyleft; allowed because Rust ecosystem uses it broadly (e.g. webpki-roots)
+]
+exceptions = []
+# Explicitly deny by omission: GPL-*, AGPL-*, LGPL-*, SSPL-*, any copyleft
+# that would propagate to Kay's Apache-2.0 license grant.
+
+[bans]
+multiple-versions = "warn"  # Start as warn; tighten to deny once clean.
+wildcards = "deny"
+
+# Deny openssl — Kay uses rustls per CONTEXT.md D-08.
+deny = [
+    { crate = "openssl", use-instead = "rustls" },
+    { crate = "openssl-sys", use-instead = "rustls" },
+    { crate = "native-tls", use-instead = "rustls" },
+    { crate = "openssl-probe", reason = "indicates openssl-backed TLS; Kay uses rustls" },
+]
+
+skip = []
+skip-tree = []
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-git = []  # No git dependencies by default.
