@@ -9,3 +9,10 @@ repository.workspace = true
 description = "OpenRouter provider HAL (Phase 2)"
 
 [dependencies]
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "test-util"] }
+mockito = "1.7"
+proptest = "1.11"
+pretty_assertions = "1"
+serde_json = { workspace = true }
