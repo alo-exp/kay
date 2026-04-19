@@ -1,7 +1,7 @@
 use gh_workflow::generate::Generate;
 use gh_workflow::*;
 
-use crate::jobs::{sync_all_issues_job, sync_pr_job};
+use crate::forge_ci::jobs::{sync_all_issues_job, sync_pr_job};
 
 /// Generate the bounty management workflow (v2).
 ///

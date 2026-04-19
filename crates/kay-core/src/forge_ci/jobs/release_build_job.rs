@@ -1,8 +1,8 @@
 use derive_setters::Setters;
 use gh_workflow::*;
 
-use crate::release_matrix::ReleaseMatrix;
-use crate::steps::setup_protoc;
+use crate::forge_ci::release_matrix::ReleaseMatrix;
+use crate::forge_ci::steps::setup_protoc;
 
 #[derive(Clone, Default, Setters)]
 #[setters(strip_option, into)]

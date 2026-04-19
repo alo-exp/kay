@@ -2,8 +2,8 @@ use gh_workflow::generate::Generate;
 use gh_workflow::toolchain::Component;
 use gh_workflow::*;
 
-use crate::jobs;
-use crate::steps::setup_protoc;
+use crate::forge_ci::jobs;
+use crate::forge_ci::steps::setup_protoc;
 
 /// Generate the autofix workflow
 pub fn generate_autofix_workflow() {

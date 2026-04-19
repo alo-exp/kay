@@ -1,7 +1,7 @@
 use gh_workflow::generate::Generate;
 use gh_workflow::*;
 
-use crate::jobs::label_sync_job;
+use crate::forge_ci::jobs::label_sync_job;
 
 /// Generate labels workflow
 pub fn generate_labels_workflow() {
