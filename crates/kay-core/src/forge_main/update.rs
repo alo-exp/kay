@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
 use colored::Colorize;
-use forge_api::API;
-use forge_config::Update;
-use forge_select::ForgeWidget;
-use forge_tracker::VERSION;
+use crate::forge_api::API;
+use crate::forge_config::Update;
+use crate::forge_select::ForgeWidget;
+use crate::forge_tracker::VERSION;
 use update_informer::{Check, Version, registry};
 
 /// Runs the official installation script to update Forge, failing silently.

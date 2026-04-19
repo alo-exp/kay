@@ -9,7 +9,7 @@ use clap_complete::generate;
 use clap_complete::shells::Zsh;
 use include_dir::{Dir, include_dir};
 
-use crate::cli::Cli;
+use crate::forge_main::cli::Cli;
 
 /// Embeds shell plugin files for zsh integration
 static ZSH_PLUGIN_LIB: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/../../shell-plugin/lib");

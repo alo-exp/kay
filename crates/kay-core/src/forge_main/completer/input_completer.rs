@@ -1,13 +1,13 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use forge_select::ForgeWidget;
-use forge_walker::Walker;
+use crate::forge_select::ForgeWidget;
+use crate::forge_walker::Walker;
 use reedline::{Completer, Span, Suggestion};
 
-use crate::completer::CommandCompleter;
-use crate::completer::search_term::SearchTerm;
-use crate::model::ForgeCommandManager;
+use crate::forge_main::completer::CommandCompleter;
+use crate::forge_main::completer::search_term::SearchTerm;
+use crate::forge_main::model::ForgeCommandManager;
 
 pub struct InputCompleter {
     cwd: PathBuf,

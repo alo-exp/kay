@@ -3,12 +3,12 @@ use std::path::Path;
 use std::time::Duration;
 
 use colored::Colorize;
-use forge_api::{Conversation, Environment, ForgeConfig, Metrics, Role, Usage, UserUsage};
-use forge_tracker::VERSION;
+use crate::forge_api::{Conversation, Environment, ForgeConfig, Metrics, Role, Usage, UserUsage};
+use crate::forge_tracker::VERSION;
 use num_format::{Locale, ToFormattedString};
 
-use crate::display_constants::markers;
-use crate::model::ForgeCommandManager;
+use crate::forge_main::display_constants::markers;
+use crate::forge_main::model::ForgeCommandManager;
 
 #[derive(Debug, PartialEq)]
 pub enum Section {

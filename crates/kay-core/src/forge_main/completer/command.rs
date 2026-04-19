@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
-use forge_select::ForgeWidget;
+use crate::forge_select::ForgeWidget;
 use reedline::{Completer, Span, Suggestion};
 
-use crate::model::{ForgeCommand, ForgeCommandManager};
+use crate::forge_main::model::{ForgeCommand, ForgeCommandManager};
 
 /// A display wrapper for `ForgeCommand` that renders the name and description
 /// side-by-side for fzf.

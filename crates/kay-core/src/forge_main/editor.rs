@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use crossterm::event::Event;
-use forge_api::Environment;
+use crate::forge_api::Environment;
 use nu_ansi_term::{Color, Style};
 use reedline::{
     ColumnarMenu, DefaultHinter, EditCommand, EditMode, Emacs, FileBackedHistory, KeyCode,
@@ -12,9 +12,9 @@ use reedline::{
 
 use super::completer::InputCompleter;
 use super::zsh::paste::wrap_pasted_text;
-use crate::highlighter::ForgeHighlighter;
-use crate::model::ForgeCommandManager;
-use crate::prompt::ForgePrompt;
+use crate::forge_main::highlighter::ForgeHighlighter;
+use crate::forge_main::model::ForgeCommandManager;
+use crate::forge_main::prompt::ForgePrompt;
 
 // TODO: Store the last `HISTORY_CAPACITY` commands in the history file
 const HISTORY_CAPACITY: usize = 1024 * 1024;

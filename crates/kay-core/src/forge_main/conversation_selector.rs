@@ -2,13 +2,13 @@ use std::fmt::Display;
 
 use anyhow::Result;
 use chrono::Utc;
-use forge_api::Conversation;
-use forge_domain::ConversationId;
-use forge_select::ForgeWidget;
+use crate::forge_api::Conversation;
+use crate::forge_domain::ConversationId;
+use crate::forge_select::ForgeWidget;
 
-use crate::display_constants::markers;
-use crate::info::Info;
-use crate::porcelain::Porcelain;
+use crate::forge_main::display_constants::markers;
+use crate::forge_main::info::Info;
+use crate::forge_main::porcelain::Porcelain;
 
 /// Logic for selecting conversations from a list
 pub struct ConversationSelector;

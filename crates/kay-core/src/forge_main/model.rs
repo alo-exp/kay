@@ -2,12 +2,12 @@ use std::sync::{Arc, Mutex};
 
 use clap::error::ErrorKind;
 use clap::{Parser, Subcommand};
-use forge_api::{AgentInfo, Model, Template};
-use forge_domain::UserCommand;
+use crate::forge_api::{AgentInfo, Model, Template};
+use crate::forge_domain::UserCommand;
 use strum::{EnumProperty, IntoEnumIterator};
 use strum_macros::{EnumIter, EnumProperty};
 
-use crate::info::Info;
+use crate::forge_main::info::Info;
 
 /// Top-level Clap parser used to dispatch slash/colon commands.
 ///

@@ -8,7 +8,7 @@
 use std::path::PathBuf;
 
 use clap::{Parser, Subcommand, ValueEnum};
-use forge_domain::{AgentId, ConversationId, Effort, ModelId, ProviderId};
+use crate::forge_domain::{AgentId, ConversationId, Effort, ModelId, ProviderId};
 
 #[derive(Parser)]
 #[command(version = env!("CARGO_PKG_VERSION"))]

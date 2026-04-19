@@ -1,4 +1,4 @@
-use forge_domain::ProviderId;
+use crate::forge_domain::ProviderId;
 
 /// Errors specific to UI operations
 #[derive(Debug, thiserror::Error)]

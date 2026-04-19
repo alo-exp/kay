@@ -3,9 +3,9 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::Result;
 use colored::Colorize;
-use forge_domain::ConsoleWriter;
-use forge_markdown_stream::StreamdownRenderer;
-use forge_spinner::SpinnerManager;
+use crate::forge_domain::ConsoleWriter;
+use crate::forge_markdown_stream::StreamdownRenderer;
+use crate::forge_spinner::SpinnerManager;
 
 /// Shared spinner wrapper that encapsulates locking for thread-safe spinner
 /// operations.

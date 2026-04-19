@@ -9,49 +9,49 @@ use anyhow::{Context, Result};
 use colored::Colorize;
 use console::style;
 use convert_case::{Case, Casing};
-use forge_api::{
+use crate::forge_api::{
     API, AgentId, AnyProvider, ApiKeyRequest, AuthContextRequest, AuthContextResponse, ChatRequest,
     ChatResponse, CodeRequest, ConfigOperation, Conversation, ConversationId, DeviceCodeRequest,
     Event, InterruptionReason, ModelId, Provider, ProviderId, TextMessage, UserPrompt,
 };
-use forge_app::utils::{format_display_path, truncate_key};
-use forge_app::{CommitResult, ToolResolver};
-use forge_config::ForgeConfig;
-use forge_display::MarkdownFormat;
-use forge_domain::{
+use crate::forge_app::utils::{format_display_path, truncate_key};
+use crate::forge_app::{CommitResult, ToolResolver};
+use crate::forge_config::ForgeConfig;
+use crate::forge_display::MarkdownFormat;
+use crate::forge_domain::{
     AuthMethod, ChatResponseContent, ConsoleWriter, ContextMessage, Role, TitleFormat, UserCommand,
 };
-use forge_fs::ForgeFS;
-use forge_select::ForgeWidget;
-use forge_spinner::SpinnerManager;
-use forge_tracker::ToolCallPayload;
-use forge_walker::Walker;
+use crate::forge_fs::ForgeFS;
+use crate::forge_select::ForgeWidget;
+use crate::forge_spinner::SpinnerManager;
+use crate::forge_tracker::ToolCallPayload;
+use crate::forge_walker::Walker;
 use futures::future;
 use strum::IntoEnumIterator;
 use tokio_stream::StreamExt;
 use url::Url;
 
-use crate::cli::{
+use crate::forge_main::cli::{
     Cli, CommitCommandGroup, ConversationCommand, ListCommand, McpCommand, TopLevelCommand,
 };
-use crate::conversation_selector::ConversationSelector;
-use crate::display_constants::{CommandType, headers, markers, status};
-use crate::editor::ReadLineError;
-use crate::error::UIError;
-use crate::info::Info;
-use crate::input::Console;
-use crate::model::{AppCommand, ForgeCommandManager};
-use crate::porcelain::Porcelain;
-use crate::prompt::ForgePrompt;
-use crate::state::UIState;
-use crate::stream_renderer::{SharedSpinner, StreamingWriter};
-use crate::sync_display::SyncProgressDisplay;
-use crate::title_display::TitleDisplayExt;
-use crate::tools_display::format_tools;
-use crate::update::on_update;
-use crate::utils::humanize_time;
-use crate::zsh::ZshRPrompt;
-use crate::{TRACKER, banner, tracker};
+use crate::forge_main::conversation_selector::ConversationSelector;
+use crate::forge_main::display_constants::{CommandType, headers, markers, status};
+use crate::forge_main::editor::ReadLineError;
+use crate::forge_main::error::UIError;
+use crate::forge_main::info::Info;
+use crate::forge_main::input::Console;
+use crate::forge_main::model::{AppCommand, ForgeCommandManager};
+use crate::forge_main::porcelain::Porcelain;
+use crate::forge_main::prompt::ForgePrompt;
+use crate::forge_main::state::UIState;
+use crate::forge_main::stream_renderer::{SharedSpinner, StreamingWriter};
+use crate::forge_main::sync_display::SyncProgressDisplay;
+use crate::forge_main::title_display::TitleDisplayExt;
+use crate::forge_main::tools_display::format_tools;
+use crate::forge_main::update::on_update;
+use crate::forge_main::utils::humanize_time;
+use crate::forge_main::zsh::ZshRPrompt;
+use crate::forge_main::{TRACKER, banner, tracker};
 
 // File-specific constants
 const MISSING_AGENT_TITLE: &str = "<missing agent.title>";

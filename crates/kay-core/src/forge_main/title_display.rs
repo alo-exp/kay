@@ -2,7 +2,7 @@ use std::fmt;
 
 use chrono::Local;
 use colored::Colorize;
-use forge_domain::{Category, TitleFormat};
+use crate::forge_domain::{Category, TitleFormat};
 
 /// Implementation of Display for TitleFormat in the presentation layer
 pub struct TitleDisplay {
