@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0.0
 milestone_name: milestone
-status: phase_2_in_progress
-stopped_at: Phase 2 Plan 04 complete (Wave 3 forge_app path rewrite); 6 plans remaining (02-05..02-10)
-last_updated: "2026-04-20T04:12:00Z"
-last_activity: 2026-04-20 -- Phase 2 Plan 04 executed (1 task, 1 atomic path-rewrite commit 808edcc); forge_app subtree path-rewritten (212 imports across 83 files); E0432|E0433 count 1902->1712 (190 resolved); baseline for plan 02-05 = 1712
+status: phase_2_blocked_on_2_5_inserted
+stopped_at: Phase 2.5 inserted 2026-04-20 after structural finding during plan 02-05. kay-core mono-crate approach ruled out; D-01 revised to Option (c) sub-crate split. Plans 02-06..02-10 blocked on Phase 2.5 execution.
+last_updated: "2026-04-20T07:30:00Z"
+last_activity: 2026-04-20 -- Plan 02-05 partial (5 upper subtrees committed: 404ff21 a6f37f7 4991060 57045a4 3d85520); 1323 residual errors exceed mechanical rewrite scope; Phase 2.5 inserted with CONTEXT.md authored (ready for /gsd-plan-phase 2.5)
 progress:
-  total_phases: 13
+  total_phases: 14
   completed_phases: 1
   total_plans: 16
-  completed_plans: 10
-  percent: 15
+  completed_plans: 15
+  percent: 12
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-19)
 
 **Core value:** Beat ForgeCode on Terminal-Bench 2.0 (>81.8%) as the first OSS agent that pairs a top-10 harness with a native desktop UI.
-**Current focus:** Phase 2 — Provider HAL + Tolerant JSON Parser
+**Current focus:** Phase 2.5 — kay-core sub-crate split (INSERTED 2026-04-20; blocks remaining Phase 2 work)
 
 ## Current Position
 
-Phase: 2 of 12 (Provider HAL + Tolerant JSON Parser)
-Plan: 4 of 10 executed in current phase (02-01 Wave 0 + 02-02 Wave 2 + 02-03 Wave 3 sub-waves A/B/C + 02-04 forge_app complete; 02-05..02-10 remaining)
-Status: Wave 3 forge_app path-rewrite landed; remaining path rewrites are forge_services/infra/repo/api/main for plan 02-05 (final + CI cleanup)
-Last activity: 2026-04-20 -- Plan 02-04 executed (1 task, 1 atomic path-rewrite commit 808edcc); forge_app subtree path-rewritten (212 imports across 83 files); E0432|E0433 count 1902->1712 (190 resolved); next plan 02-05 drives forge_services/infra/repo/api/main + --exclude kay-core CI cleanup
+Phase: 2.5 of 13 (kay-core sub-crate split, INSERTED)
+Plan: 0 of TBD — ready for `/gsd-plan-phase 2.5`
+Status: Phase 2 paused at 4.5/10 plans executed (02-01..02-04 complete; 02-05 partial with 5 upper-subtree rewrites committed but kay-core still has 1323 residual errors that require Option-(c) sub-crate split to resolve). Phase 2.5 CONTEXT.md authored; planning next.
+Last activity: 2026-04-20 -- 5 upper subtree rewrites in Phase 2 Plan 05 committed; structural finding documented; Phase 2.5 inserted with CONTEXT.md
 
-Progress: [██░░░░░░░░░░] 15% (1 of 12 phases done; Phase 2: 4 of 10 plans done)
+Progress: [█░░░░░░░░░░░░] 12% (1 of 13 phases done; Phase 2: 4 of 10 plans done + partial 02-05; Phase 2.5: CONTEXT ready)
 
 ## Performance Metrics
 
@@ -80,6 +80,11 @@ Recent decisions affecting current work:
 - Phase 2 Plan 04: Single atomic commit for 83-file / 212-import forge_app rewrite (vs. per-subtree in 02-03) — forge_app IS one subtree, so finer-than-subtree commits would be false granularity. git diff --name-only scope-check (100% under crates/kay-core/src/forge_app/) guarantees no cross-subtree contamination despite the large file-count. Pattern canonicalized for "one subtree per commit, regardless of size within subtree."
 - Phase 2 Plan 04: Count-reconciliation convention — pre-scan's `^use crate::` regex matches BOTH non-grouped AND grouped openers, so naive sum (116 + 18 + 95 + 1) double-counts grouped imports. True count for any subtree = (Rule 1a pre-scan count - Rule 1b count) + Rule 1b + Rule 2 + pub-use. Apply this reconciliation in plan 02-05's SUMMARY.
 - Phase 2 Plan 04: PROV-01 checkbox NOT marked — same rationale as plans 02-02/03; this plan remains a "PROV-01 prereq" per ROADMAP. Behavioral PROV-01 completion still owned by 02-06/08.
+- Phase 2 Plan 05 PARTIAL (2026-04-20): Committed 5 upper-subtree rewrites (`404ff21` forge_services, `a6f37f7` forge_infra, `4991060` forge_repo, `57045a4` forge_api, `3d85520` forge_main). STRUCTURAL FINDING: kay-core mono-crate approach hit a wall at 1323 residual errors from proc-macro self-reference, missing `include_str!` files, missing dependencies, trait object-safety, and ambiguous path issues. Mechanical path-rewrite approach (D-01 Options a/b) ruled out. **D-01 decision revised to Option (c): split kay-core into 23 workspace sub-crates** preserving ForgeCode's original structure. Plan 02-05 Task 2 (CI cleanup) absorbed into Phase 2.5. 132 files remain uncommitted in working tree (extended indented-use rewrite) — recommended to revert as obsolete since sub-crate split will redo module structure.
+
+### Roadmap Evolution
+
+- **2026-04-20:** Phase 2.5 inserted after Phase 2 — "kay-core sub-crate split" (URGENT, D-01 Option c). Discovered during Phase 2 plan 02-05 execution that ForgeCode's 23-crate source cannot run as a single mono-crate. Scope captured in `.planning/phases/02.5-kay-core-sub-crate-split/02.5-CONTEXT.md`. Plans 02-06..02-10 blocked on 2.5 completion; planning artifacts for all 10 Phase-2 plans remain valid (minor import path adjustments expected: `kay_core::forge_X::Y` → `kay_forge_X::Y`).
 
 ### Pending Todos
 
