@@ -2,9 +2,9 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use forge_app::EnvironmentInfra;
-use forge_config::{ConfigReader, ForgeConfig, ModelConfig};
-use forge_domain::{ConfigOperation, Environment};
+use crate::forge_app::EnvironmentInfra;
+use crate::forge_config::{ConfigReader, ForgeConfig, ModelConfig};
+use crate::forge_domain::{ConfigOperation, Environment};
 use tracing::debug;
 
 /// Builds a [`forge_domain::Environment`] from runtime context only.

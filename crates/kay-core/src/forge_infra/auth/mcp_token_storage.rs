@@ -6,11 +6,11 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use forge_domain::Environment;
+use crate::forge_domain::Environment;
 use rmcp::transport::auth::{CredentialStore, StoredCredentials};
 use tokio::sync::Mutex;
 
-use crate::auth::mcp_credentials::{
+use crate::forge_infra::auth::mcp_credentials::{
     McpClientRegistration, McpCredentialEntry, McpCredentialStore, McpOAuthTokens,
 };
 

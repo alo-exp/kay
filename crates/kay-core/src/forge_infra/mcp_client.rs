@@ -5,8 +5,8 @@ use std::str::FromStr;
 use std::sync::{Arc, OnceLock, RwLock};
 
 use backon::{ExponentialBuilder, Retryable};
-use forge_app::McpClientInfra;
-use forge_domain::{
+use crate::forge_app::McpClientInfra;
+use crate::forge_domain::{
     Environment, Image, McpHttpServer, McpServerConfig, ToolDefinition, ToolName, ToolOutput,
 };
 use reqwest::Client;
@@ -22,7 +22,7 @@ use serde_json::Value;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::Command;
 
-use crate::error::Error;
+use crate::forge_infra::error::Error;
 
 const VERSION: &str = match option_env!("APP_VERSION") {
     Some(val) => val,

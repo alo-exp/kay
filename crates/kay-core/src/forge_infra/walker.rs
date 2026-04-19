@@ -1,5 +1,5 @@
 use anyhow::Result;
-use forge_app::{WalkedFile, Walker};
+use crate::forge_app::{WalkedFile, Walker};
 
 pub struct ForgeWalkerService;
 

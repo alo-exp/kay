@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 
 use chrono::Utc;
-use forge_domain::{
+use crate::forge_domain::{
     AuthCredential, AuthDetails, OAuthConfig, OAuthTokenResponse, OAuthTokens, ProviderId,
 };
 use oauth2::basic::BasicClient;
 use oauth2::{ClientId, RefreshToken, TokenUrl};
 
-use crate::auth::error::Error;
+use crate::forge_infra::auth::error::Error;
 
 /// Calculate token expiry with fallback duration
 pub(crate) fn calculate_token_expiry(

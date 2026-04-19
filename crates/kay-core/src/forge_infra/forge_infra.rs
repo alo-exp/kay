@@ -4,34 +4,34 @@ use std::process::ExitStatus;
 use std::sync::Arc;
 
 use bytes::Bytes;
-use forge_app::{
+use crate::forge_app::{
     CommandInfra, DirectoryReaderInfra, EnvironmentInfra, FileDirectoryInfra, FileInfoInfra,
     FileReaderInfra, FileRemoverInfra, FileWriterInfra, GrpcInfra, HttpInfra, McpServerInfra,
     StrategyFactory, UserInfra, WalkerInfra,
 };
-use forge_domain::{
+use crate::forge_domain::{
     AuthMethod, CommandOutput, FileInfo as FileInfoData, McpServerConfig, ProviderId, URLParamSpec,
 };
 use reqwest::header::HeaderMap;
 use reqwest::{Response, Url};
 use reqwest_eventsource::EventSource;
 
-use crate::auth::{AnyAuthStrategy, ForgeAuthStrategyFactory};
-use crate::console::StdConsoleWriter;
-use crate::env::{ForgeEnvironmentInfra, to_environment};
-use crate::executor::ForgeCommandExecutorService;
-use crate::fs_create_dirs::ForgeCreateDirsService;
-use crate::fs_meta::ForgeFileMetaService;
-use crate::fs_read::ForgeFileReadService;
-use crate::fs_read_dir::ForgeDirectoryReaderService;
-use crate::fs_remove::ForgeFileRemoveService;
-use crate::fs_write::ForgeFileWriteService;
-use crate::grpc::ForgeGrpcClient;
-use crate::http::ForgeHttpInfra;
-use crate::inquire::ForgeInquire;
-use crate::mcp_client::ForgeMcpClient;
-use crate::mcp_server::ForgeMcpServer;
-use crate::walker::ForgeWalkerService;
+use crate::forge_infra::auth::{AnyAuthStrategy, ForgeAuthStrategyFactory};
+use crate::forge_infra::console::StdConsoleWriter;
+use crate::forge_infra::env::{ForgeEnvironmentInfra, to_environment};
+use crate::forge_infra::executor::ForgeCommandExecutorService;
+use crate::forge_infra::fs_create_dirs::ForgeCreateDirsService;
+use crate::forge_infra::fs_meta::ForgeFileMetaService;
+use crate::forge_infra::fs_read::ForgeFileReadService;
+use crate::forge_infra::fs_read_dir::ForgeDirectoryReaderService;
+use crate::forge_infra::fs_remove::ForgeFileRemoveService;
+use crate::forge_infra::fs_write::ForgeFileWriteService;
+use crate::forge_infra::grpc::ForgeGrpcClient;
+use crate::forge_infra::http::ForgeHttpInfra;
+use crate::forge_infra::inquire::ForgeInquire;
+use crate::forge_infra::mcp_client::ForgeMcpClient;
+use crate::forge_infra::mcp_server::ForgeMcpServer;
+use crate::forge_infra::walker::ForgeWalkerService;
 
 #[derive(Clone)]
 pub struct ForgeInfra {

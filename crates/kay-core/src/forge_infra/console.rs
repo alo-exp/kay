@@ -5,7 +5,7 @@
 use std::io::{self, Stderr, Stdout, Write};
 use std::sync::{Arc, Mutex};
 
-use forge_domain::ConsoleWriter;
+use crate::forge_domain::ConsoleWriter;
 
 /// Thread-safe output printer that synchronizes writes to stdout/stderr.
 ///

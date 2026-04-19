@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use anyhow::Result;
-use forge_app::FileInfoInfra;
+use crate::forge_app::FileInfoInfra;
 
 pub struct ForgeFileMetaService;
 #[async_trait::async_trait]

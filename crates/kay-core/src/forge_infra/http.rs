@@ -5,8 +5,8 @@ use std::time::Duration;
 
 use anyhow::Context;
 use bytes::Bytes;
-use forge_app::HttpInfra;
-use forge_config::{ForgeConfig, TlsBackend, TlsVersion};
+use crate::forge_app::HttpInfra;
+use crate::forge_config::{ForgeConfig, TlsBackend, TlsVersion};
 use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
 use reqwest::redirect::Policy;
 use reqwest::{Certificate, Client, Response, StatusCode, Url};
