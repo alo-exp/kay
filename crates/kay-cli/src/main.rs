@@ -1,7 +1,35 @@
 //! kay-cli — headless CLI for Kay
 //!
-//! Skeleton entry point; `kay eval tb2` shim lands in plan 06.
+//! Phase 1 scaffolds only `eval tb2 --dry-run` per CONTEXT.md §User Amendments.
+//! The actual parity run lands in follow-on task EVAL-01a.
 
-fn main() {
-    // Phase 1 skeleton; replaced by clap-based CLI in plan 06.
+use clap::Parser;
+
+mod eval;
+
+#[derive(Parser)]
+#[command(
+    name = "kay",
+    version,
+    about = "Kay — open-source terminal coding agent (headless CLI)"
+)]
+struct Cli {
+    #[command(subcommand)]
+    command: Command,
+}
+
+#[derive(clap::Subcommand)]
+enum Command {
+    /// Run evaluation harnesses (Terminal-Bench 2.0, etc.)
+    Eval {
+        #[command(subcommand)]
+        target: eval::EvalTarget,
+    },
+}
+
+fn main() -> anyhow::Result<()> {
+    let cli = Cli::parse();
+    match cli.command {
+        Command::Eval { target } => eval::run(target),
+    }
 }

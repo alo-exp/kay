@@ -9,3 +9,5 @@ repository.workspace = true
 description = "Kay headless CLI for benchmark + CI use"
 
 [dependencies]
+clap = { workspace = true }
+anyhow = { workspace = true }
