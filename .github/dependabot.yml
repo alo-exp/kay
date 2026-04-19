@@ -1,0 +1,33 @@
+version: 2
+
+# Dependabot keeps Kay's SHA-pinned GitHub Actions current without losing the
+# supply-chain hardening benefit of commit-SHA pinning. It reads the version
+# comment next to each `uses: owner/repo@<SHA>  # <version>` and opens PRs to
+# bump the SHA when a new release of that version line ships.
+#
+# Rust dependencies live under `[workspace.dependencies]` in Cargo.toml;
+# Dependabot opens PRs against the workspace root.
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(actions)"
+      include: scope
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+      include: scope

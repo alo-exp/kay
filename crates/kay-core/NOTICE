@@ -2,4 +2,6 @@ This crate incorporates source code derived from ForgeCode
 (https://github.com/antinomyhq/forgecode), Copyright 2025 Tailcall,
 licensed under the Apache License, Version 2.0.
 
+Imported from ForgeCode at commit 022ecd994eaec30b519b13348c64ef314f825e21 on 2026-04-19.
+
 See the repository-level NOTICE for full attribution.

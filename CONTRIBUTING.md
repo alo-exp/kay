@@ -39,8 +39,21 @@ PR and the maintainers will route review accordingly.
 
 1. Open an issue first for non-trivial changes.
 2. One PR per logical change. Keep PRs focused.
-3. Run `cargo fmt --all` and `cargo clippy --workspace --all-targets -- -D warnings`
-   before pushing.
+3. Before pushing, run fmt and clippy against every crate except `kay-core`
+   (which is temporarily excluded until Phase 2's structural integration of the
+   imported ForgeCode source — see
+   `.planning/phases/01-fork-governance-infrastructure/VERIFICATION.md §SC-4`):
+
+   ```
+   cargo fmt -p kay-cli -p kay-provider-openrouter -p kay-sandbox-linux \
+             -p kay-sandbox-macos -p kay-sandbox-windows -p kay-tauri -p kay-tui
+   cargo clippy --workspace --exclude kay-core --all-targets -- -D warnings
+   ```
+
+   Note: `cargo fmt --all` will fail on `kay-core` (E0583 from forge_*/lib.rs
+   naming) — use the explicit per-package list above instead, which matches
+   what CI runs. See `.planning/phases/01-fork-governance-infrastructure/VERIFICATION.md §SC-4`
+   for the full rationale.
 4. CI must pass (DCO + lint + tri-OS tests + cargo-deny + cargo-audit).
 5. All commits in a PR must carry `Signed-off-by:`. The DCO job fails the PR
    otherwise.

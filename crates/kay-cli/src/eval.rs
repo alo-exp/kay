@@ -25,25 +25,21 @@ pub enum EvalTarget {
         )]
         archive_dir: String,
 
-        /// Print the Harbor command + prerequisites without executing.
-        /// Required in Phase 1 because actual runs are deferred to EVAL-01a.
-        #[arg(long, default_value_t = true)]
-        dry_run: bool,
+        /// Opt-in to a real Harbor run (not implemented in Phase 1).
+        /// Phase 1 always dry-runs because the actual parity run is deferred to EVAL-01a.
+        /// Passing this flag will hard-fail with a pointer to PARITY-DEFERRED.md.
+        #[arg(long, default_value_t = false)]
+        run: bool,
     },
 }
 
 pub fn run(target: EvalTarget) -> anyhow::Result<()> {
     match target {
-        EvalTarget::Tb2 {
-            model,
-            tasks,
-            archive_dir,
-            dry_run,
-        } => {
-            if !dry_run {
+        EvalTarget::Tb2 { model, tasks, archive_dir, run } => {
+            if run {
                 anyhow::bail!(
                     "EVAL-01a not yet implemented — actual parity run deferred per CONTEXT.md \
-                     §User Amendments (2026-04-19). Use --dry-run in Phase 1."
+                     §User Amendments (2026-04-19). In Phase 1, omit --run (dry-run is the default)."
                 );
             }
             eprintln!(

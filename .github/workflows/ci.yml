@@ -3,12 +3,20 @@ name: CI
 on:
   push:
     branches: [main]
+    tags:
+      - 'v*.*.*'
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+# Least-privilege defaults. Jobs that need more elevate explicitly.
+permissions:
+  contents: read
+  pull-requests: read
 
 env:
   CARGO_TERM_COLOR: always
@@ -20,14 +28,14 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
         with:
           fetch-depth: 0
-      - uses: tim-actions/get-pr-commits@v1.3.1
+      - uses: tim-actions/get-pr-commits@198af03565609bb4ed924d1260247b4881f09e7d  # v1.3.1
         id: pr_commits
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: tim-actions/dco@master
+      - uses: tim-actions/dco@f2279e6e62d5a7d9115b0cb8e837b777b1b02e21  # master as of 2026-04-19
         with:
           commits: ${{ steps.pr_commits.outputs.commits }}
 
@@ -35,7 +43,7 @@ jobs:
     name: Lint (fmt + clippy + deny + audit)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
       - name: Detect Cargo workspace
         id: detect
         run: |
@@ -44,13 +52,27 @@ jobs:
           else
             echo "has_cargo=false" >> "$GITHUB_OUTPUT"
           fi
-      - uses: dtolnay/rust-toolchain@stable
+      # Pin to the same version as rust-toolchain.toml to avoid downloading two
+      # toolchains per CI run (stable + the pinned channel) and to guarantee the
+      # tri-OS matrix tests the exact version developers use locally.
+      - uses: dtolnay/rust-toolchain@e081816240890017053eacbb1bdf337761dc5582  # 1.95
         if: steps.detect.outputs.has_cargo == 'true'
         with:
           components: rustfmt, clippy
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae  # v2
         if: steps.detect.outputs.has_cargo == 'true'
-      - run: cargo fmt --all -- --check
+      # `cargo fmt --all` resolves modules on every crate, which fails on kay-core
+      # (E0583 — deferred to Phase 2). Use explicit per-package fmt instead.
+      - run: |
+          cargo fmt \
+            -p kay-cli \
+            -p kay-provider-openrouter \
+            -p kay-sandbox-linux \
+            -p kay-sandbox-macos \
+            -p kay-sandbox-windows \
+            -p kay-tauri \
+            -p kay-tui \
+            -- --check
         if: steps.detect.outputs.has_cargo == 'true'
       # `kay-core` is excluded until Phase 2's structural integration fixes the
       # 23 × E0583 errors inherited from ForgeCode's forge_*/lib.rs naming. Fixing
@@ -58,7 +80,7 @@ jobs:
       # .planning/phases/01-fork-governance-infrastructure/VERIFICATION.md §SC-4.
       - run: cargo clippy --workspace --exclude kay-core --all-targets --all-features -- -D warnings
         if: steps.detect.outputs.has_cargo == 'true'
-      - uses: EmbarkStudios/cargo-deny-action@v2
+      - uses: EmbarkStudios/cargo-deny-action@5bb39ff5d5a0e94dc9e2dc94eced0c6129743a57  # v2
         if: steps.detect.outputs.has_cargo == 'true' && hashFiles('deny.toml') != ''
       - name: cargo-audit
         if: steps.detect.outputs.has_cargo == 'true'
@@ -74,7 +96,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
       - name: Detect Cargo workspace
         id: detect
         shell: bash
@@ -84,9 +106,9 @@ jobs:
           else
             echo "has_cargo=false" >> "$GITHUB_OUTPUT"
           fi
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@e081816240890017053eacbb1bdf337761dc5582  # 1.95
         if: steps.detect.outputs.has_cargo == 'true'
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae  # v2
         if: steps.detect.outputs.has_cargo == 'true'
       # `kay-core` excluded until Phase 2 — see lint job comment above.
       - run: cargo test --workspace --exclude kay-core --all-features
@@ -96,39 +118,39 @@ jobs:
     name: Frontend (ui)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
       - name: Detect frontend
         id: detect
         run: |
-          if [ -f kay-tauri/ui/package.json ]; then
+          if [ -f crates/kay-tauri/ui/package.json ]; then
             echo "has_ui=true" >> "$GITHUB_OUTPUT"
           else
             echo "has_ui=false" >> "$GITHUB_OUTPUT"
           fi
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa  # v4
         if: steps.detect.outputs.has_ui == 'true'
         with:
           version: 9
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
         if: steps.detect.outputs.has_ui == 'true'
         with:
           node-version: '20'
           cache: pnpm
-          cache-dependency-path: kay-tauri/ui/pnpm-lock.yaml
+          cache-dependency-path: crates/kay-tauri/ui/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-        working-directory: kay-tauri/ui
+        working-directory: crates/kay-tauri/ui
         if: steps.detect.outputs.has_ui == 'true'
       - run: pnpm run typecheck
-        working-directory: kay-tauri/ui
+        working-directory: crates/kay-tauri/ui
         if: steps.detect.outputs.has_ui == 'true'
       - run: pnpm run lint
-        working-directory: kay-tauri/ui
+        working-directory: crates/kay-tauri/ui
         if: steps.detect.outputs.has_ui == 'true'
       - run: pnpm run test -- --run
-        working-directory: kay-tauri/ui
+        working-directory: crates/kay-tauri/ui
         if: steps.detect.outputs.has_ui == 'true'
       - run: pnpm run build
-        working-directory: kay-tauri/ui
+        working-directory: crates/kay-tauri/ui
         if: steps.detect.outputs.has_ui == 'true'
 
   signed-tag-gate:
@@ -139,7 +161,7 @@ jobs:
       startsWith(github.ref_name, 'v') &&
       contains(github.ref_name, '.')
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
         with:
           fetch-depth: 0
       - name: Verify tag signature
@@ -155,7 +177,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
       - name: Check for archived parity run
         run: |
           ARCHIVE=".planning/phases/01-fork-governance-infrastructure/parity-baseline"

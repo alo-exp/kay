@@ -70,4 +70,4 @@ do not trust the release. Contact security@kay.dev.
 Kay's security process is informed by the OpenSSF oss-vulnerability-guide
 (https://github.com/ossf/oss-vulnerability-guide).
 
-> Phase 1 ships this attestation under self-review; legal review is encouraged before v1.
+**Note:** This policy is pre-1.0 and maintainer-reviewed only. A formal legal review of the clean-room attestation clause in `CONTRIBUTING.md` is planned before Kay reaches its 0.10 series or accepts its first external contribution — whichever comes first.

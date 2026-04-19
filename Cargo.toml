@@ -1,6 +1,18 @@
 [workspace]
 resolver = "2"
-members = ["crates/*"]
+# Explicit member list (matches codex-rs convention per CONTEXT.md D-05).
+# Stray directories under crates/ are NOT auto-included. Update this list when
+# adding a crate.
+members = [
+    "crates/kay-cli",
+    "crates/kay-core",
+    "crates/kay-provider-openrouter",
+    "crates/kay-sandbox-linux",
+    "crates/kay-sandbox-macos",
+    "crates/kay-sandbox-windows",
+    "crates/kay-tauri",
+    "crates/kay-tui",
+]
 
 [workspace.package]
 version = "0.1.0"

@@ -13,7 +13,9 @@ targets = [
 all-features = true
 
 [advisories]
-# Pull RustSec advisories; fail on unmaintained/unsound.
+# cargo-deny 0.19+ uses scope selectors ("all", "workspace", "transitive", "none")
+# for `unmaintained` and `unsound`; `yanked` uses lint levels ("deny", "warn",
+# "allow"). Vulnerabilities are always `deny` in recent cargo-deny — no config.
 unmaintained = "workspace"
 unsound = "all"
 yanked = "deny"
@@ -39,7 +41,7 @@ exceptions = []
 # that would propagate to Kay's Apache-2.0 license grant.
 
 [bans]
-multiple-versions = "warn"  # Start as warn; tighten to deny once clean.
+multiple-versions = "warn"  # TODO(WS-03-followup): flip to "deny" once duplicates are resolved.
 wildcards = "deny"
 
 # Deny openssl — Kay uses rustls per CONTEXT.md D-08.

@@ -6,6 +6,15 @@
 
 set -euo pipefail
 
+# --- repo-root guard ---
+# check_attribution.sh must be run from the Kay repo root. If LICENSE or
+# Cargo.toml are missing from CWD, every relative-path check below will
+# fail opaquely. Fail fast with a clear message instead.
+if [ ! -f LICENSE ] || [ ! -f Cargo.toml ]; then
+  echo "Error: run check_attribution.sh from the Kay repo root (cd to the dir containing LICENSE + Cargo.toml)." >&2
+  exit 2
+fi
+
 # --- color (only when stdout is a tty) ---
 if [ -t 1 ]; then
   C_GREEN=$'\033[32m'
@@ -104,7 +113,8 @@ check "README mentions Terminus-KIRA"          grep -q 'Terminus-KIRA' README.md
 echo "== GOV-01: ATTRIBUTIONS.md =="
 check "ATTRIBUTIONS.md exists"                 test -f ATTRIBUTIONS.md
 check_absent "ATTRIBUTIONS has no '<UPSTREAM_COMMIT>' placeholder" grep -q '<UPSTREAM_COMMIT>' ATTRIBUTIONS.md
-check "ATTRIBUTIONS cites rust-toolchain 1.95 divergence" grep -q '1.95' ATTRIBUTIONS.md
+check "ATTRIBUTIONS cites rust-toolchain 1.95 divergence" \
+  grep -qE 'rust-toolchain[[:space:]]*.*1\.95' ATTRIBUTIONS.md
 
 echo "== GOV-04 / GOV-07: CONTRIBUTING.md (DCO + clean-room) =="
 check "CONTRIBUTING.md exists"                 test -f CONTRIBUTING.md
@@ -145,5 +155,10 @@ if [ "$failed" -eq 0 ]; then
   exit 0
 else
   printf '%sFAILED: %d invariant(s) -- fix and re-run%s\n' "$C_RED" "$failed" "$C_RESET"
-  exit 1
+  # Cap at 125 so exit code stays in the "command-exit" POSIX band (126/127/128+
+  # are reserved for shell-layer failures). Any value >0 still means "failure".
+  if [ "$failed" -gt 125 ]; then
+    exit 125
+  fi
+  exit "$failed"
 fi

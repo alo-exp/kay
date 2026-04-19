@@ -7,12 +7,12 @@ Cargo.lock.bak
 *.dSYM
 
 # Tauri
-/kay-tauri/target
-/kay-tauri/src-tauri/target
-/kay-tauri/ui/dist
-/kay-tauri/ui/node_modules
-/kay-tauri/ui/.pnpm-store
-/kay-tauri/ui/coverage
+/crates/kay-tauri/target
+/crates/kay-tauri/src-tauri/target
+/crates/kay-tauri/ui/dist
+/crates/kay-tauri/ui/node_modules
+/crates/kay-tauri/ui/.pnpm-store
+/crates/kay-tauri/ui/coverage
 
 # Frontend tooling
 node_modules
