@@ -184,17 +184,99 @@ Explicitly excluded from v1 and v2 alike — documented to prevent scope creep.
 
 ## Traceability
 
-Empty until ROADMAP.md is created. Each v1 requirement maps to exactly one phase. Populated by the gsd-roadmapper agent.
+Every v1 requirement maps to exactly one phase. Populated by the gsd-roadmapper agent on 2026-04-19.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated during roadmap creation) | — | — |
+| GOV-01 | Phase 1 | Pending |
+| GOV-02 | Phase 1 | Pending |
+| GOV-03 | Phase 1 | Pending |
+| GOV-04 | Phase 1 | Pending |
+| GOV-05 | Phase 1 | Pending |
+| GOV-06 | Phase 1 | Pending |
+| GOV-07 | Phase 1 | Pending |
+| WS-01 | Phase 1 | Pending |
+| WS-02 | Phase 1 | Pending |
+| WS-03 | Phase 1 | Pending |
+| WS-04 | Phase 1 | Pending |
+| WS-05 | Phase 1 | Pending |
+| PROV-01 | Phase 2 | Pending |
+| PROV-02 | Phase 2 | Pending |
+| PROV-03 | Phase 2 | Pending |
+| PROV-04 | Phase 2 | Pending |
+| PROV-05 | Phase 2 | Pending |
+| PROV-06 | Phase 2 | Pending |
+| PROV-07 | Phase 2 | Pending |
+| PROV-08 | Phase 2 | Pending |
+| TOOL-01 | Phase 3 | Pending |
+| TOOL-02 | Phase 3 | Pending |
+| TOOL-03 | Phase 3 | Pending |
+| TOOL-04 | Phase 3 | Pending |
+| TOOL-05 | Phase 3 | Pending |
+| TOOL-06 | Phase 3 | Pending |
+| SHELL-01 | Phase 3 | Pending |
+| SHELL-02 | Phase 3 | Pending |
+| SHELL-03 | Phase 3 | Pending |
+| SHELL-04 | Phase 3 | Pending |
+| SHELL-05 | Phase 3 | Pending |
+| SBX-01 | Phase 4 | Pending |
+| SBX-02 | Phase 4 | Pending |
+| SBX-03 | Phase 4 | Pending |
+| SBX-04 | Phase 4 | Pending |
+| LOOP-01 | Phase 5 | Pending |
+| LOOP-02 | Phase 5 | Pending |
+| LOOP-03 | Phase 5 | Pending |
+| LOOP-04 | Phase 5 | Pending |
+| LOOP-05 | Phase 5 | Pending |
+| LOOP-06 | Phase 5 | Pending |
+| CLI-01 | Phase 5 | Pending |
+| CLI-03 | Phase 5 | Pending |
+| SESS-01 | Phase 6 | Pending |
+| SESS-02 | Phase 6 | Pending |
+| SESS-03 | Phase 6 | Pending |
+| SESS-04 | Phase 6 | Pending |
+| SESS-05 | Phase 6 | Pending |
+| CLI-02 | Phase 6 | Pending |
+| CTX-01 | Phase 7 | Pending |
+| CTX-02 | Phase 7 | Pending |
+| CTX-03 | Phase 7 | Pending |
+| CTX-04 | Phase 7 | Pending |
+| CTX-05 | Phase 7 | Pending |
+| VERIFY-01 | Phase 8 | Pending |
+| VERIFY-02 | Phase 8 | Pending |
+| VERIFY-03 | Phase 8 | Pending |
+| VERIFY-04 | Phase 8 | Pending |
+| TAURI-01 | Phase 9 | Pending |
+| TAURI-02 | Phase 9 | Pending |
+| TAURI-03 | Phase 9 | Pending |
+| TAURI-04 | Phase 9 | Pending |
+| TAURI-05 | Phase 9 | Pending |
+| TAURI-06 | Phase 9 | Pending |
+| UI-01 | Phase 9 | Pending |
+| UI-02 | Phase 10 | Pending |
+| UI-03 | Phase 10 | Pending |
+| UI-04 | Phase 10 | Pending |
+| UI-05 | Phase 10 | Pending |
+| UI-06 | Phase 10 | Pending |
+| UI-07 | Phase 10 | Pending |
+| REL-01 | Phase 11 | Pending |
+| REL-02 | Phase 11 | Pending |
+| REL-03 | Phase 11 | Pending |
+| REL-04 | Phase 11 | Pending |
+| REL-05 | Phase 11 | Pending |
+| REL-06 | Phase 11 | Pending |
+| REL-07 | Phase 11 | Pending |
+| EVAL-01 | Phase 1 | Pending |
+| EVAL-02 | Phase 12 | Pending |
+| EVAL-03 | Phase 12 | Pending |
+| EVAL-04 | Phase 12 | Pending |
+| EVAL-05 | Phase 12 | Pending |
 
 **Coverage:**
-- v1 requirements: 77 total
-- Mapped to phases: 0 (pre-roadmap)
-- Unmapped: 77 ⚠️ (resolved when roadmap lands)
+- v1 requirements: 83 total (corrected from 77 after recounting the 15 categories: GOV 7 + WS 5 + PROV 8 + TOOL 6 + SHELL 5 + SBX 4 + LOOP 6 + SESS 5 + CTX 5 + VERIFY 4 + TAURI 6 + UI 7 + CLI 3 + REL 7 + EVAL 5 = 83)
+- Mapped to phases: 83 ✓
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-19*
-*Last updated: 2026-04-19 after initial definition*
+*Last updated: 2026-04-19 — traceability populated by gsd-roadmapper (83 requirements mapped across 12 phases)*
