@@ -26,12 +26,26 @@ Kay's testing strategy is benchmark-anchored. Terminal-Bench 2.0 is the north st
 - Pursuing 100% line coverage in the UI layer (cost > value; covered by end-to-end canaries).
 - Duplicating TB 2.0 tasks as unit tests — the benchmark harness is the one source of truth.
 
+## Governance Invariants (active now)
+
+**`tests/governance/check_attribution.sh`** — 35 grep-based assertions run locally (and wireable into CI):
+
+- `NOTICE` contains the ForgeCode SHA + "ForgeCode" + "antinomyhq"
+- `README.md` has an `## Acknowledgments` section mentioning ForgeCode + Terminus-KIRA
+- `CONTRIBUTING.md` contains exact clean-room attestation strings `@anthropic-ai/claude-code`, `v2.1.88`, `2026-03-31`, `Developer Certificate of Origin`
+- `SECURITY.md` references `security@kay.dev` + `docs/signing-keys`
+- `.forgecode-upstream-sha` exists with a 40-char hex SHA
+- `ATTRIBUTIONS.md` has `<UPSTREAM_COMMIT>` placeholder substituted
+- `forgecode-parity-baseline` tag exists and is annotated
+
+Run: `bash tests/governance/check_attribution.sh`. Exits 0 on all-pass; non-zero on any failure. `--help` lists each check.
+
 ## Regression Gates
 
-- **Phase 1 parity gate**: forked ForgeCode baseline ≥ 80% on TB 2.0 before any harness mod merges (EVAL-01). Enforced in CI via a stored reference transcript.
-- **Nightly real-repo eval**: drop > 2pp on any repo blocks main merges until investigated.
-- **Canary memory delta**: > 50 MB/hour in the 4-hour run fails the nightly pipeline.
-- **TB 2.0 submission acceptance**: public score ≥ 81.8% with archived transcript (EVAL-05).
+- **Phase 1 parity gate**: forked ForgeCode baseline ≥ 80% on TB 2.0 before any harness mod merges (EVAL-01). Scaffolded in Phase 1 (`kay eval tb2 --dry-run`); actual run = EVAL-01a follow-on.
+- **Nightly real-repo eval**: drop > 2pp on any repo blocks main merges until investigated (Phase 8+ onward).
+- **Canary memory delta**: > 50 MB/hour in the 4-hour Tauri run fails the nightly pipeline (Phase 9+ onward).
+- **TB 2.0 submission acceptance**: public score ≥ 81.8% with archived transcript (EVAL-05, Phase 12).
 
 ## Tooling
 
@@ -39,3 +53,4 @@ Kay's testing strategy is benchmark-anchored. Terminal-Bench 2.0 is the north st
 - `cargo-llvm-cov` for coverage
 - `proptest` / `quickcheck` for property tests on the schema-hardening pipeline
 - `insta` for snapshot tests on agent-event sequences
+- `cargo-deny` + `cargo-audit` — active in CI since Phase 1 (lint job + nightly workflow)
