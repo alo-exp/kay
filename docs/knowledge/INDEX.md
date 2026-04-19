@@ -25,7 +25,7 @@ Quick-reference pointer to current project docs. Updated when docs are added/rem
 **Governance artifacts:**
 - `LICENSE`, `NOTICE`, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `ATTRIBUTIONS.md`
 - `.github/workflows/ci.yml` + `audit.yml`
-- `tests/governance/check_attribution.sh` (run locally: 35 grep-based invariants)
+- `tests/governance/check_attribution.sh` (run locally: 36 grep-based invariants)
 - `forgecode-parity-baseline` git tag (annotated, unsigned per D-OP-04 deferral)
 
 Latest knowledge: `docs/knowledge/2026-04.md`

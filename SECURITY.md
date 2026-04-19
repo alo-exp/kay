@@ -48,14 +48,24 @@ We follow coordinated disclosure:
 
 ## Release Signing
 
-All release tags from v0.1.0 onward are GPG- or SSH-signed. Public signing
-keys are published at https://github.com/alo-exp/kay/tree/main/docs/signing-keys.
-Verify a release with:
+Release signing tiers:
+
+- **`v0.0.x` pre-stable series:** may be unsigned. These are internal / audit
+  builds that ship before Phase 11 signing-key procurement completes. The
+  `v0.0.x` carve-out is explicit in `.github/workflows/ci.yml` (see the
+  `signed-tag-gate` job's `if:` condition).
+- **`v0.1.0` and onward:** every release tag is GPG- or SSH-signed. Public
+  signing keys are published at
+  https://github.com/alo-exp/kay/tree/main/docs/signing-keys.
+
+Verify a signed release with:
 
     git tag -v v0.1.0
 
-If `git tag -v` reports "no signature found" or a verification failure,
-do not trust the release. Contact security@kay.dev.
+If `git tag -v` reports "no signature found" or a verification failure on a
+`v0.1.0+` tag, do not trust the release. Contact security@kay.dev. For
+`v0.0.x` releases the "no signature found" result is expected — confirm the
+tag SHA matches the GitHub Release page instead.
 
 ## Dependency Hygiene
 

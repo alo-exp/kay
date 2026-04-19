@@ -28,7 +28,7 @@ Kay's testing strategy is benchmark-anchored. Terminal-Bench 2.0 is the north st
 
 ## Governance Invariants (active now)
 
-**`tests/governance/check_attribution.sh`** — 35 grep-based assertions run locally (and wireable into CI):
+**`tests/governance/check_attribution.sh`** — 36 grep-based assertions run locally (and wireable into CI):
 
 - `NOTICE` contains the ForgeCode SHA + "ForgeCode" + "antinomyhq"
 - `README.md` has an `## Acknowledgments` section mentioning ForgeCode + Terminus-KIRA

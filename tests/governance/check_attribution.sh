@@ -100,7 +100,9 @@ check "LICENSE contains 'Apache License'"      grep -q 'Apache License' LICENSE
 check "NOTICE exists"                          test -f NOTICE
 check "NOTICE cites ForgeCode"                 grep -q 'ForgeCode' NOTICE
 check "NOTICE cites Tailcall copyright"        grep -q 'Tailcall' NOTICE
+check "NOTICE cites antinomyhq org"            grep -q 'antinomyhq' NOTICE
 check "NOTICE cites Apache-2.0"                grep -q 'Apache License, Version 2.0' NOTICE
+check "NOTICE cites ForgeCode import SHA"      grep -qE '[0-9a-f]{40}' NOTICE
 check "NOTICE brief (<= 20 lines)"             test "$(wc -l < NOTICE)" -le 20
 check_absent "NOTICE has no '<SHA>' placeholder" grep -q '<SHA>' NOTICE
 

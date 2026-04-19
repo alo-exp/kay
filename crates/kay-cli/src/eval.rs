@@ -58,8 +58,10 @@ pub fn run(target: EvalTarget) -> anyhow::Result<()> {
             eprintln!("  - OPENROUTER_API_KEY set (scope: benchmark budget <= $100)");
             eprintln!("  - DAYTONA_API_KEY set (for --env daytona)");
             eprintln!(
-                "On completion, tag HEAD as 'forgecode-parity-baseline' (signed per D-OP-04 \
-                 once signing key is procured in Phase 11)."
+                "On completion, compare the score against the existing 'forgecode-parity-baseline' \
+                 tag and archive the transcript + summary.md to `archive_dir`. The tag itself was \
+                 created during Phase 1 (unsigned per D-OP-04) and will be re-signed in Phase 11 \
+                 once a signing key is procured."
             );
             Ok(())
         }

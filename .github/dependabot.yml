@@ -31,3 +31,14 @@ updates:
     commit-message:
       prefix: "chore(deps)"
       include: scope
+    # Group patch+minor updates into a single PR; keep major bumps separate
+    # for individual review (never-major policy means we treat major-as-minor
+    # in our own versioning, but upstream majors still warrant per-dep review).
+    groups:
+      cargo-patch-minor:
+        update-types:
+          - "patch"
+          - "minor"
+      cargo-major:
+        update-types:
+          - "major"

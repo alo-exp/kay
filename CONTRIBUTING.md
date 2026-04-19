@@ -47,7 +47,7 @@ PR and the maintainers will route review accordingly.
    ```
    cargo fmt -p kay-cli -p kay-provider-openrouter -p kay-sandbox-linux \
              -p kay-sandbox-macos -p kay-sandbox-windows -p kay-tauri -p kay-tui
-   cargo clippy --workspace --exclude kay-core --all-targets -- -D warnings
+   cargo clippy --workspace --exclude kay-core --all-targets --all-features -- -D warnings
    ```
 
    Note: `cargo fmt --all` will fail on `kay-core` (E0583 from forge_*/lib.rs

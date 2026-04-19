@@ -3,6 +3,21 @@ name: Nightly security audit
 on:
   schedule:
     - cron: '17 4 * * *'  # 04:17 UTC daily — stagger to avoid the 00:00 thundering herd
+  # Also run on every PR that touches dep manifests — catches advisory-affected
+  # bumps at review time instead of up-to-23h later on the next nightly run.
+  pull_request:
+    paths:
+      - Cargo.toml
+      - Cargo.lock
+      - crates/**/Cargo.toml
+      - deny.toml
+  push:
+    branches: [main]
+    paths:
+      - Cargo.toml
+      - Cargo.lock
+      - crates/**/Cargo.toml
+      - deny.toml
   workflow_dispatch:
 
 # rustsec/audit-check@v2 needs issues: write to post advisory issues.

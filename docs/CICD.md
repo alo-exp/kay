@@ -6,15 +6,17 @@ Pipeline overview for Kay. The authoritative workflows live in `.github/workflow
 
 Two workflow files + one governance invariant checker are live:
 
-- **`.github/workflows/ci.yml`** — 6 jobs on every PR + push to main
-  - `dco` — DCO signoff check via `tim-actions/dco@master` + `tim-actions/get-pr-commits@v1.3.1`; PR-only trigger
-  - `lint` — `cargo fmt --check` + `cargo clippy --all-targets -- -D warnings` + `EmbarkStudios/cargo-deny-action@v2` (gated on `hashFiles('deny.toml') != ''`) + inline `cargo-audit`; ubuntu-latest
-  - `test` — `cargo test --workspace --all-features` on the `ubuntu-latest` / `macos-latest` / `windows-latest` matrix (`fail-fast: false`)
-  - `frontend` — detects `kay-tauri/ui/package.json`; if present runs pnpm typecheck + lint + test + build
-  - `signed-tag-gate` — Pitfall-6-hardened `if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v') && contains(github.ref_name, '.')`; runs `git tag -v` and fails unsigned release-shape tags
-  - `parity-gate` — `workflow_dispatch` trigger only (Phase 1 scaffold per D-OP-01 user amendment); runs `kay eval tb2 --dry-run` and exits 0; upgrades to real Harbor invocation in Phase 2
-- **`.github/workflows/audit.yml`** — Nightly cargo-audit at 04:17 UTC via `rustsec/audit-check@v2.0.0`; also on `Cargo.toml` / `Cargo.lock` PRs
-- **`tests/governance/check_attribution.sh`** — 35 grep-based invariants verifying NOTICE, ATTRIBUTIONS, README, CONTRIBUTING, SECURITY, `.forgecode-upstream-sha`, and the `forgecode-parity-baseline` tag remain intact
+- **`.github/workflows/ci.yml`** — 6 jobs defined; triggers vary per job (see below).
+  Workflow-level triggers: `push` to `main` and `v*.*.*` tags, `pull_request` to `main`, and manual `workflow_dispatch`.
+  Always-on (every PR + push to main + every workflow run): `lint`, `test`, `frontend`. The other three are conditional.
+  - `dco` — DCO signoff check via `tim-actions/dco@master` + `tim-actions/get-pr-commits@v1.3.1`. **PR-only**: `if: github.event_name == 'pull_request'`
+  - `lint` — `cargo fmt --check` + `cargo clippy --all-targets -- -D warnings` + `EmbarkStudios/cargo-deny-action@v2` (gated on `hashFiles('deny.toml') != ''`) + inline `cargo-audit`; ubuntu-latest. **Always on.**
+  - `test` — `cargo test --workspace --exclude kay-core --all-features` on the `ubuntu-latest` / `macos-latest` / `windows-latest` matrix (`fail-fast: false`). **Always on.**
+  - `frontend` — detects `crates/kay-tauri/ui/package.json`; if present runs pnpm typecheck + lint + test + build. **Always on** (no-op until Phase 9 creates the frontend).
+  - `signed-tag-gate` — Pitfall-6-hardened `if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v') && contains(github.ref_name, '.') && !startsWith(github.ref_name, 'v0.0.')`; runs `git tag -v` and fails unsigned release-shape tags. **Tag-only, v0.0.x exempt** — see §Gates and `SECURITY.md §Release Signing`.
+  - `parity-gate` — **`workflow_dispatch` only** (Phase 1 scaffold per D-OP-01 user amendment); checks for an archived parity-run summary at `.planning/phases/01-fork-governance-infrastructure/parity-baseline/summary.md` and exits 0 with an informational notice if absent (Phase 1 state); upgrades to real Harbor invocation + score-threshold check in Phase 2.
+- **`.github/workflows/audit.yml`** — cargo-audit via `rustsec/audit-check@v2.0.0`. Runs nightly at 04:17 UTC, on PRs/pushes that touch `Cargo.toml` / `Cargo.lock` / `crates/**/Cargo.toml` / `deny.toml`, and via manual `workflow_dispatch`
+- **`tests/governance/check_attribution.sh`** — 36 grep-based invariants verifying NOTICE, ATTRIBUTIONS, README, CONTRIBUTING, SECURITY, `.forgecode-upstream-sha`, and the `forgecode-parity-baseline` tag remain intact
 
 ## Future Pipeline Stages (Phase 11 onwards)
 
@@ -25,7 +27,7 @@ Two workflow files + one governance invariant checker are live:
 
 ## Gates
 
-- **Unsigned release tag rejection** — CI refuses to publish a release for an unsigned git tag (enforces GOV-05). Scaffolded in Phase 1; activates when the first signed release tag is cut (Phase 11 onward).
+- **Unsigned release tag rejection** — CI runs `git tag -v` on every `v*.*.*`-shaped tag EXCEPT the `v0.0.x` pre-stable series, and fails if no signature is present (enforces GOV-05). The `v0.0.x` carve-out is deliberate: those are internal / audit builds that ship before Phase 11 signing-key procurement. From `v0.1.0` onward, signing is mandatory. See `SECURITY.md §Release Signing`.
 - **DCO check** — `tim-actions/dco@master` blocks PRs missing `Signed-off-by` on any commit (enforces GOV-03). **Active now.**
 - **Parity gate** — the forked baseline must continue to reproduce ≥ 80% on TB 2.0 (enforces EVAL-01). Scaffolded in Phase 1 as `workflow_dispatch` only; wires into PR/merge checks at Phase 2's first harness modification.
 - **Canary memory delta** — nightly pipeline fails main if the 4-hour Tauri canary exceeds the memory-growth budget (Phase 9 onward).
