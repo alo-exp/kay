@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
-use forge_domain::Snapshot;
-use forge_fs::ForgeFS;
+use crate::forge_domain::Snapshot;
+use crate::forge_fs::ForgeFS;
 
 /// Implementation of the SnapshotService
 #[derive(Debug)]
