@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use bytes::Bytes;
 use derive_setters::Setters;
-use forge_domain::{
+use crate::forge_domain::{
     AgentId, AnyProvider, Attachment, AuthContextRequest, AuthContextResponse, AuthMethod,
     ChatCompletionMessage, CommandOutput, Context, Conversation, ConversationId, File, FileInfo,
     FileStatus, Image, McpConfig, McpServers, Model, ModelId, Node, Provider, ProviderId,
@@ -15,8 +15,8 @@ use reqwest::header::HeaderMap;
 use reqwest_eventsource::EventSource;
 use url::Url;
 
-use crate::user::{User, UserUsage};
-use crate::{EnvironmentInfra, Walker};
+use crate::forge_app::user::{User, UserUsage};
+use crate::forge_app::{EnvironmentInfra, Walker};
 
 #[derive(Debug, Clone)]
 pub struct ShellOutput {

@@ -2,12 +2,12 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use anyhow::anyhow;
-use forge_domain::{CodebaseQueryResult, ToolCallContext, ToolCatalog, ToolOutput};
+use crate::forge_domain::{CodebaseQueryResult, ToolCallContext, ToolCatalog, ToolOutput};
 
-use crate::fmt::content::FormatContent;
-use crate::operation::{TempContentFiles, ToolOperation};
-use crate::services::{Services, ShellService};
-use crate::{
+use crate::forge_app::fmt::content::FormatContent;
+use crate::forge_app::operation::{TempContentFiles, ToolOperation};
+use crate::forge_app::services::{Services, ShellService};
+use crate::forge_app::{
     AgentRegistry, ConversationService, EnvironmentInfra, FollowUpService, FsPatchService,
     FsReadService, FsRemoveService, FsSearchService, FsUndoService, FsWriteService,
     ImageReadService, NetFetchService, PlanCreateService, ProviderService, SkillFetchService,

@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::{Match, MatchResult};
+use crate::forge_app::{Match, MatchResult};
 
 /// Formats a path for display, converting absolute paths to relative when
 /// possible
@@ -43,7 +43,7 @@ pub fn format_display_path(path: &Path, cwd: &Path) -> String {
 ///
 /// # Returns
 /// * A truncated version of the key for safe display
-pub use forge_domain::truncate_key;
+pub use crate::forge_domain::truncate_key;
 
 pub fn format_match(matched: &Match, base_dir: &Path) -> String {
     match &matched.result {

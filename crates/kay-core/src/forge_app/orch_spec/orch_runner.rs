@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, VecDeque};
 use std::sync::Arc;
 
-use forge_domain::{
+use crate::forge_domain::{
     Attachment, ChatCompletionMessage, ChatResponse, Conversation, ConversationId, Environment,
     Event, Hook, ProviderId, ToolCallFull, ToolErrorTracker, ToolResult,
 };
@@ -10,15 +10,15 @@ use include_dir::{Dir, include_dir};
 use tokio::sync::Mutex;
 
 pub use super::orch_setup::TestContext;
-use crate::app::build_template_config;
-use crate::apply_tunable_parameters::ApplyTunableParameters;
-use crate::hooks::{DoomLoopDetector, PendingTodosHandler};
-use crate::init_conversation_metrics::InitConversationMetrics;
-use crate::orch::Orchestrator;
-use crate::set_conversation_id::SetConversationId;
-use crate::system_prompt::SystemPrompt;
-use crate::user_prompt::UserPromptGenerator;
-use crate::{
+use crate::forge_app::app::build_template_config;
+use crate::forge_app::apply_tunable_parameters::ApplyTunableParameters;
+use crate::forge_app::hooks::{DoomLoopDetector, PendingTodosHandler};
+use crate::forge_app::init_conversation_metrics::InitConversationMetrics;
+use crate::forge_app::orch::Orchestrator;
+use crate::forge_app::set_conversation_id::SetConversationId;
+use crate::forge_app::system_prompt::SystemPrompt;
+use crate::forge_app::user_prompt::UserPromptGenerator;
+use crate::forge_app::{
     AgentExt, AgentService, AttachmentService, EnvironmentInfra, ShellOutput, ShellService,
     SkillFetchService, TemplateService,
 };

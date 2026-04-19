@@ -1,11 +1,11 @@
-use forge_domain::{
+use crate::forge_domain::{
     Compact, CompactionStrategy, Context, ContextMessage, ContextSummary, Environment,
     MessageEntry, Transformer,
 };
 use tracing::info;
 
-use crate::TemplateEngine;
-use crate::transformers::SummaryTransformer;
+use crate::forge_app::TemplateEngine;
+use crate::forge_app::transformers::SummaryTransformer;
 
 /// A service dedicated to handling context compaction.
 pub struct Compactor {

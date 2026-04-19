@@ -1,5 +1,5 @@
 use derive_setters::Setters;
-use forge_domain::{ContextMessage, Image};
+use crate::forge_domain::{ContextMessage, Image};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Default, Setters)]

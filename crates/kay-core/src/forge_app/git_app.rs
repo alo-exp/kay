@@ -2,15 +2,15 @@ use std::path::Path;
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
-use forge_domain::*;
+use crate::forge_domain::*;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::services::{
+use crate::forge_app::services::{
     AgentRegistry, AppConfigService, ProviderAuthService, ProviderService, ShellService,
     TemplateService,
 };
-use crate::{AgentProviderResolver, EnvironmentInfra, Services};
+use crate::forge_app::{AgentProviderResolver, EnvironmentInfra, Services};
 
 /// Errors specific to GitApp operations
 #[derive(thiserror::Error, Debug)]

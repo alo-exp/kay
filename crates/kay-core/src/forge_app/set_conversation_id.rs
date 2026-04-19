@@ -1,4 +1,4 @@
-use forge_domain::Conversation;
+use crate::forge_domain::Conversation;
 
 /// Sets the conversation_id on the conversation context
 #[derive(Debug, Clone, Copy, Default)]

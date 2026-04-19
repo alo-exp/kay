@@ -1,7 +1,7 @@
 use std::path::Path;
 
-use crate::Match;
-use crate::utils::format_match;
+use crate::forge_app::Match;
+use crate::forge_app::utils::format_match;
 
 #[derive(PartialEq, Eq, Debug)]
 pub enum TruncationMode {

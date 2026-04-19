@@ -1,4 +1,4 @@
-use forge_domain::{DefaultTransformation, Provider, ProviderId, Transformer};
+use crate::forge_domain::{DefaultTransformation, Provider, ProviderId, Transformer};
 use url::Url;
 
 use super::drop_tool_call::DropToolCalls;
@@ -18,7 +18,7 @@ use super::tool_choice::SetToolChoice;
 use super::trim_tool_call_ids::TrimToolCallIds;
 use super::when_model::when_model;
 use super::zai_reasoning::SetZaiThinking;
-use crate::dto::openai::{Request, ToolChoice};
+use crate::forge_app::dto::openai::{Request, ToolChoice};
 
 /// Pipeline for transforming requests based on the provider type
 pub struct ProviderPipeline<'a>(&'a Provider<Url>);

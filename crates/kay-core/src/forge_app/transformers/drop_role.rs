@@ -1,4 +1,4 @@
-use forge_domain::{ContextSummary, Role, Transformer};
+use crate::forge_domain::{ContextSummary, Role, Transformer};
 
 /// Drops all messages with a specific role from the context summary.
 ///

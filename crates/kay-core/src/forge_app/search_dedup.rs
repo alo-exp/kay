@@ -8,7 +8,7 @@
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
-use forge_domain::{Node, NodeId};
+use crate::forge_domain::{Node, NodeId};
 
 /// Tracks the best score for a node across multiple queries.
 ///

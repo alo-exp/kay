@@ -1,14 +1,14 @@
 use std::str::FromStr;
 
-use forge_domain::{
+use crate::forge_domain::{
     ChatCompletionMessage, Content, FinishReason, TokenCount, ToolCallFull, ToolCallId,
     ToolCallPart, ToolName, Usage,
 };
 use serde::{Deserialize, Serialize};
 
 use super::tool_choice::FunctionType;
-use crate::dto::openai::ReasoningDetail;
-use crate::dto::openai::error::{Error, ErrorCode, ErrorResponse};
+use crate::forge_app::dto::openai::ReasoningDetail;
+use crate::forge_app::dto::openai::error::{Error, ErrorCode, ErrorResponse};
 
 /// Represents a value that may be either a JSON number or a numeric string.
 #[derive(Deserialize, Debug, Clone, PartialEq, derive_more::TryInto, Serialize)]

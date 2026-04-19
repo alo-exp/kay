@@ -1,15 +1,15 @@
 use std::sync::Arc;
 
 use derive_setters::Setters;
-use forge_domain::{
+use crate::forge_domain::{
     ChatCompletionMessageFull, Context, ContextMessage, ConversationId, ModelId, ProviderId,
     ReasoningConfig, ResponseFormat, ResultStreamExt, UserPrompt,
 };
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::TemplateEngine;
-use crate::agent::AgentService as AS;
+use crate::forge_app::TemplateEngine;
+use crate::forge_app::agent::AgentService as AS;
 
 /// Structured response for title generation using JSON format
 #[derive(Debug, Clone, Deserialize, JsonSchema)]

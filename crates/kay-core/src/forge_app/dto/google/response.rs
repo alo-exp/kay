@@ -1,4 +1,4 @@
-use forge_domain::{
+use crate::forge_domain::{
     ChatCompletionMessage, FinishReason, Reasoning, ReasoningPart, TokenCount, ToolCallId,
     ToolCallPart, ToolName,
 };

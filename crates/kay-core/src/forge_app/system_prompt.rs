@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use derive_setters::Setters;
-use forge_domain::{
+use crate::forge_domain::{
     Agent, Conversation, Environment, Extension, ExtensionStat, File, Model, SystemContext,
     Template, TemplateConfig, ToolCatalog, ToolDefinition, ToolUsagePrompt,
 };
@@ -10,7 +10,7 @@ use serde_json::{Map, Value, json};
 use strum::IntoEnumIterator;
 use tracing::debug;
 
-use crate::{ShellService, SkillFetchService, TemplateEngine};
+use crate::forge_app::{ShellService, SkillFetchService, TemplateEngine};
 
 #[derive(Setters)]
 pub struct SystemPrompt<S> {

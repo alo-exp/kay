@@ -1,6 +1,6 @@
-use forge_domain::{Effort, Transformer};
+use crate::forge_domain::{Effort, Transformer};
 
-use crate::dto::openai::Request;
+use crate::forge_app::dto::openai::Request;
 
 /// Transformer that converts standard ReasoningConfig to reasoning_effort
 /// format

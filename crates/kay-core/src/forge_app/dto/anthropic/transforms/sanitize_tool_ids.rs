@@ -1,7 +1,7 @@
-use forge_domain::Transformer;
+use crate::forge_domain::Transformer;
 use regex::Regex;
 
-use crate::dto::anthropic::{Content, Request};
+use crate::forge_app::dto::anthropic::{Content, Request};
 
 /// Transformer that sanitizes tool call IDs for Anthropic/Vertex Anthropic
 /// compatibility.

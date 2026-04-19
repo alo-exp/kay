@@ -1,6 +1,6 @@
-use forge_domain::Transformer;
+use crate::forge_domain::Transformer;
 
-use crate::dto::anthropic::{Request, SystemMessage};
+use crate::forge_app::dto::anthropic::{Request, SystemMessage};
 
 /// Adds authentication system message when OAuth is enabled.
 pub struct AuthSystemMessage {

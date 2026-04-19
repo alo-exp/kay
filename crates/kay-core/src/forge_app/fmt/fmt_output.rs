@@ -1,10 +1,10 @@
-use forge_display::DiffFormat;
-use forge_domain::{ChatResponseContent, Environment, TitleFormat};
+use crate::forge_display::DiffFormat;
+use crate::forge_domain::{ChatResponseContent, Environment, TitleFormat};
 
-use crate::fmt::content::FormatContent;
-use crate::fmt::todo_fmt::{format_todos, format_todos_diff};
-use crate::operation::ToolOperation;
-use crate::utils::format_display_path;
+use crate::forge_app::fmt::content::FormatContent;
+use crate::forge_app::fmt::todo_fmt::{format_todos, format_todos_diff};
+use crate::forge_app::operation::ToolOperation;
+use crate::forge_app::utils::format_display_path;
 
 impl FormatContent for ToolOperation {
     fn to_content(&self, env: &Environment) -> Option<ChatResponseContent> {

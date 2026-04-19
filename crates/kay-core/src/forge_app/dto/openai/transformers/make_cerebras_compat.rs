@@ -1,6 +1,6 @@
-use forge_domain::Transformer;
+use crate::forge_domain::Transformer;
 
-use crate::dto::openai::Request;
+use crate::forge_app::dto::openai::Request;
 
 /// makes the Request compatible with the OpenAI API.
 pub struct MakeCerebrasCompat;

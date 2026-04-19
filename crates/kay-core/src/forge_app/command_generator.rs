@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use forge_domain::*;
+use crate::forge_domain::*;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::{
+use crate::forge_app::{
     AppConfigService, EnvironmentInfra, FileDiscoveryService, ProviderService, TemplateEngine,
     TerminalContextService,
 };

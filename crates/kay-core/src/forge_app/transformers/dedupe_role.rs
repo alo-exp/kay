@@ -1,4 +1,4 @@
-use forge_domain::{ContextSummary, Role, SummaryBlock, Transformer};
+use crate::forge_domain::{ContextSummary, Role, SummaryBlock, Transformer};
 
 /// Keeps only the first message in consecutive sequences of a specific role.
 ///

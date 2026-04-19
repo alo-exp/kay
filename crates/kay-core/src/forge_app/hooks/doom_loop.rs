@@ -1,13 +1,13 @@
 use async_trait::async_trait;
 use derive_setters::Setters;
-use forge_domain::{
+use crate::forge_domain::{
     ContextMessage, Conversation, EventData, EventHandle, RequestPayload, Role, TextMessage,
     ToolCallArguments, ToolName,
 };
-use forge_template::Element;
+use crate::forge_template::Element;
 use tracing::warn;
 
-use crate::TemplateEngine;
+use crate::forge_app::TemplateEngine;
 
 /// Detector for identifying doom loops - when tool calls form repetitive
 /// patterns

@@ -1,4 +1,4 @@
-use forge_domain::{ContextSummary, Role, SummaryMessage, SummaryTool, Transformer};
+use crate::forge_domain::{ContextSummary, Role, SummaryMessage, SummaryTool, Transformer};
 
 /// Removes redundant operations from the context summary.
 ///

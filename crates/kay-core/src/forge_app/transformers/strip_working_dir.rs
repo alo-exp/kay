@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use forge_domain::{ContextSummary, SummaryMessage, SummaryTool, Transformer};
+use crate::forge_domain::{ContextSummary, SummaryMessage, SummaryTool, Transformer};
 
 /// Strips the working directory prefix from all file paths in tool calls.
 ///

@@ -3,24 +3,24 @@ use std::time::Duration;
 
 use anyhow::Context;
 use console::style;
-use forge_domain::{
+use crate::forge_domain::{
     Agent, AgentId, AgentInput, ChatResponse, ChatResponseContent, Environment, InputModality,
     Model, SystemContext, TemplateConfig, ToolCallContext, ToolCallFull, ToolCatalog,
     ToolDefinition, ToolKind, ToolName, ToolOutput, ToolResult,
 };
-use forge_template::Element;
+use crate::forge_template::Element;
 use futures::future::join_all;
 use serde_json::{Map, Value, json};
 use strum::IntoEnumIterator;
 use tokio::time::timeout;
 
-use crate::agent_executor::AgentExecutor;
-use crate::dto::ToolsOverview;
-use crate::error::Error;
-use crate::fmt::content::FormatContent;
-use crate::mcp_executor::McpExecutor;
-use crate::tool_executor::ToolExecutor;
-use crate::{
+use crate::forge_app::agent_executor::AgentExecutor;
+use crate::forge_app::dto::ToolsOverview;
+use crate::forge_app::error::Error;
+use crate::forge_app::fmt::content::FormatContent;
+use crate::forge_app::mcp_executor::McpExecutor;
+use crate::forge_app::tool_executor::ToolExecutor;
+use crate::forge_app::{
     AgentRegistry, EnvironmentInfra, McpService, PolicyService, ProviderService, Services,
     ToolResolver, WorkspaceService,
 };

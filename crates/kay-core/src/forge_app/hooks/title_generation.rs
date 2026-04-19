@@ -2,14 +2,14 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use dashmap::DashMap;
-use forge_domain::{
+use crate::forge_domain::{
     Conversation, ConversationId, EndPayload, EventData, EventHandle, StartPayload,
 };
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 
-use crate::agent::AgentService;
-use crate::title_generator::TitleGenerator;
+use crate::forge_app::agent::AgentService;
+use crate::forge_app::title_generator::TitleGenerator;
 
 /// Per-conversation title generation state.
 struct TitleGenerationState {

@@ -1,6 +1,6 @@
-use forge_domain::Transformer;
+use crate::forge_domain::Transformer;
 
-use crate::dto::openai::Request;
+use crate::forge_app::dto::openai::Request;
 
 /// Transformer that converts reasoning_details to kimi_k2's reasoning_content
 /// flat format.

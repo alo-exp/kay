@@ -1,7 +1,7 @@
-use forge_domain::Transformer;
+use crate::forge_domain::Transformer;
 
-use crate::dto::anthropic::{OutputFormat, Request};
-use crate::utils::enforce_strict_schema;
+use crate::forge_app::dto::anthropic::{OutputFormat, Request};
+use crate::forge_app::utils::enforce_strict_schema;
 
 /// Transformer that normalizes output_format schema to meet Anthropic API
 /// requirements.

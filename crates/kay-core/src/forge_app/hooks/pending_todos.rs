@@ -1,13 +1,13 @@
 use std::collections::HashSet;
 
 use async_trait::async_trait;
-use forge_domain::{
+use crate::forge_domain::{
     ContextMessage, Conversation, EndPayload, EventData, EventHandle, Template, TodoStatus,
 };
-use forge_template::Element;
+use crate::forge_template::Element;
 use serde::Serialize;
 
-use crate::TemplateEngine;
+use crate::forge_app::TemplateEngine;
 
 /// A single todo item prepared for template rendering.
 #[derive(Serialize)]

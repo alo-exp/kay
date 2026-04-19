@@ -2,17 +2,17 @@ use std::vec;
 
 use derive_more::derive::Display;
 use derive_setters::Setters;
-use forge_json_repair::coerce_to_schema;
+use crate::forge_json_repair::coerce_to_schema;
 use serde::{Deserialize, Serialize};
 use strum::IntoEnumIterator;
 
 use super::response::{ExtraContent, FunctionCall, ToolCall};
 use super::tool_choice::{FunctionType, ToolChoice};
-use crate::domain::{
+use crate::forge_app::domain::{
     Context, ContextMessage, ModelId, ToolCallFull, ToolCallId, ToolCatalog, ToolDefinition,
     ToolName, ToolResult, ToolValue,
 };
-use crate::dto::openai::ReasoningDetail;
+use crate::forge_app::dto::openai::ReasoningDetail;
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct ImageUrl {

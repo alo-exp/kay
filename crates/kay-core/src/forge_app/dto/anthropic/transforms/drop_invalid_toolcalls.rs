@@ -1,7 +1,7 @@
-use forge_domain::Transformer;
+use crate::forge_domain::Transformer;
 use serde_json::json;
 
-use crate::dto::anthropic::{Content, Request};
+use crate::forge_app::dto::anthropic::{Content, Request};
 
 /// Transformer that normalizes ToolUse content to ensure inputs are always
 /// objects.
