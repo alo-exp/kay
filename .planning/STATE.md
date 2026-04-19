@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0.0
 milestone_name: milestone
 status: phase_2_in_progress
-stopped_at: Phase 2 Plan 03 complete (Wave 3 sub-waves A+B+C path rewrites); 7 plans remaining (02-04..02-10)
-last_updated: "2026-04-20T03:57:00Z"
-last_activity: 2026-04-20 -- Phase 2 Plan 03 executed (3 tasks, 17 atomic path-rewrite commits 9c515a7..674f0d0 spanning sub-waves A/B/C); 17 forge_* subtrees path-rewritten (125 imports across 83 files); E0432|E0433 count 2025->1902 (123 resolved); baseline for plan 02-04 = 1902
+stopped_at: Phase 2 Plan 04 complete (Wave 3 forge_app path rewrite); 6 plans remaining (02-05..02-10)
+last_updated: "2026-04-20T04:12:00Z"
+last_activity: 2026-04-20 -- Phase 2 Plan 04 executed (1 task, 1 atomic path-rewrite commit 808edcc); forge_app subtree path-rewritten (212 imports across 83 files); E0432|E0433 count 1902->1712 (190 resolved); baseline for plan 02-05 = 1712
 progress:
   total_phases: 13
   completed_phases: 1
   total_plans: 16
-  completed_plans: 9
-  percent: 12
+  completed_plans: 10
+  percent: 15
 ---
 
 # Project State
@@ -26,31 +26,31 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 ## Current Position
 
 Phase: 2 of 12 (Provider HAL + Tolerant JSON Parser)
-Plan: 3 of 10 executed in current phase (02-01 Wave 0 + 02-02 Wave 2 + 02-03 Wave 3 sub-waves A/B/C complete; 02-04..02-10 remaining)
-Status: Wave 3 sub-waves A/B/C path-rewrites landed; forge_app/services/repo/infra/api/main path rewrites remain for plans 02-04 (forge_app) and 02-05 (remaining + CI cleanup)
-Last activity: 2026-04-20 -- Plan 02-03 executed (3 tasks, 17 atomic path-rewrite commits 9c515a7..674f0d0); 17 forge_* subtrees path-rewritten; E0432|E0433 count 2025->1902 (123 resolved); next plan 02-04 drives forge_app (~211 imports across 103 files)
+Plan: 4 of 10 executed in current phase (02-01 Wave 0 + 02-02 Wave 2 + 02-03 Wave 3 sub-waves A/B/C + 02-04 forge_app complete; 02-05..02-10 remaining)
+Status: Wave 3 forge_app path-rewrite landed; remaining path rewrites are forge_services/infra/repo/api/main for plan 02-05 (final + CI cleanup)
+Last activity: 2026-04-20 -- Plan 02-04 executed (1 task, 1 atomic path-rewrite commit 808edcc); forge_app subtree path-rewritten (212 imports across 83 files); E0432|E0433 count 1902->1712 (190 resolved); next plan 02-05 drives forge_services/infra/repo/api/main + --exclude kay-core CI cleanup
 
-Progress: [█░░░░░░░░░░░] 12% (1 of 12 phases done; Phase 2: 3 of 10 plans done)
+Progress: [██░░░░░░░░░░] 15% (1 of 12 phases done; Phase 2: 4 of 10 plans done)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 9 (6 in Phase 1 + 3 in Phase 2)
-- Average duration: ~12 min/plan (weighted across phases)
-- Total execution time: ~95 min of direct plan execution (excludes review loops, fixes, release)
+- Total plans completed: 10 (6 in Phase 1 + 4 in Phase 2)
+- Average duration: ~11 min/plan (weighted across phases)
+- Total execution time: ~101 min of direct plan execution (excludes review loops, fixes, release)
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01    | 6     | 6     | ~5 min   |
-| 02    | 3     | 10    | ~21 min  |
+| 02    | 4     | 10    | ~17 min  |
 
 **Recent Trend:**
 
-- Last 5 plans: 01-05, 01-06, 02-01, 02-02, 02-03 (all PASS; sequential/main-worktree mode with DCO signoff on every commit)
-- Trend: Stable; Phase 2 Wave 0 + Wave 2 + Wave 3 (sub-waves A/B/C) shipped. Plan 02-03 had 3 minor deviations (perl-delimiter bug, pub-use pattern extension, empty-marker gate reconciliation) — all self-corrected; no user input needed.
+- Last 5 plans: 01-06, 02-01, 02-02, 02-03, 02-04 (all PASS; sequential/main-worktree mode with DCO signoff on every commit)
+- Trend: Stable; Phase 2 Wave 0 + Wave 2 + Wave 3 (sub-waves A/B/C + forge_app) shipped. Plan 02-04 executed with zero deviations (reused the 4-rule rewrite tooling from plan 02-03 directly; only minor artifact: commit message count was off by 18 due to regex double-counting grouped imports, corrected in SUMMARY).
 
 *Updated after each plan completion*
 
@@ -77,6 +77,9 @@ Recent decisions affecting current work:
 - Phase 2 Plan 03: Extended the path-rewrite rule set to include `pub use crate::X` as a fourth rule (alongside Rule 1a, 1b, Rule 2). One instance in `forge_domain/session_metrics.rs:9` would have re-exported an unresolved path. Plans 02-04/05 must apply all four rules for completeness.
 - Phase 2 Plan 03: Used `git commit -s --allow-empty` for 6 of 12 sub-wave A leaf subtrees (`forge_stream`, `forge_template`, `forge_tool_macros`, `forge_walker`, `forge_test_kit`, `forge_embed`) that had zero intra/inter-subtree imports — these only reference external crates (std/futures/handlebars/proc_macro). Empty marker commits satisfied the plan's 12-commit sub-wave A gate without fabricating content. Rule-3 style reconciliation between the plan's action text ("skip commit if no-op") and its verify gate ("require 12 commits"). Preserved per-subtree bisectability; zero impact on parity-baseline integrity.
 - Phase 2 Plan 03: PROV-01 checkbox NOT marked — same rationale as plan 02-02; this plan remains a "PROV-01 prereq" per ROADMAP. Behavioral PROV-01 completion still owned by 02-06/08.
+- Phase 2 Plan 04: Single atomic commit for 83-file / 212-import forge_app rewrite (vs. per-subtree in 02-03) — forge_app IS one subtree, so finer-than-subtree commits would be false granularity. git diff --name-only scope-check (100% under crates/kay-core/src/forge_app/) guarantees no cross-subtree contamination despite the large file-count. Pattern canonicalized for "one subtree per commit, regardless of size within subtree."
+- Phase 2 Plan 04: Count-reconciliation convention — pre-scan's `^use crate::` regex matches BOTH non-grouped AND grouped openers, so naive sum (116 + 18 + 95 + 1) double-counts grouped imports. True count for any subtree = (Rule 1a pre-scan count - Rule 1b count) + Rule 1b + Rule 2 + pub-use. Apply this reconciliation in plan 02-05's SUMMARY.
+- Phase 2 Plan 04: PROV-01 checkbox NOT marked — same rationale as plans 02-02/03; this plan remains a "PROV-01 prereq" per ROADMAP. Behavioral PROV-01 completion still owned by 02-06/08.
 
 ### Pending Todos
 
@@ -84,7 +87,7 @@ None carried over — Phase 1 closed cleanly.
 
 ### Blockers/Concerns
 
-- **Phase 2 structural integration (cross-subtree path rewrites)**: PARTIALLY RESOLVED. Module-declaration layer resolved in plan 02-02 (E0583 = 0); sub-waves A/B/C path rewrites resolved in plan 02-03 (17/23 subtrees done, E0432|E0433 count 2025→1902). REMAINING: 1,902 × E0432|E0433 in the still-pending 6 subtrees (forge_app, forge_services, forge_repo, forge_infra, forge_api, forge_main) — addressed by plans 02-04 (forge_app) and 02-05 (remaining + CI cleanup). `cargo check --workspace` (without `--exclude kay-core`) stays failing until 02-05 lands; that's by design. Pre-flagged in 01-03-SUMMARY.md and VERIFICATION.md §SC-4.
+- **Phase 2 structural integration (cross-subtree path rewrites)**: PARTIALLY RESOLVED. Module-declaration layer resolved in plan 02-02 (E0583 = 0); sub-waves A/B/C path rewrites resolved in plan 02-03 (17/23 subtrees done, E0432|E0433 count 2025→1902); forge_app rewrite resolved in plan 02-04 (18/23 subtrees done, E0432|E0433 count 1902→1712). REMAINING: 1,712 × E0432|E0433 in the still-pending 5 subtrees (forge_services, forge_repo, forge_infra, forge_api, forge_main) — addressed by plan 02-05 (remaining subtrees + CI cleanup). `cargo check --workspace` (without `--exclude kay-core`) stays failing until 02-05 lands; that's by design. Pre-flagged in 01-03-SUMMARY.md and VERIFICATION.md §SC-4.
 - Phase 2 research flag: OpenRouter SSE retry semantics need real-trace validation (flag for `/gsd-research-phase` at Phase 2 planning).
 - Phase 1 external dependency (still ticking): Apple Developer ID and Azure Code Signing enrollment has 2-4 week lead time. Started at Phase 1; certificates land by Phase 11.
 - Phase 7 research flag: SQLite schema for function signatures + vector embeddings is an open design question; audit ForgeCode indexer before reimplementing.
@@ -98,11 +101,11 @@ Items acknowledged and carried forward:
 |----------|------|--------|-------------|
 | EVAL | EVAL-01a — run unmodified fork on TB 2.0 ≥80% | Blocked on OpenRouter key + ~$100 budget | Phase 1 (D-OP-01) |
 | Compile | kay-core 23 × E0583 (forge_* naming) | RESOLVED in plan 02-02 (2026-04-19, commit bb57694 — 23 renames, R100 on every file) | Phase 1 (01-03-SUMMARY §Deferrals) |
-| Compile | kay-core E0432/E0433 (cross-subtree import paths) | PARTIALLY RESOLVED in plan 02-03 (2026-04-20, 17 commits 9c515a7..674f0d0 — 17 of 23 subtrees rewritten, count 2025→1902). REMAINING 1,902 scheduled for plans 02-04 (forge_app, ~211 imports) and 02-05 (remaining + CI cleanup) | Phase 2 (02-02-SUMMARY §Expected Downstream Errors; 02-03-SUMMARY §Next Phase Readiness) |
+| Compile | kay-core E0432/E0433 (cross-subtree import paths) | PARTIALLY RESOLVED in plans 02-03+02-04 (2026-04-20, 17 commits 9c515a7..674f0d0 + 1 commit 808edcc — 18 of 23 subtrees rewritten, count 2025→1712). REMAINING 1,712 scheduled for plan 02-05 (forge_services/infra/repo/api/main + --exclude kay-core CI cleanup) | Phase 2 (02-02-SUMMARY §Expected Downstream Errors; 02-03/04-SUMMARY §Next Phase Readiness) |
 | Release signing | GPG/SSH signing of release tags | v0.0.x unsigned carve-out; mandatory v0.1.0+ | Phase 1 (SECURITY.md §Release Signing) |
 
 ## Session Continuity
 
-Last session: 2026-04-20 — Phase 2 Plan 03 executed (Wave 3 sub-waves A/B/C path rewrites)
-Stopped at: Plan 02-03 complete (3 tasks, 17 DCO-signed path-rewrite commits 9c515a7..674f0d0 — sub-wave A 12 leaves + sub-wave B forge_domain + sub-wave C 4 forge_domain-dependents; 125 imports across 83 files; E0432|E0433 count 2025→1902, 123 resolved; zero non-use-statement lines in combined diff; parity-baseline integrity preserved); proceeding to plan 02-04 (Wave 3 sub-wave forge_app, ~211 imports across 103 files, baseline E0432|E0433 = 1902)
-Resume file: `.planning/phases/02-provider-hal-tolerant-json-parser/02-04-PLAN.md`
+Last session: 2026-04-20 — Phase 2 Plan 04 executed (Wave 3 forge_app path rewrite)
+Stopped at: Plan 02-04 complete (1 task, 1 DCO-signed path-rewrite commit 808edcc — forge_app subtree with 83 files + 212 imports; E0432|E0433 count 1902→1712, 190 resolved; zero non-use-statement content lines in commit diff; parity-baseline integrity preserved); proceeding to plan 02-05 (Wave 3 final — forge_services/infra/repo/api/main + --exclude kay-core CI cleanup, baseline E0432|E0433 = 1712)
+Resume file: `.planning/phases/02-provider-hal-tolerant-json-parser/02-05-PLAN.md`

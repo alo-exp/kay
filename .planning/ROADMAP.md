@@ -71,7 +71,7 @@ Plans:
 - [x] 02-01-PLAN.md — Wave 0 test scaffolding: dev-deps, MockServer helper, 6 SSE cassettes + allowlist fixture (PROV-01, PROV-04, PROV-05, PROV-07)
 - [x] 02-02-PLAN.md — D-01 Step 1: atomic rename 23 forge_*/lib.rs to mod.rs (PROV-01 prereq)
 - [x] 02-03-PLAN.md — D-01 Step 2 sub-wave A+B+C: 17 leaf + forge_domain + forge_domain-dependent subtrees path-rewritten (PROV-01 prereq)
-- [ ] 02-04-PLAN.md — D-01 Step 2 sub-wave forge_app: 211 import rewrites across 103 files (PROV-01 prereq)
+- [x] 02-04-PLAN.md — D-01 Step 2 sub-wave forge_app: 212 import rewrites across 83 files, commit 808edcc (PROV-01 prereq)
 - [ ] 02-05-PLAN.md — D-01 Step 2 final + CI cleanup: forge_services/infra/repo/api/main + remove --exclude kay-core from ci/docs/STATE (PROV-01 prereq)
 - [ ] 02-06-PLAN.md — kay-provider-openrouter scaffolding: Cargo.toml deps, Provider trait, AgentEvent, ProviderError, crate-wide #![deny(clippy::unwrap_used)] (PROV-01, PROV-02, PROV-08)
 - [ ] 02-07-PLAN.md — Allowlist gate (PROV-04) + API-key auth (PROV-03) with TM-01 Debug redaction + TM-04 charset validation
@@ -254,7 +254,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Fork, Governance, Infrastructure | 0/6   | Not started | - |
-| 2. Provider HAL + Tolerant JSON Parser | 2/10 | In progress | - |
+| 2. Provider HAL + Tolerant JSON Parser | 4/10 | In progress | - |
 | 3. Tool Registry + KIRA Core Tools | 0/TBD | Not started | - |
 | 4. Sandbox (All Three Platforms) | 0/TBD | Not started | - |
 | 5. Agent Loop (Event-Driven Core) | 0/TBD | Not started | - |
