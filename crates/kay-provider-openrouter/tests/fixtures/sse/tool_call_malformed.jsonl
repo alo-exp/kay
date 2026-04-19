@@ -1,0 +1,4 @@
+{"choices":[{"delta":{"tool_calls":[{"id":"call_malformed","type":"function","function":{"name":"execute_commands","arguments":""}}]}}]}
+{"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":"{cmd: \"ls,\" }"}}]}}]}
+{"choices":[{"delta":{},"finish_reason":"tool_calls"}],"usage":{"prompt_tokens":42,"completion_tokens":10,"total_tokens":52,"cost":0.00015}}
+[DONE]

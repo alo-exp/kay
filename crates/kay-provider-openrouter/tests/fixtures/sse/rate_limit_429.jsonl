@@ -1,0 +1,3 @@
+{"choices":[{"delta":{"content":"recovered"}}]}
+{"choices":[{"delta":{},"finish_reason":"stop"}],"usage":{"prompt_tokens":5,"completion_tokens":1,"total_tokens":6,"cost":0.0000075}}
+[DONE]
