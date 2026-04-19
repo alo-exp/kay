@@ -2,7 +2,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 
-use crate::is_binary;
+use crate::forge_fs::is_binary;
 
 impl crate::ForgeFS {
     pub fn exists<T: AsRef<Path>>(path: T) -> bool {

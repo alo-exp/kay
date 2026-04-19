@@ -17,8 +17,8 @@ mod read;
 mod read_range;
 mod write;
 
-pub use crate::binary_detection::is_binary;
-pub use crate::error::Error;
+pub use crate::forge_fs::binary_detection::is_binary;
+pub use crate::forge_fs::error::Error;
 
 /// ForgeFS provides a standardized interface for file system operations
 /// with consistent error handling.
