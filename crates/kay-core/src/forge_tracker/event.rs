@@ -2,7 +2,7 @@ use std::ops::Deref;
 
 use chrono::{DateTime, Utc};
 use convert_case::{Case, Casing};
-use forge_domain::Conversation;
+use crate::forge_domain::Conversation;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
