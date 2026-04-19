@@ -42,7 +42,15 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A maintainer cutting a release tag without GPG/SSH signature is rejected by the release workflow.
   4. `cargo check --workspace --deny warnings` passes on macOS, Linux, and Windows; `cargo-deny` and `cargo-audit` run on every PR and reject GPL/AGPL or known-vulnerable transitive deps.
   5. The forked ForgeCode baseline, run unmodified on the Harbor harness, reproduces >=80% on TB 2.0 with a documented, archived reference run, and this gate is enforced in CI before any harness modification merges to `main`.
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Workspace scaffold: Cargo.toml, rust-toolchain.toml, 7-crate skeleton (WS-01, WS-02, WS-05)
+- [ ] 01-02-PLAN.md — Governance files: LICENSE, NOTICE, README Acknowledgments, CONTRIBUTING (DCO + clean-room), SECURITY (GOV-01, GOV-02, GOV-04, GOV-06, GOV-07)
+- [ ] 01-03-PLAN.md — ForgeCode import: clone at SHA, copy into kay-core, single import commit, tag forgecode-parity-baseline (unsigned per D-OP-04) (GOV-01)
+- [ ] 01-04-PLAN.md — Supply-chain gates: deny.toml, nightly audit.yml via rustsec/audit-check@v2.0.0 (WS-03, WS-04, WS-05)
+- [ ] 01-05-PLAN.md — DCO + signed-tag gate verification: confirm existing ci.yml jobs; apply Pitfall 6 tag-gate if: hardening; ship governance-invariant checker (GOV-03, GOV-05, WS-05)
+- [ ] 01-06-PLAN.md — Parity-gate scaffold: kay-cli eval tb2 --dry-run shim, ci.yml parity-gate job (workflow_dispatch only), PARITY-DEFERRED.md + manifest-schema.json (EVAL-01 scaffold-only per user amendment)
 **UI hint**: no
 
 ### Phase 2: Provider HAL + Tolerant JSON Parser
@@ -218,7 +226,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Fork, Governance, Infrastructure | 0/TBD | Not started | - |
+| 1. Fork, Governance, Infrastructure | 0/6   | Not started | - |
 | 2. Provider HAL + Tolerant JSON Parser | 0/TBD | Not started | - |
 | 3. Tool Registry + KIRA Core Tools | 0/TBD | Not started | - |
 | 4. Sandbox (All Three Platforms) | 0/TBD | Not started | - |
