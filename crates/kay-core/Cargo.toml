@@ -6,6 +6,6 @@ rust-version.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "Kay's core harness — imports ForgeCode as parity baseline (plan 03)"
+description = "Kay's core harness — imports ForgeCode at 022ecd994eae as parity baseline"
 
 [dependencies]

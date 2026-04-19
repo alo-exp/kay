@@ -8,7 +8,7 @@ vendored source).
 
 - **Origin:** https://github.com/antinomyhq/forgecode
 - **License:** Apache-2.0 (see LICENSE and NOTICE)
-- **Upstream commit:** `<UPSTREAM_COMMIT>` (filled in by plan 03 when source is imported)
+- **Upstream commit:** `022ecd994eaec30b519b13348c64ef314f825e21` (filled in by plan 03 when source is imported)
 - **Import date:** 2026-04-19
 - **Location in Kay:** `crates/kay-core/src/**` and any `crates/kay-core-*` if multi-crate structure is preserved
 - **Deliberate divergences from upstream:**
