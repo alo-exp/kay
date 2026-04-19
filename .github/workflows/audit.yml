@@ -1,0 +1,15 @@
+name: Nightly security audit
+
+on:
+  schedule:
+    - cron: '17 4 * * *'  # 04:17 UTC daily — stagger to avoid the 00:00 thundering herd
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: rustsec/audit-check@v2.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
