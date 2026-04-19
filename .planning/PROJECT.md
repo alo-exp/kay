@@ -4,6 +4,8 @@
 
 Kay is an open-source terminal coding agent — a Rust fork of ForgeCode, hardened with Terminus-KIRA's harness techniques and delivered through a native Tauri desktop UI that no other OSS agent offers. It targets developers who want the top-tier agentic coding experience (currently locked inside Claude Code, Codex, and ForgeCode) as a single permissively-licensed binary on macOS, Windows, and Linux.
 
+**Governance clarification (post-research update):** License is Apache-2.0 with **DCO (Developer Certificate of Origin)** rather than CLA. DCO gives ~90% of the provenance guarantee with ~10% of the friction and matches Linux kernel / Git / ASF practice; research showed CLAs cause measurable contributor drop-off for solo-maintained OSS agent projects.
+
 ## Core Value
 
 **Beat ForgeCode on Terminal-Bench 2.0 (>81.8%) as the first OSS agent that pairs a top-10 harness with a native desktop UI.** If the score target fails, Kay has no reason to exist; if the UI fails to ship, Kay is just another ForgeCode fork. Both must hold.
@@ -48,7 +50,7 @@ Kay is an open-source terminal coding agent — a Rust fork of ForgeCode, harden
 
 **Governance & distribution:**
 
-- [ ] Apache-2.0 license with Contributor License Agreement (CLA)
+- [ ] Apache-2.0 license with DCO (Developer Certificate of Origin) — `Signed-off-by` enforced on every commit via GitHub Actions
 - [ ] Signed release tags (GPG or SSH) — no unsigned tags in the release flow
 - [ ] Binary distribution: macOS (arm64 + x64), Windows (x64), Linux (x64 + arm64)
 - [ ] `cargo install kay` published on crates.io
@@ -96,7 +98,7 @@ Kay is an open-source terminal coding agent — a Rust fork of ForgeCode, harden
 ## Constraints
 
 - **Tech stack**: Rust (harness) + Tauri 2.x + TypeScript/React for the UI layer — chosen to match ForgeCode's stack and inherit top-tier performers' language choice. Single-binary distribution is non-negotiable.
-- **License**: Apache-2.0 + CLA — inherits ForgeCode's license requirements and protects future relicensing paths. Every contributor must sign the CLA before a PR can merge.
+- **License**: Apache-2.0 + DCO — inherits ForgeCode's Apache-2.0 base. DCO (`Signed-off-by: Name <email>` per commit) gives contributor provenance with git-native ceremony and none of the contributor drop-off caused by CLAs. Linux kernel / Git / ASF pattern.
 - **Benchmark**: Terminal-Bench 2.0 at >81.8% is the v1 acceptance gate — no release without a clean reference run on the public leaderboard.
 - **Provider**: OpenRouter-only for v1 — keeps the provider-abstraction layer scoped. Direct APIs are deliberately deferred.
 - **Supply chain**: Signed release tags, reproducible builds, published SHA attestations. Claw-code's "100K stars overnight, legal uncertainty" trajectory is a cautionary tale — Kay trades ambition for auditability.
@@ -109,7 +111,7 @@ Kay is an open-source terminal coding agent — a Rust fork of ForgeCode, harden
 | Language: Rust | Matches ForgeCode, claw-code, Codex CLI — every top performer chose Rust; single binary, best perf | — Pending |
 | Base: fork ForgeCode | Apache-2.0 permissive, proven #1 harness, context engine already solved | — Pending |
 | UI: Tauri desktop (not TUI, not web) | No other OSS agent has a native desktop GUI; differentiator visible at install time | — Pending |
-| License: Apache-2.0 + CLA | Matches base; CLA protects future paths and gives contributor-identity clarity | — Pending |
+| License: Apache-2.0 + DCO | Matches base; DCO gives ~90% of CLA's provenance guarantee with ~10% of the friction (pitfalls research, 2026-04-19) | — Pending |
 | v1 providers: OpenRouter only | 300+ models via one key; direct APIs deferred to v2 | — Pending |
 | v1 benchmark target: >81.8% TB 2.0 | Beating ForgeCode is the only acceptable v1 quality bar | — Pending |
 | Four wedges deferred to v2 | ACE, routing, verification-first, multi-agent need stable harness foundation first | — Pending |
@@ -133,4 +135,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-19 after initialization*
+*Last updated: 2026-04-19 after initialization (DCO substituted for CLA post-research)*
