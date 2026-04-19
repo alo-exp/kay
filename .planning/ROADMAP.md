@@ -231,5 +231,16 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 11. Cross-Platform Hardening + Release Pipeline | 0/TBD | Not started | - |
 | 12. Terminal-Bench 2.0 Submission + v1 Hardening | 0/TBD | Not started | - |
 
+## Backlog
+
+### Phase 999.1: Windows sandbox hardening research (BACKLOG)
+
+**Goal:** [Captured for future planning] — Budget deeper research during Phase 4 for Windows sandbox (Job Objects + restricted token + integrity level). Community guidance is weaker than macOS/Linux per `.planning/research/ARCHITECTURE.md` (MEDIUM confidence). Prototype against known-good Windows restricted-mode examples before Phase 4 Windows sub-task.
+**Requirements:** TBD (related to SBX-01 Windows implementation)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
 ---
 *Roadmap created: 2026-04-19*

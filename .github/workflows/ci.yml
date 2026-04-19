@@ -1,0 +1,143 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  dco:
+    name: DCO signoff check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: tim-actions/get-pr-commits@v1.3.1
+        id: pr_commits
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: tim-actions/dco@master
+        with:
+          commits: ${{ steps.pr_commits.outputs.commits }}
+
+  lint:
+    name: Lint (fmt + clippy + deny + audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect Cargo workspace
+        id: detect
+        run: |
+          if [ -f Cargo.toml ]; then
+            echo "has_cargo=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_cargo=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: dtolnay/rust-toolchain@stable
+        if: steps.detect.outputs.has_cargo == 'true'
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        if: steps.detect.outputs.has_cargo == 'true'
+      - run: cargo fmt --all -- --check
+        if: steps.detect.outputs.has_cargo == 'true'
+      - run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+        if: steps.detect.outputs.has_cargo == 'true'
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        if: steps.detect.outputs.has_cargo == 'true' && hashFiles('deny.toml') != ''
+      - name: cargo-audit
+        if: steps.detect.outputs.has_cargo == 'true'
+        run: |
+          cargo install cargo-audit --locked --quiet
+          cargo audit
+
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect Cargo workspace
+        id: detect
+        shell: bash
+        run: |
+          if [ -f Cargo.toml ]; then
+            echo "has_cargo=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_cargo=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: dtolnay/rust-toolchain@stable
+        if: steps.detect.outputs.has_cargo == 'true'
+      - uses: Swatinem/rust-cache@v2
+        if: steps.detect.outputs.has_cargo == 'true'
+      - run: cargo test --workspace --all-features
+        if: steps.detect.outputs.has_cargo == 'true'
+
+  frontend:
+    name: Frontend (ui)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect frontend
+        id: detect
+        run: |
+          if [ -f kay-tauri/ui/package.json ]; then
+            echo "has_ui=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_ui=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: pnpm/action-setup@v4
+        if: steps.detect.outputs.has_ui == 'true'
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        if: steps.detect.outputs.has_ui == 'true'
+        with:
+          node-version: '20'
+          cache: pnpm
+          cache-dependency-path: kay-tauri/ui/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+        working-directory: kay-tauri/ui
+        if: steps.detect.outputs.has_ui == 'true'
+      - run: pnpm run typecheck
+        working-directory: kay-tauri/ui
+        if: steps.detect.outputs.has_ui == 'true'
+      - run: pnpm run lint
+        working-directory: kay-tauri/ui
+        if: steps.detect.outputs.has_ui == 'true'
+      - run: pnpm run test -- --run
+        working-directory: kay-tauri/ui
+        if: steps.detect.outputs.has_ui == 'true'
+      - run: pnpm run build
+        working-directory: kay-tauri/ui
+        if: steps.detect.outputs.has_ui == 'true'
+
+  signed-tag-gate:
+    name: Block unsigned tag on release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify tag signature
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          if ! git tag -v "$TAG"; then
+            echo "::error::Tag $TAG is not GPG/SSH-signed. Unsigned release tags are rejected (see PROJECT.md GOV-05)." >&2
+            exit 1
+          fi

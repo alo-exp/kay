@@ -1,0 +1,53 @@
+# Rust
+/target
+**/target
+Cargo.lock.bak
+*.pdb
+*.exe
+*.dSYM
+
+# Tauri
+/kay-tauri/target
+/kay-tauri/src-tauri/target
+/kay-tauri/ui/dist
+/kay-tauri/ui/node_modules
+/kay-tauri/ui/.pnpm-store
+/kay-tauri/ui/coverage
+
+# Frontend tooling
+node_modules
+.pnpm-store
+dist
+.cache
+.vite
+
+# Editors
+.vscode/settings.json
+.idea/
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Signing / secrets — never commit
+*.p12
+*.pem
+minisign.key
+keystore/
+
+# Coverage / benchmark artifacts (local)
+*.profraw
+/tarpaulin-report.html
+/lcov.info
+/.benchmark-artifacts
+
+# GSD / SB local state (safe defaults)
+.planning/local/
+.silver-bullet/
