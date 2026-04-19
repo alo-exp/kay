@@ -583,6 +583,39 @@ parity-gate:
 
 **Key insight:** Phase 1 is the phase most susceptible to "I can write it faster than I can look it up" mistakes. The cost of a hand-rolled DCO parser or a homemade NOTICE file is paid only when the project is successful — it takes months to manifest and months more to clean up. Every row in this table has a canonical solution with no downside beyond adding it to `.github/workflows/ci.yml` or the repo root.
 
+## ForgeCode-Inherited File Audit
+
+When ForgeCode source is imported into `crates/kay-core/`, the following fields/files carry ForgeCode-specific metadata that must be adjusted to Kay-specific values at import time. This checklist answers orchestrator research Q12 concretely.
+
+| File / field | ForgeCode value (verified this session) | Required Kay value | Rationale |
+|-------------|------------------------------------------|---------------------|-----------|
+| Root `Cargo.toml` `[workspace.package] authors` | (not verified in WebFetch; ForgeCode's workspace authors likely Tailcall-team) | `["Kay Contributors <contributors@kay.dev>"]` per D-03 | Crate publishing identity |
+| Root `Cargo.toml` `[workspace.package] homepage` / `repository` | `https://github.com/antinomyhq/forgecode` (assumed — not re-verified this session) | `https://github.com/alo-exp/kay` per CLAUDE.md | Redirects crates.io listing |
+| Root `Cargo.toml` `[workspace.package] description` | ForgeCode-specific marketing text | Kay-specific description (one line) | Displayed on crates.io |
+| Root `Cargo.toml` `[workspace.package] rust-version` | `1.92` [VERIFIED] | `1.95` | See Pitfall 3 |
+| Root `Cargo.toml` `[workspace.package] license` | `Apache-2.0` [VERIFIED via LICENSE] | `Apache-2.0` (unchanged) | Matches LICENSE |
+| `rust-toolchain.toml` `channel` | `1.92` [VERIFIED] | `1.95` | Current stable |
+| `.rustfmt.toml` | `unstable_features = true; struct_lit_width = 60; imports_granularity = "Module"; group_imports = "StdExternalCrate"; wrap_comments = true; comment_width = 80` [VERIFIED] | Inherit verbatim (Kay has no reason to diverge from ForgeCode's fmt baseline) | Reduces diff noise when syncing upstream improvements |
+| Per-crate `Cargo.toml` `authors` | Various Tailcall/forge_* authors | Inherit `workspace = true` → Kay's workspace authors | D-03 |
+| Per-crate `Cargo.toml` crate name (e.g., `forge_api`, `forge_app`, ...) | `forge_*` prefix (23 crates) | Depends on Open Q1 resolution: either flatten to one `kay-core` OR rename each to `kay-core-<subname>` preserving structure | Discussed in Open Questions §1 |
+| `README.md` | ForgeCode-specific | Kay-specific (via §Acknowledgments per D-04) | Keep ForgeCode attribution in Kay README |
+| `NOTICE` | Absent upstream [VERIFIED: 404] | Construct new per § Code Examples Example 1 | No upstream to preserve verbatim |
+| `CONTRIBUTING.md` | ForgeCode-specific (if present) | Replace entirely with Kay's per § Code Examples Example 2 | ForgeCode's contribution model ≠ Kay's DCO + clean-room |
+| `SECURITY.md` | ForgeCode-specific (if present) | Replace entirely per § Code Examples Example 3 | Different maintainer, different disclosure flow |
+| `LICENSE` | Apache-2.0, "Copyright 2025 Tailcall" [VERIFIED] | Apache-2.0 verbatim from apache.org (replace Tailcall copyright line OR preserve — see note below) | Apache-2.0 LICENSE text itself is verbatim by requirement |
+| Source-file copyright headers | None observed in our WebFetch scan (ForgeCode appears to not use per-file headers) | None needed (LICENSE + NOTICE cover project-level attribution) | Apache §4(c) requires preserving headers IF present — they're not |
+| `.github/workflows/*.yml` | ForgeCode CI workflows | Do NOT copy; Kay's existing `ci.yml` is already correct | Avoid importing ForgeCode's CI shape |
+| `.github/ISSUE_TEMPLATE/`, `PULL_REQUEST_TEMPLATE.md` | ForgeCode-specific (if present) | Replace with Kay versions | Referenced in Pitfall 5 mitigation |
+| `.github/dependabot.yml` (if present) | ForgeCode config | Optional in P1; not required | Re-add in P2+ if desired |
+| `CHANGELOG.md` (if present) | ForgeCode's | Start Kay's own CHANGELOG fresh; link to ForgeCode SHA in first entry | Kay's version history starts at v0.0.1 |
+| `docs/` tree (if present in ForgeCode) | ForgeCode docs | Do NOT import; Kay already has its own `docs/` scaffold | Avoid confusion |
+
+**Note on LICENSE copyright line:** Apache-2.0 LICENSE file itself is verbatim from apache.org. The "Copyright [yyyy] [name of copyright owner]" line appears once at the end of the appendix. Kay has two valid options:
+1. **Leave the appendix line empty / generic** (matches most Rust crates using plain Apache-2.0).
+2. **Replace with "Copyright 2026 Kay Contributors"** — acceptable under Apache-2.0, but the Tailcall copyright is then moved to NOTICE (which is already the plan per § Example 1).
+
+Recommendation: option 2 — put Kay's copyright in LICENSE's appendix line, put ForgeCode/Tailcall attribution in NOTICE. This separates "Kay is Apache-2.0 licensed" from "Kay derives from a Tailcall-copyrighted Apache-2.0 work."
+
 ## Runtime State Inventory
 
 > Phase 1 has NO runtime state to migrate — it is a greenfield project scaffold. The phase imports ForgeCode source into `kay-core/` but does not run the software in any form other than the parity-gate harness, which is scaffolded but not executed. No stored data, no live service configuration, no OS-registered state, no existing secrets, no build artifacts pre-dating Phase 1.
@@ -657,7 +690,7 @@ Note this divergence in ATTRIBUTIONS.md so future maintainers understand the del
 
 **What goes wrong:** On the very first CI run (before Cargo.lock is committed), Swatinem/rust-cache may fail to hash dependencies or produce an empty cache. Subsequent runs are fine.
 
-**Why it happens:** rust-cache's hash function inputs include Cargo.lock. Missing lockfile → null hash → cache miss or action error.
+**Why it happens:** rust-cache's hash function inputs include Cargo.lock. Missing lockfile → null hash → cache miss or action error. [ASSUMED: inferred from Swatinem/rust-cache README stating 'The action invokes cargo metadata to determine the current set of dependencies' — actual first-run behavior without a lockfile should be confirmed by running a dry CI build, but is non-blocking since the fix (commit Cargo.lock in the first workspace commit) is the same regardless of exact failure mode.]
 
 **How to avoid:** Commit Cargo.lock as part of the first workspace-creation commit, before pushing. If the first CI run flakes, it'll recover on the next push.
 
@@ -705,7 +738,7 @@ Or, more robustly, compile a workflow_call pattern like `v[0-9]+.[0-9]+.[0-9]+*`
 
 ### Pitfall 7: cargo-deny Failing on Apache-2.0 + MIT Dual-Licensed Transitive Deps
 
-**What goes wrong:** Standard rust dependencies (e.g., many hyperium crates) are `Apache-2.0 OR MIT`. If `deny.toml` lists only `Apache-2.0` in `[licenses].allow`, perfectly fine deps fail the gate.
+**What goes wrong:** Standard rust dependencies (e.g., many hyperium crates) are `Apache-2.0 OR MIT`. If `deny.toml` lists only `Apache-2.0` in `[licenses].allow`, perfectly fine deps fail the gate. [CITED: hyper crate Cargo.toml `license = "MIT"`; tokio, serde, and many other ecosystem staples use `Apache-2.0 OR MIT` dual licensing — inspection of any `cargo metadata --format-version 1 | jq '.packages[].license'` shows the mix.]
 
 **Why it happens:** The `OR`-expression semantics in SPDX need `MIT` (and often `Unicode-3.0`, `BSD-2-Clause`, `ISC`, `Zlib`, `Apache-2.0 WITH LLVM-exception`) explicitly allowed.
 
@@ -1165,6 +1198,22 @@ Phase 1 does not introduce runtime code paths — the Kay agent does not run. Th
 | `cargo test` runs unsigned code from a PR | Elevation of privilege | Tri-OS CI runs test suite in ephemeral GitHub runner sandboxes; no persistent state; matches ecosystem norm |
 
 **Phase-1-specific note:** Because the signed-tag gate is scaffolded but dormant (no tags cut in P1), a malicious push of a `v*`-tag that happens to pass all other CI checks would produce a red `signed-tag-gate` job failure and not release anything — gate works as designed. No additional mitigation needed for P1.
+
+## Recommendations
+
+The research yields five concrete, implementable decisions for the planner. Each is derived from the findings above and is actionable without further research.
+
+1. **Pin `rust-toolchain.toml` to `channel = "1.95"`, not ForgeCode's `1.92`.** Rationale: 1.95.0 released 2026-04-16 [VERIFIED: blog.rust-lang.org/2026/04/16/Rust-1.95.0/]; 1.92 is 3 minor versions stale. Add a one-line comment in rust-toolchain.toml noting deliberate divergence. See § Common Pitfalls §Pitfall 3 for full reasoning.
+
+2. **Extend the existing `.github/workflows/ci.yml`; do NOT rewrite it.** The scaffold already wires DCO (tim-actions/dco@master + get-pr-commits@v1.3.1), tri-OS test matrix (ubuntu/macos/windows-latest), lint (fmt + clippy -D warnings + cargo-deny + inline cargo-audit), signed-tag-gate (git tag -v), and frontend detection. Phase 1 additions: (a) new `parity-gate` job stub (workflow_dispatch, reads archived score manifest, no-op if absent), (b) new `.github/workflows/audit.yml` for the nightly `rustsec/audit-check@v2.0.0` scheduled run. See § Architecture Patterns Pattern 4 + Pattern 5 for exact YAML.
+
+3. **Construct NOTICE from scratch per Apache Infra's canonical template; cite Tailcall as the original copyright holder.** ForgeCode has no NOTICE upstream [VERIFIED: 404] and its LICENSE names "Copyright 2025 Tailcall" [VERIFIED]. Use the exact text in § Code Examples Example 1. Keep it short (≤20 lines). No marketing prose, no "endorsed by," no Kay feature descriptions.
+
+4. **Defer the parity RUN to follow-on task EVAL-01a (per user amendment 2026-04-19); land scaffolding only in Phase 1.** Phase 1 ships: (a) `kay eval tb2 --help` prints deferred-run message with prerequisites, (b) `parity-gate` CI job stub reads archive manifest and no-ops when absent, (c) `.planning/phases/01-fork-governance-infrastructure/parity-baseline/PARITY-DEFERRED.md` placeholder listing the EVAL-01a handoff. No Docker, no Harbor install, no OpenRouter key needed in P1. See § Architecture Patterns Pattern 5.
+
+5. **Preserve ForgeCode's multi-crate structure inside `crates/kay-core-<name>/` rather than flattening to a single `crates/kay-core/`.** ForgeCode has 23 crates under `crates/` [VERIFIED]. Flattening destroys upstream blame and makes future syncs hard. D-05 arguably leaves this to Claude's discretion — surface to the user at planning time if they prefer the single-crate interpretation. See § Open Questions §1 for discussion. Secondary: This aligns with codex-rs's ~70-crate workspace pattern [CITED: STACK.md §Reference-Implementation Cross-Check] which Kay's architecture already mirrors (D-05).
+
+**Cross-reference to Phase Requirements:** The 13 REQ-IDs GOV-01..07 + WS-01..05 + EVAL-01 are all addressable via the Wave 0 file list in § Validation Architecture §Wave 0 Gaps. That checklist is the planner's input for task breakdown.
 
 ## Sources
 
