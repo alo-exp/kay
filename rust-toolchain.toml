@@ -1,0 +1,4 @@
+[toolchain]
+channel = "1.95"
+profile = "default"
+# Kay pins current stable, not ForgeCode's 1.92. Bump via explicit PR.

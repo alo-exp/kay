@@ -1,0 +1,33 @@
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+authors = ["Kay Contributors <contributors@kay.dev>"]
+license = "Apache-2.0"
+repository = "https://github.com/alo-exp/kay"
+homepage = "https://github.com/alo-exp/kay"
+description = "Open-source terminal coding agent — Rust fork of ForgeCode with KIRA harness and Tauri desktop UI"
+
+[workspace.dependencies]
+tokio = { version = "1.51", features = ["rt-multi-thread", "macros", "io-util", "process", "signal", "sync", "fs", "time"] }
+reqwest = { version = "0.13", default-features = false, features = ["rustls-tls", "json", "stream", "gzip", "brotli"] }
+reqwest-eventsource = "0.6"
+rustls = "0.23"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+schemars = "0.8"
+clap = { version = "4.5", features = ["derive", "env"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+anyhow = "1"
+thiserror = "2"
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3
+strip = true
