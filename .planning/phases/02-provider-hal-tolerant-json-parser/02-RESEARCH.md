@@ -282,7 +282,10 @@ crates/kay-provider-openrouter/
     ├── streaming_happy_path.rs   # PROV-01: mocks SSE, asserts AgentEvent shape
     ├── tool_call_reassembly.rs   # PROV-05 (part 1): fragmented tool_calls across chunks
     ├── tool_call_malformed.rs    # PROV-05 (part 2): malformed/null args → repair → fallback
-    ├── tool_call_property.rs     # PROV-05 (part 3): proptest fuzzing
+    │                             # NOTE: PROV-05 proptest invariants live inline in
+    │                             # tool_parser::unit (see plan 02-09 T3) — no standalone
+    │                             # tests/tool_call_property.rs because parse_tool_arguments
+    │                             # is crate-private.
     ├── retry_429_503.rs          # PROV-07: 429 with Retry-After, 503 backoff, emits Retry event
     ├── cost_cap_turn_boundary.rs # PROV-06: turn N+1 rejected; in-flight not interrupted
     ├── auth_env_vs_config.rs     # PROV-03: env var wins over kay.toml; missing key → typed error
@@ -799,7 +802,10 @@ async fn streams_fragmented_tool_call_arguments_across_chunks() {
 **Source:** `proptest 1.11.0` docs.
 
 ```rust
-// crates/kay-provider-openrouter/tests/tool_call_property.rs
+// NOTE: Not a separate file. Per plan 02-09 T3 BLOCKER #4 revision (2026-04-20),
+// this proptest lives INLINE in crates/kay-provider-openrouter/src/tool_parser.rs's
+// #[cfg(test)] mod unit (parse_tool_arguments is crate-private). The shape below
+// is the CODE PATTERN; consult plan 02-09 T3 for the committed placement.
 
 use proptest::prelude::*;
 
@@ -865,37 +871,39 @@ proptest! {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED — all questions have resolutions or fallback strategies)
 
-1. **`openai/gpt-5.4` availability on OpenRouter Exacto**
+> **Planner revision 2026-04-20:** All six questions are resolved for Phase 2 planning purposes. Each Q now has either a concrete RESOLVED decision (with an actionable fallback) or a DEFERRED tag with a specific trigger-event that causes re-evaluation. None of the resolutions block Phase 2 execution; each either commits the plan to one branch of a prior fork or documents why the defer-and-observe path is safe (typed fallbacks cover the adversary cases).
+
+1. **`openai/gpt-5.4` availability on OpenRouter Exacto — RESOLVED (provisional + live-verification strategy)**
    - What we know: ForgeCode's public TB 2.0 81.8% run allegedly used `openai/gpt-5.4`. OpenRouter's Exacto docs list up to `openai/gpt-5.3-chat` as of the latest page fetch (2026-04-20).
    - What's unclear: Does gpt-5.4 exist on OpenRouter as an Exacto target? Or is the ForgeCode CONTEXT reference forward-dated?
-   - Recommendation: (a) plan assumes the model ID; (b) first integration test against live OpenRouter (gated behind `KAY_OPENROUTER_LIVE=1` env var) verifies the model responds; (c) if not available, `allowlist.rs` falls back to `openai/gpt-5.3-chat` (and PROJECT.md §Assumptions is updated). Do not hard-fail at crate load — fail at first live request with typed `ModelNotAllowlisted` + clear diagnostic. Actual TB 2.0 run is EVAL-01a follow-on anyway, so correcting this before the run is fine.
+   - **RESOLUTION:** Provisional choice per D-07 — the allowlist fixture (`crates/kay-provider-openrouter/tests/fixtures/config/allowlist.json`) carries `openai/gpt-5.4`. Runtime verification happens during EVAL-01a when the OpenRouter API key is provisioned (per Phase 1 D-OP-01 — deferred until live account setup). If a `GET /api/v1/models` call confirms the ID is absent, the documented fallback is `openai/gpt-5.3-chat`; the fallback is a one-line config edit (no code change) because D-07's config surface is `kay.toml [provider.openrouter] allowed_models` mergeable with the `KAY_ALLOWED_MODELS` env var. This resolution is safe for Phase 2 execution because: (a) Phase 2 uses mock fixtures, not live traffic; (b) the typed-error path `ProviderError::ModelNotAllowlisted` gates any non-allowlisted request BEFORE HTTP; (c) the TB 2.0 parity run is EVAL-01a follow-on work, not Phase 2 scope. The fixture carries an inline comment documenting the provisional status — see the WARNING-tagged fix to plan 02-01.
 
-2. **Behavior of OpenRouter `:exacto` suffix on a non-Exacto-supported model**
+2. **Behavior of OpenRouter `:exacto` suffix on a non-Exacto-supported model — DEFERRED (to first real trace; typed fallback covers adversary case)**
    - What we know: `[CITED: openrouter.ai/docs/guides/routing/model-variants/exacto]` doesn't specify.
    - What's unclear: Silent fallback to non-Exacto? 400 error? 503?
-   - Recommendation: Add to `error_taxonomy` integration test — send a known non-Exacto model with `:exacto` and assert we surface the response as a typed `ProviderError::Http` or `ProviderError::ModelNotAllowlisted`. Document the observed behavior in a SUMMARY.md during plan execution.
+   - **RESOLUTION:** DEFERRED to first real EVAL-01a trace. The typed error taxonomy already covers every adversary shape: if OpenRouter returns 400, our `classify_http_error` maps to `ProviderError::Http { status: 400, body }`; if 503, `ProviderError::ServerError`; if silent fallback, our `allowlist.check()` gate has ALREADY rejected (gate fires BEFORE HTTP). The combination means there is no "silently-wrong" path — worst case the user sees a typed diagnostic they can act on. `error_taxonomy.rs` integration test (plan 02-10) asserts the taxonomy is complete regardless of which branch OpenRouter chooses.
 
-3. **Exact shape of mid-stream SSE error events**
+3. **Exact shape of mid-stream SSE error events — DEFERRED (parser is defensive; typed fallback covers unknown shape)**
    - What we know: `[CITED: openrouter.ai/docs/api/reference/errors-and-debugging]` says mid-stream errors arrive as SSE with `error` field at top level + `choices[].finish_reason = "error"` on HTTP 200.
    - What's unclear: The JSON shape of the error field, error codes, whether it's the same shape as 4xx body errors.
-   - Recommendation: Capture a real mid-stream error trace early (e.g., intentional rate-limit via sequential calls with a free tier); bake the exact shape into a fixture. Defer exact error-taxonomy mapping to PROVIDER_ERROR_MAPPING.md at implementation time.
+   - **RESOLUTION:** DEFERRED to first real trace capture (EVAL-01a follow-on). The parser is defensive by construction: (a) tolerant two-pass parser (D-03 + plan 02-09) catches any unknown JSON shape and emits `AgentEvent::ToolCallMalformed` rather than panicking; (b) top-level parse failures in the translator surface as `ProviderError::Stream(format!("parse chunk failed: {e}"))` with the raw chunk text preserved for diagnostics; (c) an unknown `error` field at top-level simply fails top-level deserialization of our `forge_app::dto::openai::Response` struct, which is handled by the Stream branch. This means NO panic path exists even without the exact shape — the worst case is a non-informative diagnostic message. When a real trace is captured post-EVAL-01a, an opportunistic SUMMARY.md note (or follow-on ticket) refines `classify_http_error` to pattern-match the observed error.code values; until then plan 02-10's `error_taxonomy.rs` tests synthetic shapes which is sufficient for PROV-08 coverage.
 
-4. **Retry-After header format: integer seconds only, or HTTP-date too?**
+4. **Retry-After header format: integer seconds only, or HTTP-date too? — RESOLVED (integer seconds per RFC 7231 common case)**
    - What we know: RFC 7231 allows both.
    - What's unclear: OpenRouter's actual choice in practice.
-   - Recommendation: Implement integer-seconds path now (90%+ case). Add `httpdate` crate as a deferred dep ONLY if a real trace shows date format. Log-and-fall-back-to-backon-default for unparseable values.
+   - **RESOLUTION:** Integer seconds only. Plan 02-10's `parse_retry_after()` returns `None` for non-numeric values (including HTTP-date form), in which case `backon`'s default schedule applies — matching the real-world 90%+ integer-seconds case per RFC 7231 §7.1.3 common practice. If a real trace post-EVAL-01a exposes HTTP-date form, a single-commit follow-on adds the `httpdate` crate; meanwhile the `parse_retry_after_date_format_returns_none` unit test in plan 02-10 Task 1 asserts the fallback behavior is deterministic. No current blocker.
 
-5. **Tokio runtime choice for cost-cap accumulator**
+5. **Tokio runtime choice for cost-cap accumulator — RESOLVED (`std::sync::Mutex<f64>`)**
    - What we know: `std::sync::Mutex<f64>` works but blocks; `tokio::sync::Mutex` is async-safe but contends on `.await`.
    - What's unclear: Contention profile under real load.
-   - Recommendation: Use `std::sync::Mutex` — the accumulator is hit on every `Usage` frame and on every turn boundary, both short critical sections. If profiling shows contention, migrate to `AtomicU64` with bit-pattern-cast float. Not a real problem in Phase 2 scope.
+   - **RESOLUTION:** `std::sync::Mutex<f64>` (see plan 02-10 T1 `cost_cap.rs`). Both critical sections — `check()` and `accumulate()` — are O(1) and hold the lock for <<1µs; no `.await` points are inside the lock scope. Contention is theoretically possible only if multiple concurrent `chat()` calls run in the same process, which Phase 2's single-session scope does not exercise. Migration trigger: if Phase 5's parallel-agents work (LOOP-05) shows contention in profiling, swap to `AtomicU64` with `f64::from_bits`/`to_bits` conversions — at that point it becomes a one-file localized change. Not a Phase 2 concern.
 
-6. **Interaction between `--max-usd` and the EVAL-01a parity run**
+6. **Interaction between `--max-usd` and Harbor cap during EVAL-01a — RESOLVED (non-interference by design)**
    - What we know: D-10 says no default cap; Harbor/TB 2.0 injects its own cap.
    - What's unclear: When EVAL-01a runs, does our default-uncapped behavior interfere with Harbor's own budget tracking?
-   - Recommendation: Document that `--max-usd` in Kay is separate from Harbor's per-task spend limit. They don't interfere — Kay's cap applies across turns WITHIN a task; Harbor's runs across tasks. Add a note to ARCH.md during the EVAL-01a follow-on task.
+   - **RESOLUTION:** Non-interference by design. Per D-10, Kay's `--max-usd` defaults to `CostCap::uncapped()` when unset, so Harbor's external cap remains authoritative when EVAL-01a runs against the Harbor harness. Kay's cap applies across turns WITHIN a task (intra-task budgeting); Harbor's applies across tasks (inter-task budgeting). They compose additively without shared state. When both are set, Harbor's enforcement happens at Harbor's layer (outside Kay's process), and Kay's happens inside the Kay process — no shared accumulator means no double-count, no race. Documentation of the composition story goes into ARCH.md as part of the EVAL-01a follow-on kickoff checklist.
 
 ---
 
@@ -945,7 +953,7 @@ proptest! {
 | PROV-04 | Non-allowlisted model → ModelNotAllowlisted before HTTP | Integration (assert zero HTTP hits) | `cargo test -p kay-provider-openrouter --test allowlist_gate` | ❌ Wave 0 |
 | PROV-05 (reassembly) | Fragmented tool_calls aggregated to ToolCallComplete | Integration | `cargo test -p kay-provider-openrouter --test tool_call_reassembly` | ❌ Wave 0 |
 | PROV-05 (tolerance) | Malformed args → pass-2 repair OR ToolCallMalformed, never panic | Integration | `cargo test -p kay-provider-openrouter --test tool_call_malformed` | ❌ Wave 0 |
-| PROV-05 (property) | Parser never panics on arbitrary input | Property (proptest) | `cargo test -p kay-provider-openrouter --test tool_call_property -- --nocapture` | ❌ Wave 0 |
+| PROV-05 (property) | Parser never panics on arbitrary input | Property (proptest inline in `src/tool_parser.rs`'s `#[cfg(test)] mod unit`, per plan 02-09 T3 BLOCKER #4 revision) | `cargo test -p kay-provider-openrouter --lib tool_parser::unit -- --nocapture` | ❌ Wave 0 |
 | PROV-06 | Turn N+1 rejected after cap; turn N finishes | Integration | `cargo test -p kay-provider-openrouter --test cost_cap_turn_boundary` | ❌ Wave 0 |
 | PROV-07 | 429 w/ Retry-After respected; exactly 3 retries; Retry event emitted | Integration | `cargo test -p kay-provider-openrouter --test retry_429_503` | ❌ Wave 0 |
 | PROV-08 | Each ProviderError variant maps from upstream (401→Auth, 402→Http, 429→RateLimited, 502/503→ServerError, transport→Network) | Integration | `cargo test -p kay-provider-openrouter --test error_taxonomy` | ❌ Wave 0 |
@@ -964,7 +972,7 @@ proptest! {
 |-----------|---------------|----------------|
 | **Unit tests** | HIGH — typed event construction, error mapping, allowlist normalization, model ID rewriting | `cargo test -p kay-provider-openrouter --lib` — each module has inline `#[cfg(test)]` |
 | **Integration tests against mock server** | HIGH — the Provider trait's whole contract is observable only through streaming | `tests/*.rs` — each file uses MockServer to assert SSE-shape-to-AgentEvent mapping |
-| **Property tests on tolerant parser** | HIGH — PROV-05 demands never-panic on arbitrary input | `tests/tool_call_property.rs` with proptest; fuzz invariants: never-panic, well-formed-JSON-always-clean-pass-1 |
+| **Property tests on tolerant parser** | HIGH — PROV-05 demands never-panic on arbitrary input | Proptest INLINE in `src/tool_parser.rs`'s `#[cfg(test)] mod unit` (per plan 02-09 T3 BLOCKER #4 revision — `parse_tool_arguments` is crate-private, so inline-unit-module proptest is the clean path); fuzz invariants: `parser_never_panics`, `well_formed_json_always_clean` |
 | **Contract tests for Provider trait** | MEDIUM — Phase 5 will add more consumers; Phase 2's contract stability is important. Use `#[must_use]` on return types + `#[non_exhaustive]` on AgentEvent/ProviderError | Inline in trait docs; runtime check via `compile_fail` doctests for non-exhaustive matching |
 | **Streaming backpressure tests** | LOW-MEDIUM — reqwest-eventsource + tokio channels handle backpressure naturally; caller must poll for more events. Can defer formal backpressure test to Phase 5 when the agent loop really exercises sustained streams | Not a Phase 2 test — documented as "verified at Phase 5 integration" |
 | **Error-taxonomy coverage tests** | HIGH — PROV-08 is explicit | `tests/error_taxonomy.rs` covers each variant via targeted mock responses |
@@ -976,7 +984,6 @@ proptest! {
 - [ ] `crates/kay-provider-openrouter/tests/mock_server.rs` — shared test helper extending `forge_repo::provider::mock_server::MockServer` with `mock_openrouter_chat_stream(events, status)` + OpenAPI-compatible SSE event serializer
 - [ ] `crates/kay-provider-openrouter/tests/fixtures/openrouter_*.jsonl` — captured SSE event sequences for: happy-path, tool-call-fragmented, tool-call-malformed, 429-with-retry-after, 503, mid-stream-error, empty-usage
 - [ ] `crates/kay-provider-openrouter/tests/allowlist_gate.rs` — Wave 0 test skeleton (no impl yet; test compiles with `todo!()` body, becomes real in the implementation task)
-- [ ] `crates/kay-provider-openrouter/tests/tool_call_property.rs` — proptest invariants
 - [ ] `.github/workflows/ci.yml` update: remove `--exclude kay-core` from clippy + test + fmt; wait for D-01 Step 2 to land first
 - [ ] `CONTRIBUTING.md §Pull Request Process` update: remove the per-crate `cargo fmt -p <...>` list; use `cargo fmt --all -- --check`
 - [ ] `docs/CICD.md §Current State` update: `cargo check --workspace --deny warnings` passes on kay-core post-Phase-2
@@ -1130,8 +1137,8 @@ Phase 2 introduces the first external-network boundary and the first credential-
 
 ### Tertiary (LOW confidence — single source, flagged for validation)
 
-- Exacto availability of `openai/gpt-5.4` — the model ID appears in Kay's CONTEXT.md but OpenRouter's current Exacto page lists up to gpt-5.3-chat. See §Open Questions Q1. `[ASSUMED]`
-- OpenRouter mid-stream error JSON shape — documented structure is high-level; exact error.code taxonomy requires a real trace capture. See §Open Questions Q3. `[ASSUMED]`
+- Exacto availability of `openai/gpt-5.4` — the model ID appears in Kay's CONTEXT.md but OpenRouter's current Exacto page lists up to gpt-5.3-chat. See §Open Questions Q1 (RESOLVED — provisional per D-07 + live-verify strategy + one-line fallback to gpt-5.3-chat). `[ASSUMED]`
+- OpenRouter mid-stream error JSON shape — documented structure is high-level; exact error.code taxonomy requires a real trace capture. See §Open Questions Q3 (DEFERRED — parser is defensive, typed fallback covers unknown shape). `[ASSUMED]`
 
 ---
 

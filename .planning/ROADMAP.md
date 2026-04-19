@@ -65,7 +65,19 @@ Plans:
   3. Requests against models outside the Exacto-leaning allowlist are rejected with a typed `ProviderError::ModelNotAllowlisted` — no silent fallback to ICL parsing.
   4. Feeding fragmented, malformed, or null-`arguments` tool-call deltas into the parser yields a valid reassembled tool call (or a typed `ToolCallMalformed` error), never a panic.
   5. A session that crosses its `--max-usd` budget aborts with a user-visible event; 429/503 responses retry with jittered exponential backoff and surface user-visible retry events.
-**Plans**: TBD
+**Plans**: 10 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Wave 0 test scaffolding: dev-deps, MockServer helper, 6 SSE cassettes + allowlist fixture (PROV-01, PROV-04, PROV-05, PROV-07)
+- [ ] 02-02-PLAN.md — D-01 Step 1: atomic rename 23 forge_*/lib.rs to mod.rs (PROV-01 prereq)
+- [ ] 02-03-PLAN.md — D-01 Step 2 sub-wave A+B+C: 17 leaf + forge_domain + forge_domain-dependent subtrees path-rewritten (PROV-01 prereq)
+- [ ] 02-04-PLAN.md — D-01 Step 2 sub-wave forge_app: 211 import rewrites across 103 files (PROV-01 prereq)
+- [ ] 02-05-PLAN.md — D-01 Step 2 final + CI cleanup: forge_services/infra/repo/api/main + remove --exclude kay-core from ci/docs/STATE (PROV-01 prereq)
+- [ ] 02-06-PLAN.md — kay-provider-openrouter scaffolding: Cargo.toml deps, Provider trait, AgentEvent, ProviderError, crate-wide #![deny(clippy::unwrap_used)] (PROV-01, PROV-02, PROV-08)
+- [ ] 02-07-PLAN.md — Allowlist gate (PROV-04) + API-key auth (PROV-03) with TM-01 Debug redaction + TM-04 charset validation
+- [ ] 02-08-PLAN.md — OpenRouterProvider impl: UpstreamClient + SSE translator + tool-call reassembly (PROV-01, PROV-02, PROV-05 part 1)
+- [ ] 02-09-PLAN.md — Tolerant two-pass JSON parser (forge_json_repair fallback) + proptest never-panic + 1MB cap (PROV-05, TM-06)
+- [ ] 02-10-PLAN.md — Retry policy (backon + Retry-After) + cost cap turn-boundary + error taxonomy + STATE.md closeout (PROV-06, PROV-07, PROV-08)
 **UI hint**: no
 
 ### Phase 3: Tool Registry + KIRA Core Tools
