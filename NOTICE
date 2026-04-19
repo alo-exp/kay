@@ -1,0 +1,13 @@
+Kay
+Copyright 2026 Kay Contributors
+
+Portions of this product were derived from the ForgeCode project
+(https://github.com/antinomyhq/forgecode), Copyright 2025 Tailcall,
+licensed under the Apache License, Version 2.0.
+
+Imported from ForgeCode at commit <SHA> on 2026-04-19.
+Specific modifications made by Kay are listed in ATTRIBUTIONS.md.
+
+This product makes use of dependencies with their own licenses.
+See Cargo.lock and the output of `cargo-about generate` for a
+complete manifest.
