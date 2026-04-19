@@ -6,6 +6,8 @@ Kay is an open-source terminal coding agent — a Rust fork of ForgeCode, harden
 
 **Governance clarification (post-research update):** License is Apache-2.0 with **DCO (Developer Certificate of Origin)** rather than CLA. DCO gives ~90% of the provenance guarantee with ~10% of the friction and matches Linux kernel / Git / ASF practice; research showed CLAs cause measurable contributor drop-off for solo-maintained OSS agent projects.
 
+**Architectural clarification (2026-04-19 user amendment):** Kay ships **three user surfaces** backed by one `kay-core` library contract. **`kay-cli` is the canonical backend** — it rebrands and extends ForgeCode's existing `forge_main` (which already ships an interactive CLI with completer, editor, banner, stream-renderer, and syntax highlighter). **`kay-tauri` is a native desktop GUI that frontends the same CLI contract**, not a parallel implementation. **`kay-tui` is a full-screen ratatui frontend** for users who want a richer in-terminal experience than the default interactive CLI. CLI is first-class and must work standalone for CI, benchmark runs, and non-GUI users; GUI and TUI are additive frontends over the same core.
+
 ## Core Value
 
 **Beat ForgeCode on Terminal-Bench 2.0 (>81.8%) as the first OSS agent that pairs a top-10 harness with a native desktop UI.** If the score target fails, Kay has no reason to exist; if the UI fails to ship, Kay is just another ForgeCode fork. Both must hold.
@@ -25,7 +27,7 @@ Kay is an open-source terminal coding agent — a Rust fork of ForgeCode, harden
 **Core harness (ForgeCode parity):**
 
 - [ ] Rust workspace forked from ForgeCode with attribution, Apache-2.0 + NOTICE preserved
-- [ ] Three specialized agents: `kay` (write), `sage` (read-only research), `muse` (planning)
+- [ ] Three specialized agents: `forge` (write), `sage` (read-only research), `muse` (planning) — persona names inherited from ForgeCode to minimize launch-day drift (Kay is the brand/binary; personas stay)
 - [ ] Semantic context engine: index function signatures and module boundaries (not raw file dumps)
 - [ ] OpenRouter provider integration with API-key auth (no OAuth)
 - [ ] Bash-tool execution loop with sandboxed subprocess isolation
@@ -39,14 +41,29 @@ Kay is an open-source terminal coding agent — a Rust fork of ForgeCode, harden
 - [ ] Multi-perspective completion verification (test engineer + QA engineer + end-user critics)
 - [ ] Multimodal `image_read` tool for base64 terminal-state screenshots
 
-**Tauri desktop UI (Kay's distinguishing surface):**
+**Kay CLI (canonical backend — first-class surface):**
 
-- [ ] Native Tauri 2.x desktop app (macOS, Windows, Linux) bundled with the Kay binary
+- [ ] Rebrand + extend ForgeCode's `forge_main` as `kay-cli` — interactive mode preserves inherited completer, editor, banner, stream-renderer, syntax highlighter
+- [ ] Non-interactive headless mode for CI, TB 2.0 submission, scripting (`kay run --prompt "…" --headless`)
+- [ ] `kay eval tb2` subcommand for Terminal-Bench runs (scaffold-only at v1 per user amendment; full run lands in Phase 2+)
+- [ ] Structured-event output (JSONL on stdout) so GUI and TUI frontends can tail the same contract
+- [ ] Works standalone — no GUI or TUI installation required; `cargo install kay` yields a usable agent
+
+**Kay TUI (full-screen ratatui frontend over CLI contract):**
+
+- [ ] `kay-tui` crate using `ratatui` + `crossterm` — renders a multi-pane layout (session list, active transcript, tool-call inspector, cost meter)
+- [ ] Consumes the same structured-event stream as `kay-tauri`; no agent-loop duplication
+- [ ] Keyboard-first navigation; accessible for SSH/low-bandwidth sessions where a desktop GUI is impractical
+- [ ] Optional, installed via `cargo install kay-tui` or shipped alongside `kay` in the release bundle
+
+**Kay Tauri GUI (desktop frontend over CLI contract — distinguishing visual surface):**
+
+- [ ] Native Tauri 2.x desktop app (macOS, Windows, Linux) packaged with `kay-cli` inside the same bundle
+- [ ] GUI frontends the same `kay-core` contract that `kay-cli` exposes — no parallel agent-loop implementation
 - [ ] Session view: live agent trace, tool-call timeline, token/cost meter
 - [ ] Multi-session manager: spawn, pause, resume, fork sessions from the GUI
 - [ ] Project workspace: directory picker, env/key management, OpenRouter account binding
 - [ ] Log/export: structured session export for reproducibility and benchmark submission
-- [ ] Headless CLI mode preserved for CI/scripting (desktop UI is additive, not mandatory)
 
 **Governance & distribution:**
 
@@ -69,7 +86,7 @@ Kay is an open-source terminal coding agent — a Rust fork of ForgeCode, harden
 - **Re-enterable hierarchical multi-agent orchestration** — v2 wedge. Addresses OpenCode issue #11012 but requires session-persistence primitives that don't exist in ForgeCode yet.
 - **Non-Terminal-Bench benchmarks (SWE-bench, MLE-bench, etc.)** — Picking one benchmark as the north star keeps the team honest. SWE-bench gets attention only if the TB 2.0 goal is met.
 - **Web dashboard / browser UI** — Tauri covers the "not-a-terminal" surface. A web UI is redundant for v1 and fragments the effort.
-- **TUI (terminal UI)** — ForgeCode's existing CLI surface is sufficient; Kay's distinguishing surface is Tauri. Revisit if users demand it.
+- *(previously: TUI — user reversed this decision 2026-04-19; TUI is now v1 per §Active "Kay TUI" block.)*
 
 ## Context
 
@@ -110,7 +127,7 @@ Kay is an open-source terminal coding agent — a Rust fork of ForgeCode, harden
 |----------|-----------|---------|
 | Language: Rust | Matches ForgeCode, claw-code, Codex CLI — every top performer chose Rust; single binary, best perf | — Pending |
 | Base: fork ForgeCode | Apache-2.0 permissive, proven #1 harness, context engine already solved | — Pending |
-| UI: Tauri desktop (not TUI, not web) | No other OSS agent has a native desktop GUI; differentiator visible at install time | — Pending |
+| UI: three frontends — CLI (canonical) + TUI (ratatui) + Tauri GUI — all over one `kay-core` contract | CLI-first architecture: GUI and TUI are additive frontends, not parallel implementations. Amended 2026-04-19 to add TUI and elevate CLI to canonical. | — Pending |
 | License: Apache-2.0 + DCO | Matches base; DCO gives ~90% of CLA's provenance guarantee with ~10% of the friction (pitfalls research, 2026-04-19) | — Pending |
 | v1 providers: OpenRouter only | 300+ models via one key; direct APIs deferred to v2 | — Pending |
 | v1 benchmark target: >81.8% TB 2.0 | Beating ForgeCode is the only acceptable v1 quality bar | — Pending |

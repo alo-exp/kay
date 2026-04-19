@@ -1,12 +1,12 @@
 # Roadmap: Kay
 
 **Created:** 2026-04-19
-**Granularity:** fine (12 phases)
-**Core Value:** Beat ForgeCode on Terminal-Bench 2.0 (>81.8%) as the first OSS agent that pairs a top-10 harness with a native desktop UI.
+**Granularity:** fine (13 phases — 12 integer + 1 decimal insertion)
+**Core Value:** Beat ForgeCode on Terminal-Bench 2.0 (>81.8%) as the first OSS agent that pairs a top-10 harness with a native desktop GUI, a full-screen TUI, and a first-class standalone CLI — three frontends over one core.
 
 ## Overview
 
-Kay is a benchmark-first product — if it does not beat ForgeCode on TB 2.0, it has no reason to exist, and if the Tauri desktop UI does not ship, it is just another ForgeCode fork. The 12-phase journey starts with an unusually heavy Phase 1 that stacks governance, workspace scaffolding, code-signing enrollment, and a non-negotiable ForgeCode parity gate (the forked harness must hit >=80% on TB 2.0 unmodified before any harness changes merge). From there, the harness is built bottom-up: provider HAL and tolerant JSON parser (Phase 2), tool registry + KIRA tools (Phase 3), per-OS sandbox (Phase 4), agent loop (Phase 5). Session persistence (Phase 6) and the context engine (Phase 7) run in parallel once the agent loop stabilizes. Multi-perspective verification (Phase 8) closes the KIRA harness. The Tauri desktop shell (Phase 9) and multi-session manager (Phase 10) deliver Kay's distinguishing surface. Cross-platform hardening + release pipeline (Phase 11) produces signed binaries on all five targets. Phase 12 is the acceptance gate: public TB 2.0 submission at >81.8% with a documented reference run, paired with a real-repo eval to guard against benchmark overfitting.
+Kay is a benchmark-first product — if it does not beat ForgeCode on TB 2.0, it has no reason to exist, and if the three frontends (CLI + TUI + Tauri GUI) do not ship, it is just another ForgeCode fork. The journey starts with an unusually heavy Phase 1 that stacks governance, workspace scaffolding, code-signing enrollment, and a non-negotiable ForgeCode parity gate (the forked harness must hit >=80% on TB 2.0 unmodified before any harness changes merge). From there, the harness is built bottom-up: provider HAL and tolerant JSON parser (Phase 2), tool registry + KIRA tools (Phase 3), per-OS sandbox (Phase 4), agent loop + canonical CLI (Phase 5 — rebrands `forge_main` and establishes the structured-event JSONL contract). Session persistence (Phase 6) and the context engine (Phase 7) run in parallel once the agent loop stabilizes. Multi-perspective verification (Phase 8) closes the KIRA harness. The Tauri desktop shell (Phase 9) and the ratatui TUI frontend (Phase 9.5, inserted 2026-04-19) consume the same CLI event contract — no parallel agent-loop implementations; the multi-session manager (Phase 10) puts project/session/settings control into both GUI and TUI. Cross-platform hardening + release pipeline (Phase 11) produces signed binaries + `cargo install kay` standalone distribution on all five targets. Phase 12 is the acceptance gate: public TB 2.0 submission at >81.8% with a documented reference run, paired with a real-repo eval to guard against benchmark overfitting.
 
 ## Phases
 
@@ -20,13 +20,14 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Provider HAL + Tolerant JSON Parser** - OpenRouter streaming client with tool-call reassembly, typed error taxonomy, and a two-pass tolerant parser for provider variance.
 - [ ] **Phase 3: Tool Registry + KIRA Core Tools** - Object-safe `Tool` trait, native tool-calling path, `execute_commands` (marker polling), `task_complete`, `image_read`, with hardened schemas.
 - [ ] **Phase 4: Sandbox (All Three Platforms)** - Per-OS sandbox: macOS `sandbox-exec`, Linux Landlock+seccomp, Windows Job Objects + restricted token.
-- [ ] **Phase 5: Agent Loop (Event-Driven Core)** - `tokio::select!` loop, frozen `AgentEvent` shape, YAML personas (kay/sage/muse), mandatory verification gate, headless CLI mode.
+- [ ] **Phase 5: Agent Loop + Canonical CLI** - `tokio::select!` loop, frozen `AgentEvent` shape, YAML personas (forge/sage/muse — inherited from ForgeCode), mandatory verification gate, rebranded `forge_main` → `kay-cli` with structured-event JSONL stream (the contract GUI and TUI frontends consume).
 - [ ] **Phase 6: Session Store + Transcript** - JSONL source-of-truth transcripts + SQLite index, resume/fork, pre-edit snapshots, self-contained session export.
 - [ ] **Phase 7: Context Engine** - tree-sitter symbol store + SQLite hybrid retrieval, explicit context-size budget, ForgeCode schema hardening applied in-context.
 - [ ] **Phase 8: Multi-Perspective Verification (KIRA Critics)** - Test engineer + QA engineer + end-user critics with confidence-gated firing, bounded re-work, and cost ceilings.
-- [ ] **Phase 9: Tauri Desktop Shell** - Tauri 2.x app with specta-typed IPC, `Channel<AgentEvent>` streaming, session view with tool-call timeline + token/cost meter; 4h memory canary.
-- [ ] **Phase 10: Multi-Session Manager + Project Settings** - GUI spawn/pause/resume/fork, project workspace + keyring binding, model allowlist picker, command-approval dialog, settings panel.
-- [ ] **Phase 11: Cross-Platform Hardening + Release Pipeline** - Signed + notarized bundles for macOS (arm64/x64), Windows (x64), Linux (x64/arm64), `cargo install kay`, minisign updater.
+- [ ] **Phase 9: Tauri Desktop Shell** - Tauri 2.x app with specta-typed IPC, `Channel<AgentEvent>` streaming, session view with tool-call timeline + token/cost meter; 4h memory canary. Desktop GUI frontends the `kay-cli` event contract.
+- [ ] **Phase 9.5: TUI Frontend (ratatui)** *(INSERTED 2026-04-19)* - Full-screen ratatui terminal UI consuming the same `kay-cli` JSONL event stream as the Tauri GUI. Multi-pane layout, keyboard-first, SSH-friendly.
+- [ ] **Phase 10: Multi-Session Manager + Project Settings** - Spawn/pause/resume/fork sessions from GUI and TUI, project workspace + keyring binding, model allowlist picker, command-approval dialog, settings panel.
+- [ ] **Phase 11: Cross-Platform Hardening + Release Pipeline** - Signed + notarized bundles for macOS (arm64/x64), Windows (x64), Linux (x64/arm64); `cargo install kay` (standalone CLI); `cargo install kay-tui` (TUI); minisign updater for desktop bundle.
 - [ ] **Phase 12: Terminal-Bench 2.0 Submission + v1 Hardening** - Reproducible Harbor runner, held-out task subset, parallel real-repo eval, official >81.8% TB 2.0 submission with archived reference run.
 
 ## Phase Details
@@ -96,13 +97,13 @@ Plans:
 
 ### Phase 5: Agent Loop (Event-Driven Core)
 
-**Goal**: A headless run of Kay — `kay run --prompt "..." --headless` — executes a full agent turn cycle (compose -> stream -> tool -> verify -> turn end) through a frozen `AgentEvent` API with swappable kay/sage/muse personas and clean pause/resume/abort semantics.
+**Goal**: A headless run of Kay — `kay run --prompt "..." --headless` — executes a full agent turn cycle (compose -> stream -> tool -> verify -> turn end) through a frozen `AgentEvent` API with swappable forge/sage/muse personas (names inherited from ForgeCode), clean pause/resume/abort semantics, and a first-class standalone CLI that rebrands `forge_main` without regressing inherited interactive features.
 **Depends on**: Phase 2, Phase 3, Phase 4
-**Requirements**: LOOP-01, LOOP-02, LOOP-03, LOOP-04, LOOP-05, LOOP-06, CLI-01, CLI-03
+**Requirements**: LOOP-01, LOOP-02, LOOP-03, LOOP-04, LOOP-05, LOOP-06, CLI-01, CLI-03, CLI-04, CLI-05, CLI-07
 **Success Criteria** (what must be TRUE):
-  1. A user runs `kay run --prompt "..." --headless --persona kay` and receives a full `AgentEvent` stream on stdout ending in `TurnEnd` with a non-zero exit code reserved for sandbox violations.
-  2. The same code path serves `kay`, `sage`, and `muse` by loading different YAML persona files (system prompt + tool filter + model) — no triplicated code.
-  3. A running turn can be paused, resumed, or aborted cleanly via a control channel, and `muse` or `kay` can invoke `sage` as a read-only sub-tool.
+  1. A user runs `kay run --prompt "..." --headless --persona forge` and receives a full `AgentEvent` stream on stdout ending in `TurnEnd` with a non-zero exit code reserved for sandbox violations.
+  2. The same code path serves `forge`, `sage`, and `muse` by loading different YAML persona files (system prompt + tool filter + model) — no triplicated code. Persona names inherited from ForgeCode.
+  3. A running turn can be paused, resumed, or aborted cleanly via a control channel, and `muse` or `forge` can invoke `sage` as a read-only sub-tool.
   4. `AgentEvent` is marked `#[non_exhaustive]` and documented as a frozen API surface for downstream Tauri and CLI consumers.
   5. `task_complete` never returns success to the loop until a verification pass has run (no-op critic stub in Phase 5, real critics in Phase 8).
 **Plans**: TBD
@@ -163,10 +164,24 @@ Plans:
 **Plans**: TBD
 **UI hint**: yes
 
+### Phase 9.5: TUI Frontend (ratatui)
+
+**Goal**: A user running over SSH, in a low-bandwidth terminal, or by preference types `kay tui` and gets a full-screen ratatui interface with session list, active transcript, tool-call inspector, and cost meter — tailing the same `kay-cli` structured-event stream that `kay-tauri` consumes. No parallel agent-loop implementation; the TUI is a pure frontend over the CLI contract.
+**Depends on**: Phase 5 (needs CLI-05 structured-event stream), Phase 6 (needs session store for multi-session list)
+**Requirements**: TUI-01, TUI-02, TUI-03, TUI-04, TUI-05
+**Success Criteria** (what must be TRUE):
+  1. A user runs `kay tui` (or `kay-tui` standalone) and sees a multi-pane ratatui layout rendering a live session's agent trace, tool-call timeline, and token/cost meter.
+  2. `kay-tui` reads the JSONL event stream from `kay-cli` (CLI-05) — not from `kay-core` directly — proving the CLI contract is the single source of truth for frontends.
+  3. All navigation is keyboard-driven; no mouse required; the TUI works cleanly over SSH with no terminal capabilities beyond ANSI 256-color.
+  4. `cargo install kay-tui` installs the TUI standalone, and it can also be invoked as `kay tui` from the main binary.
+  5. Session control (spawn / pause / resume / fork) reaches parity with the GUI via keyboard shortcuts documented in the help pane.
+**Plans**: TBD
+**UI hint**: yes
+
 ### Phase 10: Multi-Session Manager + Project Settings
 
 **Goal**: A user manages multiple sessions, projects, API keys, and policy from the GUI — spawning, pausing, resuming, and forking sessions; binding OpenRouter keys into the OS keychain; selecting from a tiered model allowlist; and opting into command approval and sandbox policy from a settings panel.
-**Depends on**: Phase 6, Phase 9
+**Depends on**: Phase 6, Phase 9, Phase 9.5
 **Requirements**: UI-02, UI-03, UI-04, UI-05, UI-06, UI-07
 **Success Criteria** (what must be TRUE):
   1. A user spawns, pauses, resumes, and forks sessions entirely from the GUI without touching the CLI.
@@ -181,7 +196,7 @@ Plans:
 
 **Goal**: A user downloads a signed, notarized, reproducibly-built Kay artifact for their OS from a GitHub release; `cargo install kay` yields the headless CLI from crates.io; the updater verifies signatures against a pre-pinned minisign public key.
 **Depends on**: Phase 4, Phase 9
-**Requirements**: REL-01, REL-02, REL-03, REL-04, REL-05, REL-06, REL-07
+**Requirements**: REL-01, REL-02, REL-03, REL-04, REL-05, REL-06, REL-07, CLI-06
 **Success Criteria** (what must be TRUE):
   1. Every push to `main` produces signed + notarized macOS (arm64 + x64), Windows Authenticode-signed, and Linux (x64 + arm64, AppImage + tar.gz with SHA attestations) artifacts — not only on release tags.
   2. A user runs `cargo install kay` on crates.io and gets a working headless CLI matching the release binary.

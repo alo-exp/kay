@@ -1,0 +1,11 @@
+[package]
+name = "kay-tui"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Kay terminal UI frontend (full-screen ratatui) over kay-core and kay-cli contracts"
+
+[dependencies]

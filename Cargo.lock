@@ -29,3 +29,7 @@ version = "0.1.0"
 [[package]]
 name = "kay-tauri"
 version = "0.1.0"
+
+[[package]]
+name = "kay-tui"
+version = "0.1.0"

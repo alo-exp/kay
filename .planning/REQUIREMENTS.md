@@ -64,8 +64,8 @@ Requirements for initial release. Each maps to a roadmap phase.
 
 - [ ] **LOOP-01**: Event-driven loop via `tokio::select!` over input/model/tool/control channels
 - [ ] **LOOP-02**: `AgentEvent` enum marked `#[non_exhaustive]`; frozen shape for UI consumers
-- [ ] **LOOP-03**: Persona configuration (`kay`, `sage`, `muse`) is data (YAML per-persona) — same code path, different prompt + tool filter + model
-- [ ] **LOOP-04**: Sage (read-only research) is callable as a sub-tool by `kay` and `muse`
+- [ ] **LOOP-03**: Persona configuration (`forge` = write, `sage` = research, `muse` = plan) is data (YAML per-persona) — same code path, different prompt + tool filter + model. Persona names are inherited from ForgeCode to minimize launch-day drift; Kay is the brand/binary name, not a persona
+- [ ] **LOOP-04**: Sage (read-only research) is callable as a sub-tool by `forge` and `muse`
 - [ ] **LOOP-05**: Mandatory verification pass runs before `task_complete` returns success
 - [ ] **LOOP-06**: Loop can be paused, resumed, and cancelled cleanly via control channel
 
@@ -111,11 +111,27 @@ Requirements for initial release. Each maps to a roadmap phase.
 - [ ] **UI-06**: Command-approval dialog (off by default for clean TB 2.0 runs; opt-in for first-time users)
 - [ ] **UI-07**: Settings panel surfaces cost budgets, model allowlist, verifier policy, and sandbox policy
 
-### CLI / Headless Mode (CLI)
+### CLI — Canonical Backend (CLI)
+
+Kay CLI is the **canonical user-facing surface** and the contract GUI/TUI frontends consume. Rebrands + extends ForgeCode's `forge_main` (imported during Phase 1) — its interactive mode inherits completer, editor, banner, stream-renderer, and syntax highlighter from upstream.
 
 - [ ] **CLI-01**: `kay` CLI preserves headless non-interactive mode for CI and TB 2.0 submission
 - [ ] **CLI-02**: CLI supports session import/export and replay
 - [ ] **CLI-03**: CLI exit codes reflect task success/failure/sandbox-violation cleanly
+- [ ] **CLI-04**: `kay-cli` crate rebrands `forge_main`: renames the binary to `kay`, rewrites banners/help text to Kay, preserves all inherited interactive behaviors (completer, editor, stream-renderer, syntax highlighter) without regression against the `forgecode-parity-baseline` tag
+- [ ] **CLI-05**: Structured-event output mode (`--events jsonl` or equivalent) streams every agent event to stdout in a stable JSONL contract consumed by both `kay-tui` and `kay-tauri`
+- [ ] **CLI-06**: Standalone distribution — `cargo install kay` yields a fully functional agent with zero GUI/TUI dependencies; the CLI works over bare SSH without terminal capabilities beyond ANSI
+- [ ] **CLI-07**: Interactive mode is a first-class experience (not just a fallback); new-user onboarding flow guides first agent run without requiring flags
+
+### TUI — Full-Screen Terminal Frontend (TUI)
+
+Kay TUI is a **full-screen ratatui frontend over the CLI contract**, for users who want a richer in-terminal experience than the default interactive CLI (e.g., multi-pane inspectors, sticky status bars, SSH-friendly navigation).
+
+- [ ] **TUI-01**: `kay-tui` crate uses `ratatui` + `crossterm` — multi-pane layout with session list, active transcript, tool-call inspector, cost meter
+- [ ] **TUI-02**: Consumes `kay-cli`'s structured-event JSONL stream (CLI-05) as its data source — no parallel agent-loop implementation
+- [ ] **TUI-03**: Keyboard-first navigation; works over SSH and in low-bandwidth terminals (no mouse required)
+- [ ] **TUI-04**: Installable standalone (`cargo install kay-tui`) or bundled with the desktop release; invocation via `kay tui` subcommand from the main CLI
+- [ ] **TUI-05**: Session control parity with GUI — spawn, pause, resume, fork sessions via keyboard shortcuts
 
 ### Release & Distribution (REL)
 
@@ -173,7 +189,7 @@ Explicitly excluded from v1 and v2 alike — documented to prevent scope creep.
 | Feature | Reason |
 |---------|--------|
 | Web dashboard / browser UI | Tauri covers the "not-a-terminal" surface. Web UI fragments effort without unlocking new users. |
-| TUI (terminal UI) | ForgeCode's existing CLI surface is sufficient. Kay's distinguishing surface is Tauri desktop. |
+| ~~TUI (terminal UI)~~ | **Reversed 2026-04-19** — TUI is now v1 (see §CLI and §TUI). `kay-tui` is a full-screen ratatui frontend over the CLI contract. |
 | Plugin marketplace | OpenClaw's supply-chain incident (21K exposed instances) proves marketplaces shift security burden to solo maintainers. |
 | Auto-memory across sessions at v1 | Claude Code's feature; without ACE it tends toward silent context drift. Lands with WEDGE-01. |
 | Hooks (pre/post tool, session) | Claude Code's feature; hook surface is wide and distracts from the TB 2.0 target. Revisit if/when Kay has a stable harness + community. |
