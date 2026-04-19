@@ -1,0 +1,11 @@
+[package]
+name = "kay-tauri"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Kay Tauri 2.x desktop shell (Phase 9)"
+
+[dependencies]

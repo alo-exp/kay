@@ -1,0 +1,11 @@
+[package]
+name = "kay-sandbox-windows"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Windows Job Objects + restricted token sandbox backend (Phase 4)"
+
+[dependencies]

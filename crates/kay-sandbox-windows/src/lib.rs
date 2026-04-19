@@ -1,0 +1,4 @@
+//! kay-sandbox-windows — Windows Job Objects + restricted token sandbox backend (Phase 4)
+//!
+//! Skeleton crate; implementation lands in a later phase.
+//! See .planning/ROADMAP.md for phase ownership.
