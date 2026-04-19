@@ -129,7 +129,10 @@ jobs:
   signed-tag-gate:
     name: Block unsigned tag on release
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: |
+      github.ref_type == 'tag' &&
+      startsWith(github.ref_name, 'v') &&
+      contains(github.ref_name, '.')
     steps:
       - uses: actions/checkout@v4
         with:
