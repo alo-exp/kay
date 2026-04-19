@@ -1,7 +1,7 @@
 use anyhow::Result;
 use colored::Colorize;
 
-use crate::input::InputBuilder;
+use crate::forge_select::input::InputBuilder;
 
 /// Builder for confirm (yes/no) prompts.
 pub struct ConfirmBuilder {
