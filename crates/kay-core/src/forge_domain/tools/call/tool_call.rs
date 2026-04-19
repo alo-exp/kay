@@ -5,8 +5,8 @@ use derive_more::derive::From;
 use derive_setters::Setters;
 use serde::{Deserialize, Serialize};
 
-use crate::xml::extract_tag_content;
-use crate::{Error, Result, ToolCallArguments, ToolName, ToolResult};
+use crate::forge_domain::xml::extract_tag_content;
+use crate::forge_domain::{Error, Result, ToolCallArguments, ToolName, ToolResult};
 
 /// Unique identifier for a using a tool
 #[derive(Clone, Debug, Deserialize, Hash, Eq, PartialEq, Serialize)]

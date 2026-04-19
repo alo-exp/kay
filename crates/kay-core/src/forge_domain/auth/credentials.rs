@@ -4,7 +4,7 @@ use chrono::{DateTime, Utc};
 use derive_setters::Setters;
 use serde::{Deserialize, Serialize};
 
-use crate::{AccessToken, ApiKey, OAuthConfig, ProviderId, RefreshToken, URLParam, URLParamValue};
+use crate::forge_domain::{AccessToken, ApiKey, OAuthConfig, ProviderId, RefreshToken, URLParam, URLParamValue};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Setters)]
 pub struct AuthCredential {

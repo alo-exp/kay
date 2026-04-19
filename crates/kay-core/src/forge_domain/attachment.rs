@@ -1,7 +1,7 @@
 use nom::Parser;
 use nom::bytes::complete::tag;
 
-use crate::{FileInfo, Image};
+use crate::forge_domain::{FileInfo, Image};
 
 /// A file or directory attachment included in a chat message.
 #[derive(Debug, serde::Deserialize, serde::Serialize, Clone, PartialEq, Eq)]

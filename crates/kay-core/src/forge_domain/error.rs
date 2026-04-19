@@ -1,10 +1,10 @@
 use std::pin::Pin;
 
 use derive_more::From;
-use forge_json_repair::JsonRepairError;
+use crate::forge_json_repair::JsonRepairError;
 use thiserror::Error;
 
-use crate::{AgentId, ConversationId, ProviderId, WorkspaceId};
+use crate::forge_domain::{AgentId, ConversationId, ProviderId, WorkspaceId};
 
 // NOTE: Deriving From for error is a really bad idea. This is because you end
 // up converting errors incorrectly without much context. For eg: You don't want

@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use strum_macros::{Display, EnumString};
 use url::Url;
 
-use crate::{ApiKey, AuthCredential, AuthDetails, Model, Template};
+use crate::forge_domain::{ApiKey, AuthCredential, AuthDetails, Model, Template};
 
 /// Distinguishes between different categories of providers
 #[derive(

@@ -1,8 +1,8 @@
-use forge_template::Element;
+use crate::forge_template::Element;
 use serde_json::to_string_pretty;
 
-use crate::context::ContextMessage;
-use crate::conversation::Conversation;
+use crate::forge_domain::context::ContextMessage;
+use crate::forge_domain::conversation::Conversation;
 
 /// Renders a conversation as an HTML document
 ///

@@ -2,7 +2,7 @@ use std::collections::{HashMap, hash_map};
 
 use serde::{Deserialize, Serialize};
 
-use crate::{ServerName, ToolDefinition};
+use crate::forge_domain::{ServerName, ToolDefinition};
 
 /// Cache for MCP tool definitions
 ///

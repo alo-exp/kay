@@ -6,7 +6,7 @@ use glob::Pattern;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{ToolDefinition, ToolName};
+use crate::forge_domain::{ToolDefinition, ToolName};
 
 /// Defines the ordering for tools in an agent's context.
 /// Tools are ordered based on weights - higher weight tools appear first.

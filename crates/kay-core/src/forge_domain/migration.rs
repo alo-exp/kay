@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::ProviderId;
+use crate::forge_domain::ProviderId;
 
 /// Result of credential migration from environment variables to file.
 /// Only returned when credentials were actually migrated (Some).

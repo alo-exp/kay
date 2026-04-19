@@ -1,7 +1,7 @@
 use derive_setters::Setters;
 use serde::{Deserialize, Serialize};
 
-use crate::{ConversationId, Event};
+use crate::forge_domain::{ConversationId, Event};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Setters)]
 #[setters(into, strip_option)]

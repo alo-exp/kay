@@ -1,5 +1,5 @@
 use super::Transformer;
-use crate::{Context, ContextMessage, ModelId, Role, TextMessage};
+use crate::forge_domain::{Context, ContextMessage, ModelId, Role, TextMessage};
 
 pub struct TransformToolCalls {
     pub model: Option<ModelId>,

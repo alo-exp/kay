@@ -1,4 +1,4 @@
-use crate::{Context, ModelId, Transformer};
+use crate::forge_domain::{Context, ModelId, Transformer};
 
 /// A transformer that preserves reasoning only for the contiguous tail of
 /// assistant messages that were produced by the current model, stripping

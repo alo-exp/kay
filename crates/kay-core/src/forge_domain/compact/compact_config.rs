@@ -4,7 +4,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
-use crate::{Context, ModelId, Role};
+use crate::forge_domain::{Context, ModelId, Role};
 
 /// Configuration for automatic context compaction
 #[derive(Debug, Clone, Serialize, Deserialize, Merge, Setters, JsonSchema, PartialEq)]

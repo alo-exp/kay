@@ -6,8 +6,8 @@ use derive_setters::Setters;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-pub use crate::file_operation::FileOperation;
-use crate::{Todo, TodoItem, TodoStatus};
+pub use crate::forge_domain::file_operation::FileOperation;
+use crate::forge_domain::{Todo, TodoItem, TodoStatus};
 
 #[derive(Debug, Clone, Default, Setters, Serialize, Deserialize)]
 #[setters(into, strip_option)]

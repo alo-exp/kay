@@ -1,8 +1,8 @@
 use anyhow::Context as _;
 use tokio_stream::StreamExt;
 
-use crate::reasoning::{Reasoning, ReasoningFull};
-use crate::{
+use crate::forge_domain::reasoning::{Reasoning, ReasoningFull};
+use crate::forge_domain::{
     ArcSender, ChatCompletionMessage, ChatCompletionMessageFull, ChatResponse, ChatResponseContent,
     ToolCallFull, ToolCallPart, Usage,
 };

@@ -4,7 +4,7 @@ use std::ops::Deref;
 use derive_more::From;
 use serde::{Deserialize, Serialize};
 
-use crate::{
+use crate::forge_domain::{
     Context, ContextMessage, Role, SearchQuery, TextMessage, Todo, ToolCallFull, ToolCallId,
     ToolCatalog, ToolResult,
 };

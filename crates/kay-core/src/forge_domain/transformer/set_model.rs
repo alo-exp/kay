@@ -1,5 +1,5 @@
 use super::Transformer;
-use crate::{Context, ModelId};
+use crate::forge_domain::{Context, ModelId};
 
 /// Transformer that sets the model for all text messages in the context
 pub struct SetModel {

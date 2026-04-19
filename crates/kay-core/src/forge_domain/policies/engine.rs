@@ -1,7 +1,7 @@
 use super::operation::PermissionOperation;
 use super::policy::Policy;
-use crate::PolicyConfig;
-use crate::policies::Permission;
+use crate::forge_domain::PolicyConfig;
+use crate::forge_domain::policies::Permission;
 
 /// High-level policy engine that provides convenient methods for checking
 /// policies

@@ -3,7 +3,7 @@ use std::path::Path;
 use anyhow::Result;
 use url::Url;
 
-use crate::{
+use crate::forge_domain::{
     AnyProvider, AuthCredential, ChatCompletionMessage, Context, Conversation, ConversationId,
     MigrationResult, Model, ModelId, Provider, ProviderId, ProviderTemplate, ResultStream,
     SearchMatch, Skill, Snapshot, WorkspaceAuth, WorkspaceId,
