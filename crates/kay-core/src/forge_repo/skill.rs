@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
 use anyhow::Context;
-use forge_app::domain::Skill;
-use forge_app::{EnvironmentInfra, FileInfoInfra, FileReaderInfra, Walker, WalkerInfra};
-use forge_domain::SkillRepository;
+use crate::forge_app::domain::Skill;
+use crate::forge_app::{EnvironmentInfra, FileInfoInfra, FileReaderInfra, Walker, WalkerInfra};
+use crate::forge_domain::SkillRepository;
 use futures::future::join_all;
 use gray_matter::Matter;
 use gray_matter::engine::YAML;

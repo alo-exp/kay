@@ -1,9 +1,9 @@
 use std::sync::{Arc, LazyLock};
 
 use bytes::Bytes;
-use forge_app::domain::{ProviderId, ProviderResponse};
-use forge_app::{EnvironmentInfra, FileReaderInfra, FileWriterInfra, HttpInfra};
-use forge_domain::{
+use crate::forge_app::domain::{ProviderId, ProviderResponse};
+use crate::forge_app::{EnvironmentInfra, FileReaderInfra, FileWriterInfra, HttpInfra};
+use crate::forge_domain::{
     AnyProvider, ApiKey, AuthCredential, AuthDetails, Error, MigrationResult, Provider,
     ProviderRepository, ProviderType, URLParam, URLParamSpec, URLParamValue,
 };

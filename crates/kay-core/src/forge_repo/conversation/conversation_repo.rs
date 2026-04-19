@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
 use diesel::prelude::*;
-use forge_domain::{Conversation, ConversationId, ConversationRepository, WorkspaceHash};
+use crate::forge_domain::{Conversation, ConversationId, ConversationRepository, WorkspaceHash};
 
-use crate::conversation::conversation_record::ConversationRecord;
-use crate::database::schema::conversations;
-use crate::database::{DatabasePool, PooledSqliteConnection};
+use crate::forge_repo::conversation::conversation_record::ConversationRecord;
+use crate::forge_repo::database::schema::conversations;
+use crate::forge_repo::database::{DatabasePool, PooledSqliteConnection};
 
 pub struct ConversationRepositoryImpl {
     pool: Arc<DatabasePool>,

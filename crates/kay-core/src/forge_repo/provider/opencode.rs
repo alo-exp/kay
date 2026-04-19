@@ -1,18 +1,18 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use forge_app::domain::{
+use crate::forge_app::domain::{
     ChatCompletionMessage, Context as ChatContext, Model, ModelId, Provider, ProviderResponse,
     ResultStream,
 };
-use forge_app::{EnvironmentInfra, HttpInfra};
-use forge_domain::ChatRepository;
+use crate::forge_app::{EnvironmentInfra, HttpInfra};
+use crate::forge_domain::ChatRepository;
 use url::Url;
 
-use crate::provider::anthropic::AnthropicResponseRepository;
-use crate::provider::google::GoogleResponseRepository;
-use crate::provider::openai::OpenAIResponseRepository;
-use crate::provider::openai_responses::OpenAIResponsesResponseRepository;
+use crate::forge_repo::provider::anthropic::AnthropicResponseRepository;
+use crate::forge_repo::provider::google::GoogleResponseRepository;
+use crate::forge_repo::provider::openai::OpenAIResponseRepository;
+use crate::forge_repo::provider::openai_responses::OpenAIResponsesResponseRepository;
 
 /// OpenCode provider that routes to different backends based on model:
 /// - Claude models (claude-*) -> Anthropic endpoint

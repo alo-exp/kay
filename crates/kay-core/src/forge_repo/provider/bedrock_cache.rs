@@ -2,7 +2,7 @@ use aws_sdk_bedrockruntime::operation::converse_stream::ConverseStreamInput;
 use aws_sdk_bedrockruntime::types::{
     CachePointBlock, CachePointType, ContentBlock, SystemContentBlock,
 };
-use forge_domain::Transformer;
+use crate::forge_domain::Transformer;
 
 /// Transformer that implements a simple two-breakpoint cache strategy for
 /// Bedrock:

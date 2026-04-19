@@ -2,11 +2,11 @@ use std::collections::HashMap;
 
 use anyhow::Context as _;
 use async_openai::types::responses as oai;
-use forge_app::domain::{Context as ChatContext, ContextMessage, MessagePhase, Role, ToolChoice};
-use forge_app::utils::enforce_strict_schema;
-use forge_domain::{Effort, ReasoningConfig, ReasoningFull};
+use crate::forge_app::domain::{Context as ChatContext, ContextMessage, MessagePhase, Role, ToolChoice};
+use crate::forge_app::utils::enforce_strict_schema;
+use crate::forge_domain::{Effort, ReasoningConfig, ReasoningFull};
 
-use crate::provider::FromDomain;
+use crate::forge_repo::provider::FromDomain;
 
 /// Converts domain MessagePhase to OpenAI MessagePhase
 fn to_oai_phase(phase: MessagePhase) -> oai::MessagePhase {

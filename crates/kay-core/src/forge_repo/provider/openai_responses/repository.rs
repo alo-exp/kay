@@ -3,20 +3,20 @@ use std::sync::Arc;
 use anyhow::Context as _;
 use async_openai::types::responses as oai;
 use eventsource_stream::Eventsource;
-use forge_app::domain::{
+use crate::forge_app::domain::{
     ChatCompletionMessage, Context as ChatContext, Model, ModelId, ResultStream,
 };
-use forge_app::{EnvironmentInfra, HttpInfra};
-use forge_domain::{BoxStream, ChatRepository, Provider};
-use forge_infra::sanitize_headers;
+use crate::forge_app::{EnvironmentInfra, HttpInfra};
+use crate::forge_domain::{BoxStream, ChatRepository, Provider};
+use crate::forge_infra::sanitize_headers;
 use futures::StreamExt;
 use reqwest::header::AUTHORIZATION;
 use tracing::info;
 use url::Url;
 
-use crate::provider::FromDomain;
-use crate::provider::retry::into_retry;
-use crate::provider::utils::{create_headers, format_http_context};
+use crate::forge_repo::provider::FromDomain;
+use crate::forge_repo::provider::retry::into_retry;
+use crate::forge_repo::provider::utils::{create_headers, format_http_context};
 
 #[derive(Clone)]
 pub(super) struct OpenAIResponsesProvider<H> {

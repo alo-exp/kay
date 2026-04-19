@@ -1,6 +1,6 @@
 use aws_sdk_bedrockruntime::operation::converse_stream::ConverseStreamInput;
 use aws_sdk_bedrockruntime::types::ContentBlock;
-use forge_domain::Transformer;
+use crate::forge_domain::Transformer;
 use lazy_static::lazy_static;
 use regex::Regex;
 

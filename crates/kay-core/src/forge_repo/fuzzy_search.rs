@@ -2,11 +2,11 @@ use std::sync::Arc;
 
 use anyhow::{Context, Result};
 use async_trait::async_trait;
-use forge_app::GrpcInfra;
-use forge_domain::{FuzzySearchRepository, SearchMatch};
+use crate::forge_app::GrpcInfra;
+use crate::forge_domain::{FuzzySearchRepository, SearchMatch};
 
-use crate::proto_generated::FuzzySearchRequest;
-use crate::proto_generated::forge_service_client::ForgeServiceClient;
+use crate::forge_repo::proto_generated::FuzzySearchRequest;
+use crate::forge_repo::proto_generated::forge_service_client::ForgeServiceClient;
 
 /// gRPC implementation of FuzzySearchRepository
 pub struct ForgeFuzzySearchRepository<I> {

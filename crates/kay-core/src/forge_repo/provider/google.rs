@@ -1,17 +1,17 @@
 use std::sync::Arc;
 
 use anyhow::Context as _;
-use forge_app::domain::{ChatCompletionMessage, Context, Model, ModelId, ResultStream};
-use forge_app::dto::google::{EventData, Request};
-use forge_app::{EnvironmentInfra, HttpInfra};
-use forge_domain::{ChatRepository, Provider};
+use crate::forge_app::domain::{ChatCompletionMessage, Context, Model, ModelId, ResultStream};
+use crate::forge_app::dto::google::{EventData, Request};
+use crate::forge_app::{EnvironmentInfra, HttpInfra};
+use crate::forge_domain::{ChatRepository, Provider};
 use reqwest::Url;
 use tokio_stream::StreamExt;
 use tracing::debug;
 
-use crate::provider::event::into_chat_completion_message;
-use crate::provider::retry::into_retry;
-use crate::provider::utils::{create_headers, format_http_context};
+use crate::forge_repo::provider::event::into_chat_completion_message;
+use crate::forge_repo::provider::retry::into_retry;
+use crate::forge_repo::provider::utils::{create_headers, format_http_context};
 
 #[derive(Clone)]
 struct Google<T> {

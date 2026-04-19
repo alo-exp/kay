@@ -1,5 +1,5 @@
 use async_openai::types::responses::{self as oai, CreateResponse};
-use forge_domain::Transformer;
+use crate::forge_domain::Transformer;
 
 /// Transformer that adjusts Responses API requests for the Codex backend.
 ///

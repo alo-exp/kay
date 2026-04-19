@@ -5,7 +5,7 @@
 //! storage layer independent from domain model changes.
 
 use anyhow::Context as _;
-use forge_domain::{Context, ConversationId};
+use crate::forge_domain::{Context, ConversationId};
 use serde::{Deserialize, Serialize};
 
 /// Repository-specific representation of ModelId

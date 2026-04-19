@@ -1,18 +1,18 @@
 use std::collections::{HashMap, HashSet};
 
 use async_openai::types::responses as oai;
-use forge_app::domain::{
+use crate::forge_app::domain::{
     ChatCompletionMessage, Content, FinishReason, MessagePhase, TokenCount, ToolCall,
     ToolCallArguments, ToolCallFull, ToolCallId, ToolCallPart, ToolName, Usage,
 };
-use forge_app::dto::openai::{
+use crate::forge_app::dto::openai::{
     Error as OpenAIError, ErrorCode as OpenAIErrorCode, ErrorResponse as OpenAIErrorResponse,
 };
-use forge_domain::{BoxStream, ResultStream};
+use crate::forge_domain::{BoxStream, ResultStream};
 use futures::StreamExt;
 use serde::{Deserialize, Deserializer};
 
-use crate::provider::IntoDomain;
+use crate::forge_repo::provider::IntoDomain;
 
 /// Wrapper enum for SSE events from the OpenAI Responses API.
 ///

@@ -1,20 +1,20 @@
 use std::sync::Arc;
 
-use forge_app::domain::{
+use crate::forge_app::domain::{
     ChatCompletionMessage, Context, Model, ModelId, ProviderResponse, ResultStream,
 };
-use forge_app::{EnvironmentInfra, HttpInfra};
-use forge_domain::{ChatRepository, Provider, ProviderId};
-use forge_infra::CacacheStorage;
+use crate::forge_app::{EnvironmentInfra, HttpInfra};
+use crate::forge_domain::{ChatRepository, Provider, ProviderId};
+use crate::forge_infra::CacacheStorage;
 use tokio::task::AbortHandle;
 use url::Url;
 
-use crate::provider::anthropic::AnthropicResponseRepository;
-use crate::provider::bedrock::BedrockResponseRepository;
-use crate::provider::google::GoogleResponseRepository;
-use crate::provider::openai::OpenAIResponseRepository;
-use crate::provider::openai_responses::OpenAIResponsesResponseRepository;
-use crate::provider::opencode::OpenCodeZenResponseRepository;
+use crate::forge_repo::provider::anthropic::AnthropicResponseRepository;
+use crate::forge_repo::provider::bedrock::BedrockResponseRepository;
+use crate::forge_repo::provider::google::GoogleResponseRepository;
+use crate::forge_repo::provider::openai::OpenAIResponseRepository;
+use crate::forge_repo::provider::openai_responses::OpenAIResponsesResponseRepository;
+use crate::forge_repo::provider::opencode::OpenCodeZenResponseRepository;
 
 /// Repository responsible for routing chat requests to the appropriate provider
 /// implementation based on the provider's response type.

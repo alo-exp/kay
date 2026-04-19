@@ -15,4 +15,4 @@ mod proto_generated {
 }
 
 // Only expose forge_repo container
-pub use forge_repo::*;
+pub use crate::forge_repo::*;
