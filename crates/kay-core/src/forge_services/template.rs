@@ -2,8 +2,8 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use anyhow::Context;
-use forge_app::{EnvironmentInfra, FileReaderInfra, TemplateService};
-use forge_domain::Template;
+use crate::forge_app::{EnvironmentInfra, FileReaderInfra, TemplateService};
+use crate::forge_domain::Template;
 use futures::future;
 use handlebars::Handlebars;
 use tokio::sync::{OnceCell, RwLock};

@@ -1,5 +1,5 @@
 use anyhow::{Context, anyhow};
-use forge_app::{HttpResponse, NetFetchService, ResponseContext, is_binary_content_type};
+use crate::forge_app::{HttpResponse, NetFetchService, ResponseContext, is_binary_content_type};
 use reqwest::{Client, Url};
 
 /// Retrieves content from URLs as markdown or raw text. Enables access to

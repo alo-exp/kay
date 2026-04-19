@@ -2,11 +2,11 @@ use std::path::Path;
 use std::sync::Arc;
 
 use anyhow::Context;
-use forge_app::domain::Image;
-use forge_app::{EnvironmentInfra, FileInfoInfra, ImageReadService};
+use crate::forge_app::domain::Image;
+use crate::forge_app::{EnvironmentInfra, FileInfoInfra, ImageReadService};
 use strum_macros::{Display, EnumString};
 
-use crate::utils::assert_absolute_path;
+use crate::forge_services::utils::assert_absolute_path;
 
 pub struct ForgeImageRead<F> {
     infra: Arc<F>,

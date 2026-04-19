@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use anyhow::{Context, anyhow};
-use forge_app::SkillFetchService;
-use forge_domain::Skill;
+use crate::forge_app::SkillFetchService;
+use crate::forge_domain::Skill;
 use tokio::sync::OnceCell;
 
 /// Loads specialized skills for specific task types. ALWAYS check the

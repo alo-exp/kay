@@ -3,10 +3,10 @@ use std::sync::Arc;
 
 use anyhow::Context;
 use async_trait::async_trait;
-use forge_app::{Walker, WalkerInfra};
+use crate::forge_app::{Walker, WalkerInfra};
 use tracing::info;
 
-use crate::fd::{FileDiscovery, filter_and_resolve};
+use crate::forge_services::fd::{FileDiscovery, filter_and_resolve};
 
 /// File discovery implementation backed by the filesystem walker.
 ///

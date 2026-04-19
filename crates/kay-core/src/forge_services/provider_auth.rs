@@ -1,8 +1,8 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use forge_app::{AuthStrategy, ProviderAuthService, StrategyFactory};
-use forge_domain::{
+use crate::forge_app::{AuthStrategy, ProviderAuthService, StrategyFactory};
+use crate::forge_domain::{
     AuthContextRequest, AuthContextResponse, AuthMethod, Provider, ProviderId, ProviderRepository,
 };
 

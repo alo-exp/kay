@@ -2,13 +2,13 @@ use std::path::Path;
 use std::sync::Arc;
 
 use bytes::Bytes;
-use forge_app::domain::PatchOperation;
-use forge_app::{FileWriterInfra, FsPatchService, PatchOutput, compute_hash};
-use forge_domain::{FuzzySearchRepository, SearchMatch, SnapshotRepository, ValidationRepository};
+use crate::forge_app::domain::PatchOperation;
+use crate::forge_app::{FileWriterInfra, FsPatchService, PatchOutput, compute_hash};
+use crate::forge_domain::{FuzzySearchRepository, SearchMatch, SnapshotRepository, ValidationRepository};
 use thiserror::Error;
 use tokio::fs;
 
-use crate::utils::assert_absolute_path;
+use crate::forge_services::utils::assert_absolute_path;
 
 /// A match found in the source text. Represents a range in the source text that
 /// can be used for extraction or replacement operations. Stores the position
