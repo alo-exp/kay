@@ -1,4 +1,4 @@
-use crate::Decimal;
+use crate::forge_config::Decimal;
 
 /// A percentage value constrained to `[0.0, 1.0]`, built on top of [`Decimal`]
 /// to inherit its two-decimal-place serialization and clean TOML output.

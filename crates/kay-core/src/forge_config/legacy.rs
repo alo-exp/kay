@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 use serde::Deserialize;
 
-use crate::{ForgeConfig, ModelConfig};
+use crate::forge_config::{ForgeConfig, ModelConfig};
 
 /// Intermediate representation of the legacy `~/forge/.config.json` format.
 ///
