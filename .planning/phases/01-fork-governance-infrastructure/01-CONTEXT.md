@@ -157,6 +157,15 @@ These are **not** design decisions — they're procurement/access items. Surface
 
 When execution reaches a blocked task, Claude will mark it `BLOCKED: D-OP-NN` in the task's SUMMARY.md and surface the blocker in the phase verification report.
 
+### User Amendments (2026-04-19)
+
+- **D-OP-01 → scaffold-only:** User elected "Scaffold only, defer run." Phase 1 delivers the Harbor harness + `kay eval tb2` CLI shim + CI job stub; the actual reference run and `forgecode-parity-baseline` tag creation are deferred to the first Phase where an OpenRouter key + budget are available. EVAL-01 is re-scoped for Phase 1 to "parity-gate scaffolding complete and runnable"; the "≥80% reproduction" sub-requirement moves to a follow-on task tagged `EVAL-01a` that unblocks Phase 2's first harness modification. ROADMAP will be updated accordingly after Phase 1 completes.
+- **D-OP-02 / D-OP-03 / D-OP-04 → deferred to Phase 11:** No procurement actions in Phase 1. Implications:
+  - The signed-tag CI gate remains scaffolded but **does not run** in Phase 1 (no tags are cut).
+  - `GOV-05` (signed release tags) is **enforced by CI** at release time — fine; no releases happen in Phase 1.
+  - The `forgecode-parity-baseline` tag, when eventually created, must be signed. It will be deferred along with the parity run.
+  - Phase 11 plan must include a procurement-lead-time prefix (start Apple Developer ID + Azure Code Signing + signing-key generation at Phase 9 or earlier, not at Phase 11 start).
+
 </operational_dependencies>
 
 <deferred>
