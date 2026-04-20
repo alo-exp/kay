@@ -1849,6 +1849,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "enumflags2"
+version = "0.7.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1027f7680c853e056ebcec683615fb6fbbc07dbaa13b4d5d9442b146ded4ecef"
+dependencies = [
+ "enumflags2_derive",
+]
+
+[[package]]
+name = "enumflags2_derive"
+version = "0.7.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "67c78a4d8fdf9953a5c9d458f9efe940fd97a0cab0941c075a813ac594733827"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
+]
+
+[[package]]
 name = "equivalent"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4436,14 +4456,57 @@ dependencies = [
 [[package]]
 name = "kay-sandbox-linux"
 version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "kay-sandbox-policy",
+ "kay-tools",
+ "landlock",
+ "seccompiler",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "url",
+]
 
 [[package]]
 name = "kay-sandbox-macos"
 version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "kay-sandbox-policy",
+ "kay-tools",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "kay-sandbox-policy"
+version = "0.1.0"
+dependencies = [
+ "schemars 1.2.1",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+]
 
 [[package]]
 name = "kay-sandbox-windows"
 version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "kay-sandbox-policy",
+ "kay-tools",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "url",
+ "windows-sys 0.61.2",
+]
 
 [[package]]
 name = "kay-tauri"
@@ -4485,6 +4548,17 @@ dependencies = [
 [[package]]
 name = "kay-tui"
 version = "0.1.0"
+
+[[package]]
+name = "landlock"
+version = "0.4.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "49fefd6652c57d68aaa32544a4c0e642929725bdc1fd929367cdeb673ab81088"
+dependencies = [
+ "enumflags2",
+ "libc",
+ "thiserror 2.0.18",
+]
 
 [[package]]
 name = "lazy-regex"
@@ -6487,6 +6561,15 @@ checksum = "da046153aa2352493d6cb7da4b6e5c0c057d8a1d0a9aa8560baffdd945acd414"
 dependencies = [
  "ring",
  "untrusted 0.9.0",
+]
+
+[[package]]
+name = "seccompiler"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a4ae55de56877481d112a559bbc12667635fdaf5e005712fd4e2b2fa50ffc884"
+dependencies = [
+ "libc",
 ]
 
 [[package]]
