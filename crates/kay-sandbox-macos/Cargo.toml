@@ -10,3 +10,13 @@ repository.workspace = true
 description = "macOS sandbox-exec sandbox backend (Phase 4)"
 
 [dependencies]
+kay-sandbox-policy = { path = "../kay-sandbox-policy" }
+kay-tools           = { path = "../kay-tools" }
+async-trait = { workspace = true }
+tokio       = { workspace = true }
+tracing     = { workspace = true }
+thiserror   = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+tokio    = { workspace = true, features = ["macros", "rt"] }
