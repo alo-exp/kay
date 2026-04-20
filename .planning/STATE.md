@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v0.1.0
 milestone_name: Provider HAL + Tolerant JSON Parser
 status: in_progress
-stopped_at: "Phase 3 discuss-phase complete (03-CONTEXT.md + 03-DISCUSSION-LOG.md landed; 12 decisions locked). Next: /gsd-plan-phase 3."
-last_updated: "2026-04-20T00:00:00Z"
-last_activity: 2026-04-20 -- Phase 3 discuss-phase: 12 decisions auto-resolved (Tool trait via Arc<dyn Tool>, schema hardening reuse, __CMDEND__ marker with subtle compare, PTY fallback, timeout cascade, NoOpVerifier, image_read caps, AgentEvent extensions, ToolError enum, 7-tool scope, immutable registry, Sandbox DI seam). Committed 6825ccb.
+stopped_at: "Phase 3 Wave 3 complete (03-04: execute_commands marker-protocol tool shipped). Next: Wave 4 (03-05 — default_tool_set + remaining built-ins)."
+last_updated: "2026-04-21T00:00:00Z"
+last_activity: 2026-04-21 -- Phase 3 Wave 3 (03-04) executed: MarkerContext + scan_line (subtle::ConstantTimeEq), ExecuteCommandsTool w/ streaming + PTY fallback + SIGTERM-2s-SIGKILL cascade + process_group isolation. SHELL-01..05 + TOOL-02 locked. 59 kay-tools tests green (43 lib-unit + 8 new SHELL/TOOL integration + 8 prior integration). Commits ef439af, 9dffe1a, 1362b99.
 progress:
   total_phases: 17
   completed_phases: 3
