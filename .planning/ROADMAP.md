@@ -74,7 +74,7 @@ Plans:
 - [x] 02-03-PLAN.md — D-01 Step 2 sub-wave A+B+C: 17 leaf + forge_domain + forge_domain-dependent subtrees path-rewritten (PROV-01 prereq)
 - [x] 02-04-PLAN.md — D-01 Step 2 sub-wave forge_app: 212 import rewrites across 83 files, commit 808edcc (PROV-01 prereq)
 - [~] 02-05-PLAN.md — **SUPERSEDED by Phase 2.5** (2026-04-20). Mechanical mono-crate rewrite hit structural wall (1323 residual errors); D-01 was revised to Option (c) sub-crate split. CI cleanup portion absorbed into plan 02.5-04 task 3. Archived to `archive/02-05-PLAN.md.superseded`. No replacement plan — plans 02-06..02-10 now target the sub-crate layout directly.
-- [ ] 02-06-PLAN.md — kay-provider-openrouter scaffolding: Cargo.toml deps, Provider trait, AgentEvent, ProviderError, crate-wide #![deny(clippy::unwrap_used)] (PROV-01, PROV-02, PROV-08) *(post-2.5 realigned per 02-CONTEXT.md Appendix A)*
+- [x] 02-06-PLAN.md — kay-provider-openrouter scaffolding: Cargo.toml deps, Provider trait, AgentEvent, ProviderError, crate-wide #![deny(clippy::unwrap_used)] (PROV-01, PROV-02, PROV-08) *(post-2.5 realigned per 02-CONTEXT.md Appendix A; completed 2026-04-20, ~7 min, 2 commits f36083f + b0bcc8d, 3 Rule-1/2 deviations auto-fixed — see 02-06-SUMMARY.md)*
 - [ ] 02-07-PLAN.md — Allowlist gate (PROV-04) + API-key auth (PROV-03) with TM-01 Debug redaction + TM-04 charset validation
 - [ ] 02-08-PLAN.md — OpenRouterProvider impl: UpstreamClient + SSE translator + tool-call reassembly (PROV-01, PROV-02, PROV-05 part 1)
 - [ ] 02-09-PLAN.md — Tolerant two-pass JSON parser (forge_json_repair fallback) + proptest never-panic + 1MB cap (PROV-05, TM-06)
@@ -280,7 +280,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Fork, Governance, Infrastructure | 6/6   | Complete | 2026-04-19 |
-| 2. Provider HAL + Tolerant JSON Parser | 4/9 (02-05 superseded by 2.5) | Resumable (02-06..02-10 next) | - |
+| 2. Provider HAL + Tolerant JSON Parser | 5/9 (02-05 superseded by 2.5) | In progress (02-07..02-10 next) | - |
 | 2.5. kay-core sub-crate split *(INSERTED 2026-04-20)* | 4/4 | Complete (verifier PASS 8/8) | 2026-04-20 |
 | 3. Tool Registry + KIRA Core Tools | 0/TBD | Not started | - |
 | 4. Sandbox (All Three Platforms) | 0/TBD | Not started | - |

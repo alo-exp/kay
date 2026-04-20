@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0.0
 milestone_name: milestone
-status: phase_2_resumed
-stopped_at: Phase 2 resumed at 02-06 (2026-04-20). Plan 02-05 superseded by Phase 2.5 (archived). 02-CONTEXT.md Appendix A captures the 3 post-2.5 substitution rules (kay-core dep → direct forge_* deps, kay_core::forge_X → forge_X, file-path rewrites). Plans 02-06..02-10 remain authored-as-is; substitutions applied as Rule-2 deviations during execution.
-last_updated: "2026-04-20T18:30:00Z"
-last_activity: 2026-04-20 -- Phase 2 realignment after 2.5 closure; 02-05 archived as superseded; 02-CONTEXT.md Appendix A added; ROADMAP updated (9 active plans, was 10)
+status: phase_2_in_progress
+stopped_at: Phase 2 plan 02-06 complete (2026-04-20). kay-provider-openrouter public contract frozen — Provider trait, AgentEvent (8 variants), ProviderError (11 variants), helper types, crate-root #![deny(clippy::unwrap_used, clippy::expect_used)] lint. 2/2 unit tests passing. 3 Rule-1/2 deviations auto-fixed (Clone derive drop on AgentEvent per Rust type system; 2 Appendix A realignment substitutions). Plans 02-07..02-10 unblocked — contract is frozen for them to implement against.
+last_updated: "2026-04-20T03:18:15Z"
+last_activity: 2026-04-20 -- Phase 2 plan 02-06 executed: kay-provider-openrouter scaffolding (Provider trait + AgentEvent + ProviderError + never-panic lint). 2 commits (f36083f, b0bcc8d) with DCO signoff. ~7 min duration.
 progress:
   total_phases: 14
   completed_phases: 2
   total_plans: 19
-  completed_plans: 19
-  percent: 19
+  completed_plans: 20
+  percent: 20
 ---
 
 # Project State
@@ -21,35 +21,35 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-19)
 
 **Core value:** Beat ForgeCode on Terminal-Bench 2.0 (>81.8%) as the first OSS agent that pairs a top-10 harness with a native desktop UI.
-**Current focus:** Phase 2 resumption — execute plan 02-06 (kay-provider-openrouter scaffolding) next, then 02-07..02-10
+**Current focus:** Phase 2 — plan 02-06 complete; next is 02-07 (allowlist gate + API-key auth).
 
 ## Current Position
 
-Phase: Phase 2 (resumed after Phase 2.5 closure). Next plan to execute: **02-06** (kay-provider-openrouter scaffolding — Provider trait, AgentEvent, ProviderError, crate-wide #![deny(clippy::unwrap_used)]).
-Status: Phase 2.5 complete and verified (8/8 PASS). Plan 02-05 superseded (CI cleanup absorbed into 2.5-04 task 3; mechanical mono-crate rewrite obsolete). Plans 02-06..02-10 targeted against the post-2.5 sub-crate layout via the 3 substitution rules in 02-CONTEXT.md Appendix A. `cargo check --workspace` builds cleanly; kay-provider-openrouter Cargo.toml already has direct forge_* deps (2.5-04 commit 9d6a32a).
-Last activity: 2026-04-20 -- Phase 2 realignment: archived 02-05, added Appendix A realignment rules, updated ROADMAP + STATE
+Phase: Phase 2 in progress. Next plan to execute: **02-07** (allowlist gate per PROV-04 + API-key auth per PROV-03 + TM-01 Debug redaction + TM-04 charset validation).
+Status: Plan 02-06 complete. kay-provider-openrouter now exports Provider trait (async_trait, object-safe), AgentEvent (8 #[non_exhaustive] variants), ProviderError (11 #[non_exhaustive] variants, thiserror), helper types (ChatRequest/Message/ToolSchema), AgentEventStream<'a>. Crate-root `#![deny(clippy::unwrap_used, clippy::expect_used)]` active. 2/2 unit tests passing (Debug-no-leak + Display-carries-context). `cargo check --workspace` clean; governance invariants PASS.
+Last activity: 2026-04-20 -- Plan 02-06 executed (2 tasks, 2 commits f36083f + b0bcc8d, ~7 min, DCO signoff, 3 auto-fix deviations)
 
-Progress: [██░░░░░░░░░░░░] 19% (2 of 13 phases done; Phase 2: 4 of 9 active plans done — 02-05 superseded)
+Progress: [██░░░░░░░░░░░░] 20% (2 of 13 phases done; Phase 2: 5 of 9 active plans done — 02-05 superseded)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 10 (6 in Phase 1 + 4 in Phase 2)
-- Average duration: ~11 min/plan (weighted across phases)
-- Total execution time: ~101 min of direct plan execution (excludes review loops, fixes, release)
+- Total plans completed: 11 (6 in Phase 1 + 5 in Phase 2; Phase 2.5's 4 plans tracked separately)
+- Average duration: ~10 min/plan (weighted across phases)
+- Total execution time: ~108 min of direct plan execution (excludes review loops, fixes, release)
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01    | 6     | 6     | ~5 min   |
-| 02    | 4     | 10    | ~17 min  |
+| 02    | 5     | 11    | ~15 min  |
 
 **Recent Trend:**
 
-- Last 5 plans: 01-06, 02-01, 02-02, 02-03, 02-04 (all PASS; sequential/main-worktree mode with DCO signoff on every commit)
-- Trend: Stable; Phase 2 Wave 0 + Wave 2 + Wave 3 (sub-waves A/B/C + forge_app) shipped. Plan 02-04 executed with zero deviations (reused the 4-rule rewrite tooling from plan 02-03 directly; only minor artifact: commit message count was off by 18 due to regex double-counting grouped imports, corrected in SUMMARY).
+- Last 5 plans: 02-02, 02-03, 02-04, 02.5-04, 02-06 (all PASS; sequential/main-worktree mode with DCO signoff on every commit)
+- Trend: Stable; Phase 2 type-contract layer now frozen. Plan 02-06 executed in 7 min with 3 auto-fix deviations (1 Rule-1 Clone-derive drop forced by non-Clone source types in transitive ProviderError; 2 Rule-2 Appendix-A realignment substitutions, one of which was a no-op preemptive record). Crate-root never-panic lint active at HAL boundary.
 
 *Updated after each plan completion*
 
@@ -80,6 +80,7 @@ Recent decisions affecting current work:
 - Phase 2 Plan 04: Count-reconciliation convention — pre-scan's `^use crate::` regex matches BOTH non-grouped AND grouped openers, so naive sum (116 + 18 + 95 + 1) double-counts grouped imports. True count for any subtree = (Rule 1a pre-scan count - Rule 1b count) + Rule 1b + Rule 2 + pub-use. Apply this reconciliation in plan 02-05's SUMMARY.
 - Phase 2 Plan 04: PROV-01 checkbox NOT marked — same rationale as plans 02-02/03; this plan remains a "PROV-01 prereq" per ROADMAP. Behavioral PROV-01 completion still owned by 02-06/08.
 - Phase 2 Plan 05 PARTIAL (2026-04-20): Committed 5 upper-subtree rewrites (`404ff21` forge_services, `a6f37f7` forge_infra, `4991060` forge_repo, `57045a4` forge_api, `3d85520` forge_main). STRUCTURAL FINDING: kay-core mono-crate approach hit a wall at 1323 residual errors from proc-macro self-reference, missing `include_str!` files, missing dependencies, trait object-safety, and ambiguous path issues. Mechanical path-rewrite approach (D-01 Options a/b) ruled out. **D-01 decision revised to Option (c): split kay-core into 23 workspace sub-crates** preserving ForgeCode's original structure. Plan 02-05 Task 2 (CI cleanup) absorbed into Phase 2.5. 132 files remain uncommitted in working tree (extended indented-use rewrite) — recommended to revert as obsolete since sub-crate split will redo module structure.
+- Phase 2 Plan 06 (2026-04-20): kay-provider-openrouter public contract frozen. Drop-Clone forced on AgentEvent because ProviderError embeds reqwest::Error and serde_json::Error — neither implements Clone, so plan's `#[derive(Debug, Clone)]` spec was compile-impossible. Dropped Clone entirely (events flow by move through Stream); documented as Rule-1 auto-fix. Appendix-A Rule-1 realignment applied to Cargo.toml (kept existing direct forge_* path-deps from 2.5-04; added only the 4 NEW deps backon/async-trait/futures/tokio-stream). Appendix-A Rule-2 logged as "not exercised in this plan" — the four source files have zero forge_*/kay_core imports by plan design (imports land in 02-08). Crate-root `#![deny(clippy::unwrap_used, clippy::expect_used)]` now locks PROV-05 (never panic) + TM-01 (no key leak via panic trace) at compile time.
 
 ### Roadmap Evolution
 
@@ -110,6 +111,6 @@ Items acknowledged and carried forward:
 
 ## Session Continuity
 
-Last session: 2026-04-20 — Phase 2.5 executed and verified; Phase 2 realigned for resumption
-Stopped at: Phase 2 ready to resume at plan 02-06. Plan 02-05 archived as superseded by Phase 2.5. 02-CONTEXT.md Appendix A documents 3 substitution rules for executor to apply during 02-06..02-10.
-Resume file: `.planning/phases/02-provider-hal-tolerant-json-parser/02-06-PLAN.md` (consult 02-CONTEXT.md Appendix A for post-2.5 substitutions)
+Last session: 2026-04-20 — Plan 02-06 executed: kay-provider-openrouter public contract frozen (Provider trait + AgentEvent + ProviderError + never-panic lint)
+Stopped at: Plan 02-06 complete. Ready to execute plan 02-07 (allowlist gate + API-key auth).
+Resume file: `.planning/phases/02-provider-hal-tolerant-json-parser/02-07-PLAN.md` (continue applying 02-CONTEXT.md Appendix A substitutions as needed)
