@@ -24,8 +24,11 @@
 //! field-ful and requires a `ModelId` newtype + a `ToolCatalog` for tool
 //! mapping — more plumbing than this wave warrants. The wire surface is
 //! OpenAI-compatible; plan 02-11+ may revisit Option A once the agent loop
-//! needs the transformer pipeline. **NN-7 ordering is enforced locally** —
-//! serde_json is compiled with `preserve_order`, and `build_request_body`
+//! needs the transformer pipeline. **NN-7 ordering is enforced locally** via
+//! a custom `Serialize` impl on `OrderedObject` (IndexMap-backed).
+//! `serde_json/preserve_order` stays OFF at the workspace level — enabling
+//! it would flip upstream `forge_app::dto::openai::error::Error` past
+//! `clippy::large_enum_variant` and break parity. `build_request_body`
 //! inserts `required` BEFORE `properties` for every tool's parameters
 //! schema. The `nn7` test asserts this on every PR.
 
