@@ -1,0 +1,51 @@
+[package]
+name = "forge_infra"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "ForgeCode infrastructure layer (SQLite, HTTP client, OAuth)"
+
+[dependencies]
+forge_snaps    = { path = "../forge_snaps" }
+forge_fs       = { path = "../forge_fs" }
+forge_config   = { path = "../forge_config" }
+forge_domain   = { path = "../forge_domain" }
+forge_services = { path = "../forge_services" }
+forge_select   = { path = "../forge_select" }
+forge_app      = { path = "../forge_app" }
+forge_walker   = { path = "../forge_walker" }
+
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+dirs = { workspace = true }
+dotenvy = { workspace = true }
+tokio = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { workspace = true }
+bytes = { workspace = true }
+tempfile = { workspace = true }
+rmcp = { workspace = true }
+tracing = { workspace = true }
+backon = { workspace = true }
+thiserror = { workspace = true }
+schemars = { workspace = true }
+reqwest-eventsource = { workspace = true }
+glob = { workspace = true }
+futures = { workspace = true }
+serde = { workspace = true }
+base64 = { workspace = true }
+http = { workspace = true }
+url = { workspace = true }
+tonic = { workspace = true }
+google-cloud-auth = { workspace = true }
+open = { workspace = true }
+diesel = { workspace = true }
+libsqlite3-sys = { workspace = true }
+diesel_migrations = { workspace = true }
+chrono = { workspace = true }
+cacache = { workspace = true }
+oauth2 = { workspace = true }
+serde_urlencoded = { workspace = true }

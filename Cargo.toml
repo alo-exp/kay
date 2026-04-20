@@ -31,6 +31,8 @@ members = [
     "crates/forge_snaps",
     "crates/forge_app",
     "crates/forge_services",
+    "crates/forge_infra",
+    "crates/forge_repo",
 ]
 
 [workspace.package]
@@ -47,7 +49,7 @@ description = "Open-source terminal coding agent — Rust fork of ForgeCode with
 
 [workspace.dependencies]
 tokio = { version = "1.51", features = ["rt-multi-thread", "macros", "io-util", "process", "signal", "sync", "fs", "time"] }
-reqwest = { version = "0.13", default-features = false, features = ["rustls", "json", "stream", "gzip", "brotli"] }
+reqwest = { version = "0.12.23", default-features = false, features = ["json", "rustls-tls", "hickory-dns", "http2", "stream", "gzip", "brotli"] }
 reqwest-eventsource = "0.6"
 rustls = "0.23"
 serde = { version = "1", features = ["derive"] }
@@ -77,11 +79,11 @@ async-trait = "0.1"
 async-recursion = "1"
 futures = "0.3"
 tokio-stream = "0.1"
-tonic = "0.12"
-prost = "0.13"
-prost-types = "0.13"
+tonic = { version = "0.14.5", features = ["tls-webpki-roots"] }
+prost = "0.14.3"
+prost-types = "0.14.3"
 eventsource-stream = "0.2"
-google-cloud-auth = "0.17"
+google-cloud-auth = "1.8"
 backon = "1"
 oauth2 = { version = "5.0", features = ["reqwest"] }
 
@@ -147,7 +149,8 @@ machineid-rs = "1.2.4"
 sysinfo = "0.35"
 gix = { version = "0.70", default-features = false, features = ["max-performance-safe"] }
 update-informer = "1.2.0"
-cacache = "13.1.0"
+cacache = { version = "13.1.0", default-features = false, features = ["tokio-runtime"] }
+rmcp = { version = "0.10", features = ["client", "transport-sse-client-reqwest", "transport-child-process", "transport-streamable-http-client-reqwest", "auth"] }
 tiny_http = "0.12"
 posthog-rs = "0.5.0"
 tracing-appender = "0.2"
@@ -156,7 +159,7 @@ grep-regex = "0.1"
 ignore = "0.4"
 rand = "0.10.0"
 indicatif = "0.18.4"
-async-openai = "0.26"
+async-openai = { version = "0.34", default-features = false, features = ["response-types"] }
 config = "0.15"
 
 # AWS/Cloud
