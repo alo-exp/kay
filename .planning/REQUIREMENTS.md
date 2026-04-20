@@ -32,9 +32,9 @@ Requirements for initial release. Each maps to a roadmap phase.
 - [x] **PROV-03**: API key auth via environment variable and config file — no OAuth
 - [x] **PROV-04**: Strict model allowlist targeting OpenRouter Exacto endpoints (not "300+ models")
 - [x] **PROV-05**: Tolerant tool-call JSON parser handles OpenRouter provider variance (malformed strings, stringified args, partial tool deltas)
-- [ ] **PROV-06**: Streaming token budget enforcement with per-session cost cap and hard abort
-- [ ] **PROV-07**: Rate-limit / 429 / 503 retry with exponential backoff + jitter; user-visible retry events
-- [ ] **PROV-08**: Provider errors surface typed `ProviderError` (not string) for diagnosis and retry decisions
+- [x] **PROV-06**: Streaming token budget enforcement with per-session cost cap and hard abort
+- [x] **PROV-07**: Rate-limit / 429 / 503 retry with exponential backoff + jitter; user-visible retry events
+- [x] **PROV-08**: Provider errors surface typed `ProviderError` (not string) for diagnosis and retry decisions
 
 ### Tool Registry & KIRA Techniques (TOOL)
 
@@ -221,9 +221,9 @@ Every v1 requirement maps to exactly one phase. Populated by the gsd-roadmapper 
 | PROV-03 | Phase 2 (plan 02-07) | Complete |
 | PROV-04 | Phase 2 (plan 02-07) | Complete |
 | PROV-05 | Phase 2 (plan 02-09) | Complete |
-| PROV-06 | Phase 2 | Pending |
-| PROV-07 | Phase 2 | Pending |
-| PROV-08 | Phase 2 | Pending |
+| PROV-06 | Phase 2 (plan 02-10) | Complete |
+| PROV-07 | Phase 2 (plan 02-10) | Complete |
+| PROV-08 | Phase 2 (plan 02-10) | Complete |
 | TOOL-01 | Phase 3 | Pending |
 | TOOL-02 | Phase 3 | Pending |
 | TOOL-03 | Phase 3 | Pending |

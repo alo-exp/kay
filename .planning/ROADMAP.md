@@ -17,7 +17,7 @@ Kay is a benchmark-first product — if it does not beat ForgeCode on TB 2.0, it
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Fork, Governance, Infrastructure** - Fork ForgeCode cleanly; set up Apache-2.0 + DCO; enroll code-signing; workspace scaffold; parity-gate the unmodified fork on TB 2.0.
-- [ ] **Phase 2: Provider HAL + Tolerant JSON Parser** - OpenRouter streaming client with tool-call reassembly, typed error taxonomy, and a two-pass tolerant parser for provider variance.
+- [x] **Phase 2: Provider HAL + Tolerant JSON Parser** *(COMPLETE 2026-04-20)* - OpenRouter streaming client with tool-call reassembly, typed error taxonomy, and a two-pass tolerant parser for provider variance.
 - [x] **Phase 2.5: kay-core sub-crate split** *(INSERTED 2026-04-20; COMPLETE 2026-04-20)* - Structural fix for the mono-crate approach discovered during Phase 2 execution. ForgeCode's imported source was 23 separate crates; forcing them into one `kay-core` crate broke proc-macro self-reference, `include_str!` relative paths, trait object-safety, and visibility semantics (1323 residual errors after plan 02-05's mechanical rewrite). Resolved via D-01 Option (c): promoted each `forge_*` subtree to its own workspace sub-crate preserving ForgeCode's original layout; kay-core reduced to a thin aggregator re-exporter. `cargo check --workspace` now passes cleanly with zero exclusions. Verifier PASS 8/8 (02.5-VERIFICATION.md). Unblocks Phase 2 plans 02-06..02-10.
 - [ ] **Phase 3: Tool Registry + KIRA Core Tools** - Object-safe `Tool` trait, native tool-calling path, `execute_commands` (marker polling), `task_complete`, `image_read`, with hardened schemas.
 - [ ] **Phase 4: Sandbox (All Three Platforms)** - Per-OS sandbox: macOS `sandbox-exec`, Linux Landlock+seccomp, Windows Job Objects + restricted token.
@@ -78,10 +78,10 @@ Plans:
 - [x] 02-07-PLAN.md — Allowlist gate (PROV-04) + API-key auth (PROV-03) with TM-01 Debug redaction + TM-04 charset validation *(completed 2026-04-20, ~6 min, 2 commits 0b4a8c1 + f3586e8, 5 Rule-1/3 deviations auto-fixed — see 02-07-SUMMARY.md)*
 - [x] 02-08-PLAN.md — OpenRouterProvider impl: UpstreamClient + SSE translator + tool-call reassembly (PROV-01, PROV-02, PROV-05 part 1) *(completed 2026-04-20, ~55 min, 3 commits 786bd7a + e754631 + 84e1893, 5 Rule-1/3 deviations auto-fixed incl. NN-7 Path-A via OrderedObject+IndexMap sidestepping forge_app preserve_order clippy regression — see 02-08-SUMMARY.md)*
 - [x] 02-09-PLAN.md — Tolerant two-pass JSON parser (forge_json_repair fallback) + proptest never-panic + 1MB cap (PROV-05, TM-06) *(completed 2026-04-20, ~18 min, 3 commits 73adc6e + e7f91c7 + 7d3031b, 4 Rule-1/2/3 deviations auto-fixed — see 02-09-SUMMARY.md)*
-- [ ] 02-10-PLAN.md — Retry policy (backon + Retry-After) + cost cap turn-boundary + error taxonomy + STATE.md closeout (PROV-06, PROV-07, PROV-08)
+- [x] 02-10-PLAN.md — Retry policy (backon + Retry-After) + cost cap turn-boundary + error taxonomy + STATE.md closeout (PROV-06, PROV-07, PROV-08) *(completed 2026-04-20, ~40 min, 3 code commits fc59f93 + 6f82445 + 8b76303, 5 Rule-1/2/3 deviations auto-fixed — key deviation: Rule-2 `open_and_probe` pattern required because reqwest_eventsource delivers HTTP-status errors inside the stream not as stream_chat return errors — see 02-10-SUMMARY.md)*
 **UI hint**: no
 
-> **Phase 2 status note (2026-04-20):** plans 02-01 through 02-04 executed and partial 02-05 executed (5 upper subtree rewrites committed). Mechanical rewrite approach (D-01 Options a/b) hit a structural wall at 1323 residual errors — ForgeCode's source cannot run as a single mono-crate. Blocked on **Phase 2.5** (kay-core sub-crate split, D-01 Option c) before 02-06..02-10 can execute. See Phase 2.5 below for scope.
+> **Phase 2 status (2026-04-20):** COMPLETE. plans 02-01 through 02-04 + 02-06 through 02-10 all shipped (02-05 superseded by Phase 2.5). All 8 PROV-* requirements closed; 79 tests green (55 lib + 24 integration); clippy -D warnings clean. Phase 2's initial mechanical-rewrite approach (D-01 Options a/b) hit a structural wall at 1323 residual errors during plan 02-05 execution; that was resolved by inserting Phase 2.5 (kay-core sub-crate split, D-01 Option c) which unblocked 02-06..02-10.
 
 ### Phase 2.5: kay-core sub-crate split *(INSERTED 2026-04-20)*
 
@@ -280,7 +280,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Fork, Governance, Infrastructure | 6/6   | Complete | 2026-04-19 |
-| 2. Provider HAL + Tolerant JSON Parser | 8/9 (02-05 superseded by 2.5) | In progress (02-10 next) | - |
+| 2. Provider HAL + Tolerant JSON Parser | 9/9 (02-05 superseded by 2.5) | Complete | 2026-04-20 |
 | 2.5. kay-core sub-crate split *(INSERTED 2026-04-20)* | 4/4 | Complete (verifier PASS 8/8) | 2026-04-20 |
 | 3. Tool Registry + KIRA Core Tools | 0/TBD | Not started | - |
 | 4. Sandbox (All Three Platforms) | 0/TBD | Not started | - |
