@@ -4323,11 +4323,14 @@ name = "kay-provider-openrouter"
 version = "0.0.1"
 dependencies = [
  "anyhow",
+ "async-trait",
+ "backon",
  "forge_config",
  "forge_domain",
  "forge_json_repair",
  "forge_repo",
  "forge_services",
+ "futures",
  "mockito",
  "pretty_assertions",
  "proptest",
@@ -4337,6 +4340,7 @@ dependencies = [
  "serde_json",
  "thiserror 2.0.18",
  "tokio",
+ "tokio-stream",
  "tracing",
 ]
 
