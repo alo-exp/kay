@@ -28,3 +28,4 @@ pub use runtime::context::ToolCallContext;
 pub use seams::sandbox::{Sandbox, NoOpSandbox, SandboxDenial};
 pub use seams::verifier::{TaskVerifier, NoOpVerifier, VerificationOutcome};
 pub use default_set::default_tool_set;
+pub use builtins::ExecuteCommandsTool;
