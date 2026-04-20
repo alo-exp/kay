@@ -17,6 +17,7 @@ pub mod seams;
 pub mod quota;
 pub mod markers;
 pub mod builtins;
+pub mod forge_bridge;
 mod default_set;
 
 pub use contract::Tool;
@@ -29,4 +30,8 @@ pub use quota::ImageQuota;
 pub use seams::sandbox::{Sandbox, NoOpSandbox, SandboxDenial};
 pub use seams::verifier::{TaskVerifier, NoOpVerifier, VerificationOutcome};
 pub use default_set::default_tool_set;
-pub use builtins::ExecuteCommandsTool;
+pub use builtins::{
+    ExecuteCommandsTool, FsReadTool, FsSearchTool, FsWriteTool, NetFetchTool,
+};
+// ImageReadTool + TaskCompleteTool land in Task 2 of 03-05.
+pub use forge_bridge::ForgeServicesFacade;
