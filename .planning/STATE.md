@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.0.0
 milestone_name: milestone
-status: phase_2_blocked_on_2_5_inserted
-stopped_at: Phase 2.5 inserted 2026-04-20 after structural finding during plan 02-05. kay-core mono-crate approach ruled out; D-01 revised to Option (c) sub-crate split. Plans 02-06..02-10 blocked on Phase 2.5 execution.
-last_updated: "2026-04-20T07:30:00Z"
-last_activity: 2026-04-20 -- Plan 02-05 partial (5 upper subtrees committed: 404ff21 a6f37f7 4991060 57045a4 3d85520); 1323 residual errors exceed mechanical rewrite scope; Phase 2.5 inserted with CONTEXT.md authored (ready for /gsd-plan-phase 2.5)
+status: phase_2.5_planning_complete
+stopped_at: Phase 2.5 planning complete (2026-04-20). 4 plans authored (02.5-01..02.5-04), plan-checker passed (iter 3/3). Ready to execute via /gsd-execute-phase 2.5.
+last_updated: "2026-04-20T09:00:00Z"
+last_activity: 2026-04-20 -- Phase 2.5 planning complete; 4 PLAN.md files created (01 revert+resources, 02 Wave-0 sub-crates, 03 Wave-1-5 sub-crates, 04 forge_main+aggregator+CI); RESEARCH.md open questions resolved; plan-checker PASS on iter 3/3
 progress:
   total_phases: 14
   completed_phases: 1
-  total_plans: 16
+  total_plans: 20
   completed_plans: 15
   percent: 12
 ---
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 ## Current Position
 
 Phase: 2.5 of 13 (kay-core sub-crate split, INSERTED)
-Plan: 0 of TBD — ready for `/gsd-plan-phase 2.5`
-Status: Phase 2 paused at 4.5/10 plans executed (02-01..02-04 complete; 02-05 partial with 5 upper-subtree rewrites committed but kay-core still has 1323 residual errors that require Option-(c) sub-crate split to resolve). Phase 2.5 CONTEXT.md authored; planning next.
-Last activity: 2026-04-20 -- 5 upper subtree rewrites in Phase 2 Plan 05 committed; structural finding documented; Phase 2.5 inserted with CONTEXT.md
+Plan: 0 of 4 — planning complete, ready for `/gsd-execute-phase 2.5`
+Status: Phase 2.5 fully planned. 4 plans (02.5-01..02.5-04) verified by plan-checker (iter 3/3). Execute plan 01 first (revert 24 commits + fetch 9 resource files), then 02 (12 Wave-0 sub-crates), then 03 (9 Wave-1..5 sub-crates), then 04 (forge_main + aggregator + CI cleanup — final gate: cargo check --workspace --deny warnings).
+Last activity: 2026-04-20 -- Phase 2.5 planning complete (4 PLAN.md files, plan-checker PASS)
 
-Progress: [█░░░░░░░░░░░░] 12% (1 of 13 phases done; Phase 2: 4 of 10 plans done + partial 02-05; Phase 2.5: CONTEXT ready)
+Progress: [█░░░░░░░░░░░░] 12% (1 of 13 phases done; Phase 2: 4 of 10 plans done + partial 02-05; Phase 2.5: 0 of 4 plans executed)
 
 ## Performance Metrics
 
@@ -92,7 +92,7 @@ None carried over — Phase 1 closed cleanly.
 
 ### Blockers/Concerns
 
-- **Phase 2 structural integration (cross-subtree path rewrites)**: PARTIALLY RESOLVED. Module-declaration layer resolved in plan 02-02 (E0583 = 0); sub-waves A/B/C path rewrites resolved in plan 02-03 (17/23 subtrees done, E0432|E0433 count 2025→1902); forge_app rewrite resolved in plan 02-04 (18/23 subtrees done, E0432|E0433 count 1902→1712). REMAINING: 1,712 × E0432|E0433 in the still-pending 5 subtrees (forge_services, forge_repo, forge_infra, forge_api, forge_main) — addressed by plan 02-05 (remaining subtrees + CI cleanup). `cargo check --workspace` (without `--exclude kay-core`) stays failing until 02-05 lands; that's by design. Pre-flagged in 01-03-SUMMARY.md and VERIFICATION.md §SC-4.
+- **Phase 2 structural integration (cross-subtree path rewrites)**: RESOLVED by Phase 2.5 sub-crate split. All 23 `forge_*` subtrees promoted to independent workspace crates (Waves 0-6 in plans 02.5-02..02.5-04); kay-core reduced to a thin aggregator re-exporting the 6 top-of-DAG sub-crates. `cargo check --workspace` now passes cleanly with no `--exclude kay-core` needed.
 - Phase 2 research flag: OpenRouter SSE retry semantics need real-trace validation (flag for `/gsd-research-phase` at Phase 2 planning).
 - Phase 1 external dependency (still ticking): Apple Developer ID and Azure Code Signing enrollment has 2-4 week lead time. Started at Phase 1; certificates land by Phase 11.
 - Phase 7 research flag: SQLite schema for function signatures + vector embeddings is an open design question; audit ForgeCode indexer before reimplementing.
@@ -111,6 +111,6 @@ Items acknowledged and carried forward:
 
 ## Session Continuity
 
-Last session: 2026-04-20 — Phase 2 Plan 04 executed (Wave 3 forge_app path rewrite)
-Stopped at: Plan 02-04 complete (1 task, 1 DCO-signed path-rewrite commit 808edcc — forge_app subtree with 83 files + 212 imports; E0432|E0433 count 1902→1712, 190 resolved; zero non-use-statement content lines in commit diff; parity-baseline integrity preserved); proceeding to plan 02-05 (Wave 3 final — forge_services/infra/repo/api/main + --exclude kay-core CI cleanup, baseline E0432|E0433 = 1712)
-Resume file: `.planning/phases/02-provider-hal-tolerant-json-parser/02-05-PLAN.md`
+Last session: 2026-04-20 — Phase 2.5 planning complete (4 PLAN.md files authored and verified)
+Stopped at: Phase 2.5 planning complete. Plan-checker passed (iter 3/3). All 4 plans ready to execute: 02.5-01 (revert + resource files), 02.5-02 (Wave-0 sub-crates), 02.5-03 (Wave-1..5 sub-crates), 02.5-04 (forge_main + aggregator + CI cleanup). Final gate: cargo check --workspace --deny warnings with no --exclude flag.
+Resume file: `.planning/phases/02.5-kay-core-sub-crate-split/02.5-01-PLAN.md`

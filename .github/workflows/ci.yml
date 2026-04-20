@@ -63,24 +63,11 @@ jobs:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae  # v2
         if: steps.detect.outputs.has_cargo == 'true'
-      # `cargo fmt --all` resolves modules on every crate, which fails on kay-core
-      # (E0583 — deferred to Phase 2). Use explicit per-package fmt instead.
-      - run: |
-          cargo fmt \
-            -p kay-cli \
-            -p kay-provider-openrouter \
-            -p kay-sandbox-linux \
-            -p kay-sandbox-macos \
-            -p kay-sandbox-windows \
-            -p kay-tauri \
-            -p kay-tui \
-            -- --check
+      # Phase 2.5 split kay-core into 23 forge_* sub-crates; the workspace now
+      # builds cleanly without exclusions.
+      - run: cargo fmt --all -- --check
         if: steps.detect.outputs.has_cargo == 'true'
-      # `kay-core` is excluded until Phase 2's structural integration fixes the
-      # 23 × E0583 errors inherited from ForgeCode's forge_*/lib.rs naming. Fixing
-      # them in Phase 1 would corrupt the `forgecode-parity-baseline` tag. See
-      # .planning/phases/01-fork-governance-infrastructure/VERIFICATION.md §SC-4.
-      - run: cargo clippy --workspace --exclude kay-core --all-targets --all-features -- -D warnings
+      - run: cargo clippy --workspace --all-targets --all-features -- -D warnings
         if: steps.detect.outputs.has_cargo == 'true'
       - uses: EmbarkStudios/cargo-deny-action@5bb39ff5d5a0e94dc9e2dc94eced0c6129743a57  # v2
         if: steps.detect.outputs.has_cargo == 'true' && hashFiles('deny.toml') != ''
@@ -112,8 +99,8 @@ jobs:
         if: steps.detect.outputs.has_cargo == 'true'
       - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae  # v2
         if: steps.detect.outputs.has_cargo == 'true'
-      # `kay-core` excluded until Phase 2 — see lint job comment above.
-      - run: cargo test --workspace --exclude kay-core --all-features
+      # Phase 2.5 split kay-core into forge_* sub-crates — no exclusions needed.
+      - run: cargo test --workspace --all-features
         if: steps.detect.outputs.has_cargo == 'true'
 
   frontend:
