@@ -11,6 +11,7 @@ members = [
     "crates/kay-sandbox-macos",
     "crates/kay-sandbox-windows",
     "crates/kay-tauri",
+    "crates/kay-tools",
     "crates/kay-tui",
     "crates/forge_tool_macros",
     "crates/forge_template",
@@ -183,8 +184,14 @@ pretty_assertions = "1"
 insta = { version = "1", features = ["yaml", "json"] }
 mockito = "1"
 
+# Phase 3 (kay-tools) additions
+portable-pty = "0.9"
+subtle = "2.6"
+nix = { version = "0.29", features = ["signal"] }
+tokio-util = { version = "0.7", features = ["rt"] }
+
 # Platform-specific
-windows-sys = { version = "0.61", features = ["Win32_System_Console"] }
+windows-sys = { version = "0.61", features = ["Win32_System_Console", "Win32_System_Threading"] }
 
 [profile.release]
 lto = true

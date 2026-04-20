@@ -1,0 +1,44 @@
+[package]
+name = "kay-tools"
+publish = false
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Tool trait + KIRA core tools (Phase 3)"
+
+[dependencies]
+forge_domain   = { path = "../forge_domain" }
+forge_app      = { path = "../forge_app" }
+forge_services = { path = "../forge_services" }
+forge_config   = { path = "../forge_config" }
+# NO kay-provider-openrouter dep — AgentEvent/VerificationOutcome are defined HERE.
+
+async-trait = { workspace = true }
+tokio       = { workspace = true }
+tokio-util  = { workspace = true }
+serde       = { workspace = true }
+serde_json  = { workspace = true }
+anyhow      = { workspace = true }
+thiserror   = { workspace = true }
+tracing     = { workspace = true }
+rand        = { workspace = true }
+hex         = { workspace = true }
+futures     = { workspace = true }
+url         = { workspace = true }
+portable-pty = { workspace = true }
+subtle       = { workspace = true }
+
+[target.'cfg(unix)'.dependencies]
+nix = { workspace = true }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+tempfile = { workspace = true }
+pretty_assertions = { workspace = true }
+trybuild = "1.0"
