@@ -4,7 +4,7 @@
 
 ## Checklist
 
-- [ ] I have run `cargo fmt -p <non-kay-core crates>` and `cargo clippy --workspace --exclude kay-core --all-targets --all-features -- -D warnings` locally (kay-core deferred to Phase 2 per `.planning/phases/01-fork-governance-infrastructure/VERIFICATION.md §SC-4`; see CONTRIBUTING.md §Pull Request Process for the full fmt command)
+- [ ] I have run `cargo fmt --all -- --check` and `cargo clippy --workspace --all-targets --all-features -- -D warnings` locally (see CONTRIBUTING.md §Pull Request Process)
 - [ ] Every commit is signed off (`Signed-off-by: Name <email>`) — the DCO job will fail otherwise
 - [ ] I have not had exposure to the `@anthropic-ai/claude-code` v2.1.88 leak (2026-03-31); this PR contains no leak-derived code (clean-room attestation per CONTRIBUTING.md)
 - [ ] I have updated tests where behavior changes
