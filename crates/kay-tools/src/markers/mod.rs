@@ -5,6 +5,7 @@
 
 pub mod shells;
 
+use std::io;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use rand::TryRng;
@@ -28,20 +29,27 @@ impl MarkerContext {
     /// AtomicU64 owned by `ExecuteCommandsTool`.
     ///
     /// SysRng is rand 0.10's system CSPRNG — backed by getrandom() on Unix
-    /// and BCryptGenRandom on Windows; errors are practically impossible.
-    /// A failure maps to zero bytes — scan_line still works, just reduces
-    /// entropy of THIS call. Never unwrap/expect (crate-root deny).
-    pub fn new(counter: &AtomicU64) -> Self {
+    /// and BCryptGenRandom on Windows; errors are practically impossible
+    /// on healthy machines but CAN occur under seccomp/chroot/early-boot
+    /// conditions. A silent zero-filled nonce is worse than a hard error
+    /// here — it lets a prompt-injection attacker pre-compute the valid
+    /// marker and force early stream closure with an attacker-supplied
+    /// exit code (SHELL-05 / NN#7). We therefore propagate the error.
+    ///
+    /// Never unwrap/expect (crate-root deny).
+    pub fn new(counter: &AtomicU64) -> Result<Self, io::Error> {
         let mut nonce_bytes = [0u8; 16];
-        let _ = SysRng.try_fill_bytes(&mut nonce_bytes);
+        SysRng
+            .try_fill_bytes(&mut nonce_bytes)
+            .map_err(|e| io::Error::other(format!("marker nonce: {e}")))?;
         let nonce_hex = hex::encode(nonce_bytes);
         let seq = counter.fetch_add(1, Ordering::Relaxed);
         let line_prefix = format!("__CMDEND_{nonce_hex}_{seq}__");
-        Self {
+        Ok(Self {
             nonce_hex,
             seq,
             line_prefix,
-        }
+        })
     }
 }
 
@@ -109,7 +117,7 @@ mod tests {
 
     fn mk_marker() -> MarkerContext {
         let c = AtomicU64::new(0);
-        MarkerContext::new(&c)
+        MarkerContext::new(&c).expect("SysRng must succeed in tests")
     }
 
     #[test]
@@ -126,10 +134,30 @@ mod tests {
     #[test]
     fn successive_contexts_differ() {
         let c = AtomicU64::new(0);
-        let a = MarkerContext::new(&c);
-        let b = MarkerContext::new(&c);
+        let a = MarkerContext::new(&c).expect("a");
+        let b = MarkerContext::new(&c).expect("b");
         assert_ne!(a.nonce_hex, b.nonce_hex, "nonce must change per call");
         assert_eq!(b.seq, a.seq + 1, "seq must increment");
+    }
+
+    /// M-01: the constructor propagates a `Result`; a healthy test
+    /// environment always yields `Ok`, but the API surface now allows the
+    /// caller to translate a failure into `ToolError::Io` instead of
+    /// silently producing a predictable zero-filled nonce. This test
+    /// locks in the Result-returning contract so a future refactor that
+    /// reintroduces silent fallback has to update the signature visibly.
+    #[test]
+    fn new_returns_result_and_succeeds_in_test_env() {
+        let c = AtomicU64::new(0);
+        let r = MarkerContext::new(&c);
+        assert!(r.is_ok(), "SysRng must succeed on test hosts");
+        let m = r.expect("ok");
+        // A zero-filled nonce would be the silent-fallback bug — reject it
+        // so a regression to the old behavior is caught.
+        assert_ne!(
+            m.nonce_hex, "00000000000000000000000000000000",
+            "zero-nonce fallback is forbidden (M-01)"
+        );
     }
 
     #[test]

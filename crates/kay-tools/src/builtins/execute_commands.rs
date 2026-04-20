@@ -182,7 +182,11 @@ impl Tool for ExecuteCommandsTool {
             });
         }
 
-        let marker = MarkerContext::new(&self.seq_counter);
+        // M-01: propagate RNG failure as ToolError::Io rather than silently
+        // falling back to a zero nonce (would let a prompt-injection attacker
+        // pre-compute the valid marker and force early stream closure —
+        // SHELL-05 / NN#7).
+        let marker = MarkerContext::new(&self.seq_counter).map_err(ToolError::Io)?;
         let cwd = self.resolve_cwd(input.cwd.as_deref());
 
         if should_use_pty(&input.command, input.tty) {

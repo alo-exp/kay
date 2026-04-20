@@ -35,7 +35,7 @@ mod tests {
 
     fn mk() -> MarkerContext {
         let c = AtomicU64::new(7);
-        MarkerContext::new(&c)
+        MarkerContext::new(&c).expect("SysRng must succeed in tests")
     }
 
     #[test]
