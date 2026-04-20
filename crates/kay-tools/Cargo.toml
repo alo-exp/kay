@@ -14,7 +14,10 @@ forge_domain   = { path = "../forge_domain" }
 forge_app      = { path = "../forge_app" }
 forge_services = { path = "../forge_services" }
 forge_config   = { path = "../forge_config" }
-# NO kay-provider-openrouter dep — AgentEvent/VerificationOutcome are defined HERE.
+# Phase 3 Wave 2 (plan 03-03): kay-tools owns AgentEvent (source of truth per E1).
+# ProviderError / RetryReason live in kay-provider-errors to break a would-be
+# kay-tools <-> kay-provider-openrouter cycle.
+kay-provider-errors = { path = "../kay-provider-errors" }
 
 async-trait = { workspace = true }
 tokio       = { workspace = true }
@@ -43,3 +46,4 @@ tokio = { workspace = true }
 tempfile = { workspace = true }
 pretty_assertions = { workspace = true }
 trybuild = "1.0"
+proptest = "1"

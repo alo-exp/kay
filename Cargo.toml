@@ -6,6 +6,7 @@ resolver = "2"
 members = [
     "crates/kay-cli",
     "crates/kay-core",
+    "crates/kay-provider-errors",
     "crates/kay-provider-openrouter",
     "crates/kay-sandbox-linux",
     "crates/kay-sandbox-macos",

@@ -11,6 +11,8 @@ description = "OpenRouter provider HAL (Phase 2)"
 
 [dependencies]
 forge_json_repair = { path = "../forge_json_repair" }
+kay-provider-errors = { path = "../kay-provider-errors" }
+kay-tools = { path = "../kay-tools" }
 
 tokio = { workspace = true }
 reqwest = { workspace = true }
