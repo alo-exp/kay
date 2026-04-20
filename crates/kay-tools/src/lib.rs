@@ -31,7 +31,7 @@ pub use seams::sandbox::{Sandbox, NoOpSandbox, SandboxDenial};
 pub use seams::verifier::{TaskVerifier, NoOpVerifier, VerificationOutcome};
 pub use default_set::default_tool_set;
 pub use builtins::{
-    ExecuteCommandsTool, FsReadTool, FsSearchTool, FsWriteTool, NetFetchTool,
+    ExecuteCommandsTool, FsReadTool, FsSearchTool, FsWriteTool, ImageReadTool, NetFetchTool,
+    TaskCompleteTool,
 };
-// ImageReadTool + TaskCompleteTool land in Task 2 of 03-05.
 pub use forge_bridge::ForgeServicesFacade;

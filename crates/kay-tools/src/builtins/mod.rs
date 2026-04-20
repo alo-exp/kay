@@ -10,5 +10,6 @@ pub use execute_commands::ExecuteCommandsTool;
 pub use fs_read::FsReadTool;
 pub use fs_search::FsSearchTool;
 pub use fs_write::FsWriteTool;
+pub use image_read::ImageReadTool;
 pub use net_fetch::NetFetchTool;
-// ImageReadTool + TaskCompleteTool land in Task 2 of 03-05.
+pub use task_complete::TaskCompleteTool;
