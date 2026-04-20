@@ -158,16 +158,31 @@ async fn missing_file_returns_io_error_and_does_not_leak_quota() {
         "expected ToolError::Io, got {err:?}"
     );
 
-    // Quota was reserved before the FS read, and Wave 4 does NOT
-    // roll back on IO failure — this is an explicit scope decision:
-    // the quota is a *budget*, not a success-counter. Phase 5 may
-    // revisit. The assertion here pins the current behavior so a
-    // future change is caught.
+    // M-02: a failed FS read MUST release the quota slot. Without this
+    // rollback, a prompt supplying 20 non-existent `.png` paths would
+    // drain the per-session cap without reading a single byte — a
+    // low-effort DoS against IMG-01. The assertion pins the
+    // release-on-IO-failure behavior.
     assert_eq!(
         quota.per_turn_count(),
-        1,
-        "quota reservation held across IO failure (pins Wave-4 behavior)"
+        0,
+        "quota must be released when the FS read fails (M-02)"
     );
+    assert_eq!(
+        quota.per_session_count(),
+        0,
+        "per-session counter must also be released (M-02)"
+    );
+
+    // And a subsequent legitimate call must still succeed — proving the
+    // failed call did not permanently eat quota.
+    let dir = TempDir::new().unwrap();
+    let p = write_file(&dir, "ok.png", &PNG_MAGIC);
+    tool.invoke(json!({"path": p}), &ctx, "c2")
+        .await
+        .expect("follow-up ok call must succeed after release");
+    assert_eq!(quota.per_turn_count(), 1);
+    assert_eq!(quota.per_session_count(), 1);
 }
 
 #[tokio::test]

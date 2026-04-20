@@ -132,9 +132,16 @@ impl Tool for ImageReadTool {
             ),
         })?;
 
-        let bytes = tokio::fs::read(&path_buf)
-            .await
-            .map_err(ToolError::Io)?;
+        // M-02: release the quota slot if the FS read fails — otherwise a
+        // prompt supplying 20 non-existent paths drains the per-session
+        // cap without reading a byte (low-effort DoS against IMG-01).
+        let bytes = match tokio::fs::read(&path_buf).await {
+            Ok(b) => b,
+            Err(e) => {
+                self.quota.release();
+                return Err(ToolError::Io(e));
+            }
+        };
 
         // Emit the ImageRead event BEFORE the base64 encoding so
         // downstream consumers receive the raw bytes. The returned

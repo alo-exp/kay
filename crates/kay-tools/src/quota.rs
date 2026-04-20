@@ -57,6 +57,27 @@ impl ImageQuota {
         self.per_turn.store(0, Ordering::Relaxed);
     }
 
+    /// Release a previously-consumed slot (reverses a successful
+    /// `try_consume`). Used by `ImageReadTool` when a filesystem read
+    /// fails AFTER the quota has been charged — without this, a malicious
+    /// prompt supplying non-existent paths can drain the per-session cap
+    /// without ever reading a byte (M-02 / low-effort DoS against IMG-01).
+    ///
+    /// Saturating subtraction protects against imbalanced `release` calls
+    /// (should never happen in practice, but an underflow here would be
+    /// worse than a stuck cap).
+    pub fn release(&self) {
+        // Saturating: if for some reason the counter is already 0 we
+        // refuse to wrap around. `fetch_update` lets us do this in one
+        // atomic op.
+        let _ = self.per_turn.fetch_update(Ordering::AcqRel, Ordering::Acquire, |n| {
+            Some(n.saturating_sub(1))
+        });
+        let _ = self.per_session.fetch_update(Ordering::AcqRel, Ordering::Acquire, |n| {
+            Some(n.saturating_sub(1))
+        });
+    }
+
     /// Observability helper for tests — current per-turn count.
     pub fn per_turn_count(&self) -> u32 {
         self.per_turn.load(Ordering::Acquire)
