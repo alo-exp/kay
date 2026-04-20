@@ -310,11 +310,21 @@ async fn open_and_probe(
         Some(Ok(Event::Open)) => Ok(es),
         Some(Ok(Event::Message(_))) => {
             // OpenRouter + reqwest_eventsource normally delivers Open before
-            // any Message. Tolerate the rare ordering variation by treating
-            // first-Message as equivalent to Open (and letting the translator
-            // see that message next). This branch is defensive — no known
-            // OpenRouter path produces it.
-            Ok(es)
+            // any Message. If the ordering is ever inverted (no known path
+            // produces this today), we REFUSE to proceed rather than silently
+            // drop the already-consumed message: the `Event::Message(_)` bind
+            // discards its `MessageEvent` payload, so returning `Ok(es)` would
+            // hand the translator a stream that has lost its first data
+            // event. Surface a typed stream error; the caller's retry loop
+            // will classify it as non-retryable and the user sees a clear
+            // diagnostic instead of a mysteriously-missing first delta.
+            // Fix for REVIEW MD-02.
+            Err(ProviderError::Stream(
+                "unexpected SSE Message before Open; refusing to proceed \
+                 with lossy state (the first message has already been \
+                 consumed off the stream)"
+                    .into(),
+            ))
         }
         Some(Err(reqwest_eventsource::Error::InvalidStatusCode(status, resp))) => {
             let headers = resp.headers().clone();
