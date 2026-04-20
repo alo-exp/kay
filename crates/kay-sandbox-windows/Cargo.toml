@@ -16,6 +16,7 @@ async-trait = { workspace = true }
 tokio       = { workspace = true }
 tracing     = { workspace = true }
 thiserror   = { workspace = true }
+url         = { workspace = true }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 windows-sys = { workspace = true }

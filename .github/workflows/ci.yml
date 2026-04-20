@@ -91,7 +91,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-14, windows-latest]
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
       - name: Detect Cargo workspace
@@ -124,7 +124,8 @@ jobs:
       # asserts Kay-authored test suites pass.
       - run: cargo test --all-features
                -p kay-cli -p kay-core -p kay-provider-openrouter
-               -p kay-sandbox-linux -p kay-sandbox-macos -p kay-sandbox-windows
+               -p kay-sandbox-linux -p kay-sandbox-macos -p kay-sandbox-policy
+               -p kay-sandbox-windows -p kay-tools
                -p kay-tauri -p kay-tui
         if: steps.detect.outputs.has_cargo == 'true'
 
