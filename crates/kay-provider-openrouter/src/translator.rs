@@ -56,6 +56,7 @@
 //! (DTO divergence)** in SUMMARY.md.
 
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use async_stream::stream;
 use futures::Stream;
@@ -63,8 +64,10 @@ use futures::StreamExt;
 use reqwest_eventsource::{Event, EventSource};
 use serde::Deserialize;
 
+use crate::cost_cap::CostCap;
 use crate::error::ProviderError;
 use crate::event::AgentEvent;
+use crate::retry::classify_http_error;
 use crate::tool_parser::{MAX_TOOL_ARGS_BYTES, ParseOutcome, parse_tool_arguments};
 
 // ----- Local minimal DTO for SSE chunks -----
@@ -161,6 +164,7 @@ fn resolve_call_id(
 
 pub(crate) fn translate_stream(
     mut source: EventSource,
+    cost_cap: Arc<CostCap>,
 ) -> impl Stream<Item = Result<AgentEvent, ProviderError>> + Send + 'static {
     stream! {
         let mut builders: HashMap<String, ToolCallBuilder> = HashMap::new();
@@ -306,12 +310,18 @@ pub(crate) fn translate_stream(
                         }
                     }
 
-                    // 4) Usage (OpenRouter sends on the final chunk)
+                    // 4) Usage (OpenRouter sends on the final chunk).
+                    // Plan 02-10: accumulate cost into CostCap BEFORE emitting
+                    // the Usage frame so a subsequent `check()` (turn boundary)
+                    // sees the accumulated spend. Negative cost values are
+                    // clamped to 0 inside `accumulate`.
                     if let Some(u) = chunk.usage {
+                        let cost_usd = u.cost.unwrap_or(0.0);
+                        cost_cap.accumulate(cost_usd);
                         yield Ok(AgentEvent::Usage {
                             prompt_tokens: u.prompt_tokens,
                             completion_tokens: u.completion_tokens,
-                            cost_usd: u.cost.unwrap_or(0.0),
+                            cost_usd,
                         });
                     }
                 }
@@ -350,18 +360,26 @@ pub(crate) fn translate_stream(
 }
 
 async fn map_upstream_error(err: reqwest_eventsource::Error) -> ProviderError {
-    // Minimal mapping for Phase 2 plan 02-08. Plan 02-10 replaces this with
-    // the full taxonomy (401→Auth::Invalid, 402→Http{402}, 429 respecting
-    // Retry-After → RateLimited, 5xx → ServerError).
+    // Plan 02-10: full error taxonomy via `classify_http_error`.
+    //   - 401        → Auth { reason: Invalid }
+    //   - 429        → RateLimited { retry_after: parse_retry_after(&headers) }
+    //   - 500..=599  → ServerError { status }
+    //   - otherwise  → Http { status, body }
+    //
+    // Transport errors and premature stream-end continue to map to
+    // Network / Stream respectively (D-05 / PROV-08).
     match err {
         reqwest_eventsource::Error::StreamEnded => {
             ProviderError::Stream("stream ended".into())
         }
-        reqwest_eventsource::Error::InvalidStatusCode(status, _resp) => {
-            ProviderError::Http {
-                status: status.as_u16(),
-                body: String::new(),
-            }
+        reqwest_eventsource::Error::InvalidStatusCode(status, resp) => {
+            let headers = resp.headers().clone();
+            let status = status.as_u16();
+            // Best-effort body read; on failure leave body empty. Body
+            // content is surfaced verbatim for the `Http` variant only —
+            // never for `Auth` / `RateLimited` / `ServerError` (TM-01).
+            let body = resp.text().await.unwrap_or_default();
+            classify_http_error(status, &headers, body)
         }
         reqwest_eventsource::Error::InvalidContentType(_, resp) => ProviderError::Http {
             status: resp.status().as_u16(),

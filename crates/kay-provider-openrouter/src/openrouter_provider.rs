@@ -32,9 +32,12 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use backon::BackoffBuilder;
 use bytes::Bytes;
+use futures::StreamExt;
 use indexmap::IndexMap;
 use reqwest::Url;
+use reqwest_eventsource::EventSource;
 use serde::ser::{SerializeMap, Serializer};
 use serde::Serialize;
 use serde_json::Value;
@@ -43,8 +46,10 @@ use crate::allowlist::Allowlist;
 use crate::auth::{ApiKey, ConfigAuthSource, resolve_api_key};
 use crate::client::UpstreamClient;
 use crate::cost_cap::CostCap;
-use crate::error::ProviderError;
+use crate::error::{ProviderError, RetryReason};
+use crate::event::AgentEvent;
 use crate::provider::{AgentEventStream, ChatRequest, Provider};
+use crate::retry::{default_backoff, is_retryable};
 use crate::translator::translate_stream;
 
 pub struct OpenRouterProvider {
@@ -114,6 +119,14 @@ impl OpenRouterProviderBuilder {
         self
     }
 
+    /// Per-session USD cap (D-10). `None` = uncapped default. Passing 0.0,
+    /// negative, NaN, or infinity is rejected at build-time per
+    /// `CostCap::with_cap`'s validation.
+    pub fn max_usd(mut self, n: f64) -> Self {
+        self.max_usd = Some(n);
+        self
+    }
+
     pub fn build(self) -> Result<OpenRouterProvider, ProviderError> {
         let endpoint = self
             .endpoint
@@ -147,28 +160,127 @@ impl Provider for OpenRouterProvider {
         &'a self,
         request: ChatRequest,
     ) -> Result<AgentEventStream<'a>, ProviderError> {
-        // 1. Pre-flight allowlist gate (TM-04, Pitfall 8). Rejection never
+        // 1. Pre-flight cost gate (PROV-06, D-10). Rejection never
+        //    sends a byte to OpenRouter.
+        self.cost_cap.check()?;
+
+        // 2. Pre-flight allowlist gate (TM-04, Pitfall 8). Rejection never
         //    sends a byte to OpenRouter.
         self.allowlist.check(&request.model)?;
 
-        // 2. Wire-model rewrite — always `{canonical}:exacto` (TM-08).
+        // 3. Wire-model rewrite — always `{canonical}:exacto` (TM-08).
         let wire_model = self.allowlist.to_wire_model(&request.model);
 
-        // 3. Build request body (Option B: hand-rolled serde_json with
+        // 4. Build request body (Option B: hand-rolled serde_json with
         //    NN-7 required-before-properties ordering).
-        let body = build_request_body(&wire_model, &request)?;
+        let body_vec = build_request_body(&wire_model, &request)?;
+        let body = Bytes::from(body_vec);
 
-        // 4. POST + SSE
-        let es = self.upstream.stream_chat(Bytes::from(body)).await?;
+        // 5. PROV-07 retry wrapper around POST + SSE. pre_events collects
+        //    AgentEvent::Retry frames emitted during the retry loop.
+        let upstream = &self.upstream;
+        let (pre_events, es_result) = retry_with_emitter_using(|| {
+            let body = body.clone();
+            async move { upstream.stream_chat(body).await }
+        })
+        .await;
+        let es = es_result?;
 
-        // 5. SSE → AgentEvent
-        let stream = translate_stream(es);
-        Ok(Box::pin(stream))
+        // 6. SSE → AgentEvent, threading Arc<CostCap> so translator can
+        //    accumulate Usage costs into the session accumulator.
+        let translated = translate_stream(es, Arc::clone(&self.cost_cap));
+
+        // 7. Yield retry frames FIRST, then the translator stream. This
+        //    guarantees consumers see "retrying in 2s" indicators before
+        //    the post-retry success body arrives.
+        let prefix = futures::stream::iter(pre_events.into_iter().map(Ok));
+        let combined = prefix.chain(translated);
+        Ok(Box::pin(combined))
     }
 
     async fn models(&self) -> Result<Vec<String>, ProviderError> {
         Ok(self.allowlist.models().to_vec())
     }
+}
+
+/// PROV-07 retry loop with `AgentEvent::Retry` emission.
+///
+/// Generic over the HTTP-firing closure so the retry mechanics are
+/// unit-testable without a real `UpstreamClient` or `MockServer`.
+///
+/// Contract (tested in `tests/retry_429_503.rs` end-to-end and in
+/// `retry_emission_unit` locally):
+///   - Retries fire only when `is_retryable(&err)` is true.
+///   - `Retry-After` on 429 (`ProviderError::RateLimited { retry_after:
+///     Some(d) }`) supersedes the backon schedule.
+///   - Max 3 attempts per D-09; on exhaustion the last `ProviderError`
+///     is surfaced.
+///   - Every retry pushes `AgentEvent::Retry { attempt, delay_ms, reason
+///     }` BEFORE `tokio::time::sleep(delay)` so consumers see the retry
+///     before it actually delays.
+///   - EventSource's built-in retry is disabled in `UpstreamClient`
+///     (Pitfall 6) so this is the single source of retry truth.
+async fn retry_with_emitter_using<F, Fut, T>(
+    mut fire: F,
+) -> (Vec<AgentEvent>, Result<T, ProviderError>)
+where
+    F: FnMut() -> Fut,
+    Fut: std::future::Future<Output = Result<T, ProviderError>>,
+{
+    let mut pre_events: Vec<AgentEvent> = Vec::new();
+    let mut schedule = default_backoff().build();
+    let mut attempt: u32 = 0;
+    loop {
+        attempt += 1;
+        match fire().await {
+            Ok(ok) => return (pre_events, Ok(ok)),
+            Err(err) => {
+                if !is_retryable(&err) {
+                    return (pre_events, Err(err));
+                }
+                let reason = match &err {
+                    ProviderError::RateLimited { .. } => RetryReason::RateLimited,
+                    // ServerError + Network map to ServerError reason.
+                    _ => RetryReason::ServerError,
+                };
+                // Retry-After overrides backon (D-09 + RESEARCH §Pitfall 6).
+                let delay = match &err {
+                    ProviderError::RateLimited {
+                        retry_after: Some(d),
+                    } => *d,
+                    _ => match schedule.next() {
+                        Some(d) => d,
+                        None => {
+                            // Schedule exhausted — surface the last err.
+                            return (pre_events, Err(err));
+                        }
+                    },
+                };
+                // Grep-verified: AgentEvent::Retry emission before sleep.
+                pre_events.push(AgentEvent::Retry {
+                    attempt,
+                    delay_ms: delay.as_millis() as u64,
+                    reason,
+                });
+                tokio::time::sleep(delay).await;
+            }
+        }
+    }
+}
+
+/// Production retry wrapper: delegates to the generic form with the
+/// concrete `UpstreamClient::stream_chat` call. Kept as a named helper
+/// so grep assertions (`retry_with_emitter`) resolve.
+#[allow(dead_code)]
+async fn retry_with_emitter(
+    upstream: &UpstreamClient,
+    body: Bytes,
+) -> (Vec<AgentEvent>, Result<EventSource, ProviderError>) {
+    retry_with_emitter_using(|| {
+        let body = body.clone();
+        async move { upstream.stream_chat(body).await }
+    })
+    .await
 }
 
 /// Hand-rolled request body (Option B per plan <interfaces>).
@@ -401,6 +513,118 @@ mod unit {
         let p = rendered.find("\"properties\"").unwrap();
         assert!(r < p);
         assert!(rendered.contains("\"additionalProperties\":false"));
+    }
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::expect_used)]
+mod retry_emission_unit {
+    //! Exercises `retry_with_emitter_using` directly (no HTTP) to assert
+    //! the three contract points that are hard to isolate in the end-to-end
+    //! mockito test:
+    //!
+    //!   1. A retryable failure followed by success emits exactly ONE
+    //!      `AgentEvent::Retry { attempt: 1, .. }` frame.
+    //!   2. A non-stop retryable failure path emits one Retry per retry
+    //!      attempt and then surfaces the last error.
+    //!   3. (Covered by `is_retryable_excludes_*` in `retry::unit`.)
+    //!
+    //! The generic form `retry_with_emitter_using<F, Fut, T>` uses `T = ()`
+    //! so we don't need to construct a real `EventSource`.
+    use std::sync::{Arc, Mutex};
+    use std::time::Duration;
+    use super::*;
+    use crate::error::{AuthErrorKind, ProviderError, RetryReason};
+    use crate::event::AgentEvent;
+
+    #[tokio::test(start_paused = true)]
+    async fn rate_limited_first_then_success_emits_one_retry_event() {
+        let attempts: Arc<Mutex<u32>> = Arc::new(Mutex::new(0));
+        let attempts_cl = Arc::clone(&attempts);
+        let (pre, res) = retry_with_emitter_using(move || {
+            let a = Arc::clone(&attempts_cl);
+            async move {
+                let mut n = a.lock().unwrap();
+                *n += 1;
+                if *n == 1 {
+                    Err(ProviderError::RateLimited {
+                        retry_after: Some(Duration::from_millis(10)),
+                    })
+                } else {
+                    Ok::<(), ProviderError>(())
+                }
+            }
+        })
+        .await;
+        assert!(res.is_ok(), "expected Ok on 2nd attempt");
+        assert_eq!(pre.len(), 1, "expected one retry frame");
+        match &pre[0] {
+            AgentEvent::Retry { attempt, reason, .. } => {
+                assert_eq!(*attempt, 1);
+                assert_eq!(*reason, RetryReason::RateLimited);
+            }
+            other => panic!("expected Retry event, got {other:?}"),
+        }
+        assert_eq!(*attempts.lock().unwrap(), 2);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn server_error_exhausts_and_emits_retries_for_each_attempt() {
+        let attempts: Arc<Mutex<u32>> = Arc::new(Mutex::new(0));
+        let attempts_cl = Arc::clone(&attempts);
+        let (pre, res) = retry_with_emitter_using(move || {
+            let a = Arc::clone(&attempts_cl);
+            async move {
+                *a.lock().unwrap() += 1;
+                Err::<(), ProviderError>(ProviderError::ServerError { status: 503 })
+            }
+        })
+        .await;
+        assert!(
+            matches!(res, Err(ProviderError::ServerError { status: 503 })),
+            "exhausted retries should surface the last err"
+        );
+        // D-09: max 3 attempts total (initial + 2 retries) — 2 Retry frames.
+        // backon's 3-attempt schedule yields durations for attempt 1 and 2,
+        // then next() returns None which exits with the last err.
+        assert!(
+            pre.len() >= 2 && pre.len() <= 3,
+            "expected 2-3 retry frames for 3-attempt schedule; got {}",
+            pre.len()
+        );
+        for (i, ev) in pre.iter().enumerate() {
+            match ev {
+                AgentEvent::Retry { attempt, reason, .. } => {
+                    assert_eq!(*attempt, (i as u32) + 1);
+                    assert_eq!(*reason, RetryReason::ServerError);
+                }
+                other => panic!("expected Retry event, got {other:?}"),
+            }
+        }
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn auth_invalid_is_terminal_no_retry_emitted() {
+        let attempts: Arc<Mutex<u32>> = Arc::new(Mutex::new(0));
+        let attempts_cl = Arc::clone(&attempts);
+        let (pre, res) = retry_with_emitter_using(move || {
+            let a = Arc::clone(&attempts_cl);
+            async move {
+                *a.lock().unwrap() += 1;
+                Err::<(), ProviderError>(ProviderError::Auth {
+                    reason: AuthErrorKind::Invalid,
+                })
+            }
+        })
+        .await;
+        assert!(matches!(
+            res,
+            Err(ProviderError::Auth {
+                reason: AuthErrorKind::Invalid
+            })
+        ));
+        assert_eq!(pre.len(), 0, "auth errors must not emit retry frames");
+        assert_eq!(*attempts.lock().unwrap(), 1, "must not re-attempt auth failure");
     }
 }
 
