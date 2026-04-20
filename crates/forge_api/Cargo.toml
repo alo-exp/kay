@@ -1,0 +1,24 @@
+[package]
+name = "forge_api"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "ForgeCode public API surface"
+
+[dependencies]
+forge_domain   = { path = "../forge_domain" }
+forge_stream   = { path = "../forge_stream" }
+forge_services = { path = "../forge_services" }
+forge_repo     = { path = "../forge_repo" }
+forge_infra    = { path = "../forge_infra" }
+forge_app      = { path = "../forge_app" }
+forge_config   = { path = "../forge_config" }
+
+anyhow = { workspace = true }
+url = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+serde_json = { workspace = true }

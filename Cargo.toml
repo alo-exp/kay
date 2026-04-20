@@ -33,6 +33,7 @@ members = [
     "crates/forge_services",
     "crates/forge_infra",
     "crates/forge_repo",
+    "crates/forge_api",
 ]
 
 [workspace.package]

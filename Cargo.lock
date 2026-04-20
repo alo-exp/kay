@@ -1853,6 +1853,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 
 [[package]]
+name = "forge_api"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "forge_app",
+ "forge_config",
+ "forge_domain",
+ "forge_infra",
+ "forge_repo",
+ "forge_services",
+ "forge_stream",
+ "futures",
+ "serde_json",
+ "url",
+]
+
+[[package]]
 name = "forge_app"
 version = "0.0.1"
 dependencies = [
