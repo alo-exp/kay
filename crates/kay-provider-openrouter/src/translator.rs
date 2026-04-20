@@ -26,11 +26,22 @@
 //!   - Pitfall 6: connection retry is orchestrated by `backon` in plan
 //!     02-10, not by `reqwest_eventsource` — the client disables that.
 //!
-//! Tool-argument JSON parsing is STRICT `serde_json::from_str` in this
-//! plan. Plan 02-09 wraps a tolerant second pass via `forge_json_repair`
-//! and introduces the `ToolCallMalformed` emission path (today a strict
-//! parse failure surfaces as `ProviderError::ToolCallMalformed` and
-//! terminates the stream).
+//! Tool-argument JSON parsing is TOLERANT as of plan 02-09: deltas flow
+//! through `crate::tool_parser::parse_tool_arguments` which runs
+//! `serde_json::from_str` first and falls back to
+//! `forge_json_repair::json_repair` on strict failure. When BOTH passes
+//! fail, the translator emits `AgentEvent::ToolCallMalformed { id, raw,
+//! error }` as a DATA event (Ok variant) so the stream CONTINUES —
+//! subsequent tool_calls, text content, and Usage frames still flow.
+//! This supersedes the plan 02-08 behavior where a strict-parse failure
+//! surfaced `ProviderError::ToolCallMalformed` and terminated the stream.
+//!
+//! TM-06 safety cap: each `ToolCallBuilder::arguments_raw` is capped at
+//! `MAX_TOOL_ARGS_BYTES` (1 MiB). If an incoming delta would push the
+//! accumulated buffer past the cap, the builder is evicted, a
+//! `ToolCallMalformed` event is emitted with an empty `raw` (to avoid
+//! yielding a near-1MB string back through `AgentEvent`), and subsequent
+//! deltas for that call_id are silently ignored.
 //!
 //! DTO shape note (Rule-2 deviation recorded in SUMMARY.md): the plan as
 //! authored pointed at `kay_core::forge_app::dto::openai::Response` / post-
@@ -51,10 +62,10 @@ use futures::Stream;
 use futures::StreamExt;
 use reqwest_eventsource::{Event, EventSource};
 use serde::Deserialize;
-use serde_json::Value;
 
 use crate::error::ProviderError;
 use crate::event::AgentEvent;
+use crate::tool_parser::{MAX_TOOL_ARGS_BYTES, ParseOutcome, parse_tool_arguments};
 
 // ----- Local minimal DTO for SSE chunks -----
 
@@ -122,18 +133,6 @@ impl ToolCallBuilder {
             arguments_raw: String::new(),
         }
     }
-}
-
-/// Strict JSON parse for tool_call arguments_raw. Plan 02-09 adds the
-/// tolerant fallback via `forge_json_repair::json_repair`. An empty buffer
-/// is treated as an empty object `{}` (observed legitimate for
-/// zero-argument tools).
-fn parse_arguments_strict(raw: &str) -> Result<Value, serde_json::Error> {
-    let trimmed = raw.trim();
-    if trimmed.is_empty() {
-        return Ok(Value::Object(Default::default()));
-    }
-    serde_json::from_str(trimmed)
 }
 
 /// Resolve which call_id an incoming delta refers to. First chunk usually
@@ -234,6 +233,31 @@ pub(crate) fn translate_stream(
                                 if let Some(args_delta) = fn_delta.arguments
                                     && !args_delta.is_empty()
                                 {
+                                    // TM-06: enforce 1 MiB cap on accumulated
+                                    // arguments_raw before appending. If this
+                                    // delta would push the total past the cap,
+                                    // evict the builder, emit Malformed (with
+                                    // empty raw — we don't want to yield near-
+                                    // 1MB strings back through AgentEvent), and
+                                    // silently drop subsequent deltas for this
+                                    // call_id (the builder is gone; resolve
+                                    // continues to return this id via the
+                                    // index_to_id map, but lookups into
+                                    // `builders` will miss on the next branch).
+                                    if entry.arguments_raw.len() + args_delta.len()
+                                        > MAX_TOOL_ARGS_BYTES
+                                    {
+                                        let evicted_id = call_id.clone();
+                                        builders.remove(&evicted_id);
+                                        yield Ok(AgentEvent::ToolCallMalformed {
+                                            id: evicted_id,
+                                            raw: String::new(),
+                                            error: format!(
+                                                "tool_call arguments exceeded {MAX_TOOL_ARGS_BYTES} byte limit"
+                                            ),
+                                        });
+                                        continue;
+                                    }
                                     entry.arguments_raw.push_str(&args_delta);
                                     yield Ok(AgentEvent::ToolCallDelta {
                                         id: call_id.clone(),
@@ -256,24 +280,26 @@ pub(crate) fn translate_stream(
                                 builders.drain().collect();
                             for (id, b) in drained {
                                 let name = b.name.clone().unwrap_or_default();
-                                match parse_arguments_strict(&b.arguments_raw) {
-                                    Ok(args) => {
+                                match parse_tool_arguments(&b.arguments_raw) {
+                                    ParseOutcome::Clean(args)
+                                    | ParseOutcome::Repaired(args) => {
                                         yield Ok(AgentEvent::ToolCallComplete {
                                             id,
                                             name,
                                             arguments: args,
                                         });
                                     }
-                                    Err(e) => {
-                                        // Strict-parse failure terminates the
-                                        // stream in plan 02-08; plan 02-09
-                                        // upgrades to tolerant + emits
-                                        // AgentEvent::ToolCallMalformed.
-                                        yield Err(ProviderError::ToolCallMalformed {
+                                    ParseOutcome::Malformed { error } => {
+                                        // Plan 02-09 upgrade: emit Malformed as
+                                        // a DATA event (Ok variant), not a
+                                        // terminal ProviderError. The stream
+                                        // continues - subsequent tool_calls,
+                                        // text, or Usage frames still flow.
+                                        yield Ok(AgentEvent::ToolCallMalformed {
                                             id,
-                                            error: e.to_string(),
+                                            raw: b.arguments_raw,
+                                            error,
                                         });
-                                        return;
                                     }
                                 }
                             }
@@ -306,12 +332,16 @@ pub(crate) fn translate_stream(
             let drained: Vec<(String, ToolCallBuilder)> = builders.drain().collect();
             for (id, b) in drained {
                 let name = b.name.clone().unwrap_or_default();
-                match parse_arguments_strict(&b.arguments_raw) {
-                    Ok(args) => {
+                match parse_tool_arguments(&b.arguments_raw) {
+                    ParseOutcome::Clean(args) | ParseOutcome::Repaired(args) => {
                         yield Ok(AgentEvent::ToolCallComplete { id, name, arguments: args });
                     }
-                    Err(e) => {
-                        yield Err(ProviderError::ToolCallMalformed { id, error: e.to_string() });
+                    ParseOutcome::Malformed { error } => {
+                        yield Ok(AgentEvent::ToolCallMalformed {
+                            id,
+                            raw: b.arguments_raw,
+                            error,
+                        });
                     }
                 }
             }
@@ -347,29 +377,13 @@ async fn map_upstream_error(err: reqwest_eventsource::Error) -> ProviderError {
 mod unit {
     use super::*;
 
-    #[test]
-    fn parse_arguments_strict_empty_is_empty_object() {
-        let v = parse_arguments_strict("").unwrap();
-        assert_eq!(v, Value::Object(Default::default()));
-    }
-
-    #[test]
-    fn parse_arguments_strict_valid_json_roundtrips() {
-        let v = parse_arguments_strict(r#"{"cmd":"ls"}"#).unwrap();
-        assert_eq!(v["cmd"], Value::String("ls".into()));
-    }
-
-    #[test]
-    fn parse_arguments_strict_malformed_returns_err() {
-        let r = parse_arguments_strict(r#"{unquoted: "x"}"#);
-        assert!(r.is_err());
-    }
-
-    #[test]
-    fn parse_arguments_strict_tolerates_surrounding_whitespace() {
-        let v = parse_arguments_strict("  { \"k\": 1 }  ").unwrap();
-        assert_eq!(v["k"], Value::Number(1.into()));
-    }
+    // The 3 strict-parse tests from plan 02-08
+    //   (parse_arguments_strict_{empty_is_empty_object, valid_json_roundtrips,
+    //    malformed_returns_err, tolerates_surrounding_whitespace})
+    // are SUPERSEDED by tool_parser::unit (6 classic + 2 proptest = 8 tests)
+    // in plan 02-09 Task 1. The strict-only helper is gone; parse_tool_arguments
+    // now handles the strict path as Pass 1 and provides the Repaired / Malformed
+    // paths on top.
 
     #[test]
     fn resolve_call_id_registers_and_reuses_index() {
