@@ -40,3 +40,63 @@ pub enum CapScope {
     PerTurn,
     PerSession,
 }
+
+#[cfg(test)]
+mod tests {
+    use std::time::Duration;
+
+    use forge_domain::ToolName;
+
+    use super::*;
+
+    #[test]
+    fn invalidargs_display_includes_reason() {
+        let e = ToolError::InvalidArgs {
+            tool: ToolName::new("fs_read"),
+            reason: "missing field `file_path`".into(),
+        };
+        let s = format!("{e}");
+        assert!(s.contains("fs_read"), "display: {s}");
+        assert!(s.contains("missing field"), "display: {s}");
+    }
+
+    #[test]
+    fn timeout_display_includes_elapsed() {
+        let e = ToolError::Timeout {
+            tool: ToolName::new("execute_commands"),
+            elapsed: Duration::from_secs(300),
+        };
+        let s = format!("{e}");
+        assert!(s.contains("execute_commands"), "display: {s}");
+        assert!(s.contains("300"), "display: {s}");
+    }
+
+    #[test]
+    fn image_cap_exceeded_display_names_scope() {
+        let e = ToolError::ImageCapExceeded {
+            scope: CapScope::PerTurn,
+            limit: 2,
+        };
+        let s = format!("{e}");
+        assert!(s.contains("PerTurn"), "display: {s}");
+        assert!(s.contains('2'), "display: {s}");
+    }
+
+    #[test]
+    fn sandbox_denied_display_includes_reason() {
+        let e = ToolError::SandboxDenied {
+            tool: ToolName::new("net_fetch"),
+            reason: "file:// scheme blocked".into(),
+        };
+        let s = format!("{e}");
+        assert!(s.contains("net_fetch"), "display: {s}");
+        assert!(s.contains("file://"), "display: {s}");
+    }
+
+    #[test]
+    fn not_found_display_includes_tool_name() {
+        let e = ToolError::NotFound { tool: ToolName::new("absent_tool") };
+        let s = format!("{e}");
+        assert!(s.contains("absent_tool"), "display: {s}");
+    }
+}

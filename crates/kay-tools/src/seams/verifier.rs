@@ -33,3 +33,46 @@ impl TaskVerifier for NoOpVerifier {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn noop_verifier_returns_pending() {
+        let v = NoOpVerifier;
+        let outcome = v.verify("I finished the task").await;
+        match outcome {
+            VerificationOutcome::Pending { reason } => {
+                assert!(
+                    reason.contains("Phase 8"),
+                    "Pending reason must mention Phase 8: {reason}"
+                );
+            }
+            other => panic!("expected Pending, got: {other:?}"),
+        }
+    }
+
+    #[tokio::test]
+    async fn noop_verifier_never_returns_pass() {
+        // Invariant T-3-06 (Threat #7 in 03-RESEARCH): Phase 3 NoOp MUST NOT
+        // produce Pass — only Pending. Real verifier swapped in Phase 8.
+        let v = NoOpVerifier;
+        let outcome = v.verify("done").await;
+        assert!(
+            !matches!(outcome, VerificationOutcome::Pass { .. }),
+            "NoOpVerifier must never emit Pass (Threat T-3-06)"
+        );
+    }
+
+    #[tokio::test]
+    async fn noop_verifier_never_returns_fail() {
+        // Symmetric to the Pass invariant: Phase 3 stub must remain Pending-only.
+        let v = NoOpVerifier;
+        let outcome = v.verify("anything").await;
+        assert!(
+            !matches!(outcome, VerificationOutcome::Fail { .. }),
+            "NoOpVerifier must never emit Fail in Phase 3"
+        );
+    }
+}
