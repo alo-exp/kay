@@ -117,7 +117,14 @@ Plans:
   3. A long-running command can be cleanly terminated by a configurable hard timeout, with signal propagation and zombie reap verified on all three OSes.
   4. The `image_read` tool accepts a base64 terminal screenshot and feeds it to a multimodal model turn, bounded by per-turn (1-2) and per-session (10-20) caps.
   5. User-injected input containing a fake marker is detected before execution and rejected, and `task_complete` does not return success until the Phase 8 verifier has run.
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Wave 0 scaffold: kay-tools crate skeleton, module stubs, test harness files, workspace wiring (WS-05 structural)
+- [ ] 03-02-PLAN.md — Wave 1: Tool trait (object-safe, async), ToolRegistry (immutable Arc<dyn Tool>), ToolError, Sandbox/TaskVerifier DI seams, NoOpSandbox + NoOpVerifier (TOOL-01, TOOL-03, TOOL-06)
+- [ ] 03-03-PLAN.md — Wave 2: Schema hardening wrapper delegating to forge_app::enforce_strict_schema + AgentEvent::ToolOutput/TaskComplete additive extensions + VerificationOutcome in kay-provider-openrouter::event (TOOL-05, events)
+- [ ] 03-04-PLAN.md — Wave 3: Marker protocol (__CMDEND_<hex128>_<seq>__ with subtle::ConstantTimeEq) + execute_commands tool (piped+PTY paths, timeout cascade SIGTERM→SIGKILL, streaming ToolOutput) (TOOL-02, SHELL-01..05)
+- [ ] 03-05-PLAN.md — Wave 4: 4 parity tools (fs_read/fs_write/fs_search/net_fetch), image_read with AtomicU32 quotas, task_complete with verifier gate, default_tool_set() builder, kay-cli registry wiring at startup (TOOL-01, TOOL-03, TOOL-04, TOOL-06)
 **UI hint**: no
 
 ### Phase 4: Sandbox (All Three Platforms)
@@ -282,7 +289,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 1. Fork, Governance, Infrastructure | 6/6   | Complete | 2026-04-19 |
 | 2. Provider HAL + Tolerant JSON Parser | 9/9 (02-05 superseded by 2.5) | Complete | 2026-04-20 |
 | 2.5. kay-core sub-crate split *(INSERTED 2026-04-20)* | 4/4 | Complete (verifier PASS 8/8) | 2026-04-20 |
-| 3. Tool Registry + KIRA Core Tools | 0/TBD | Not started | - |
+| 3. Tool Registry + KIRA Core Tools | 0/5 | Planning complete | - |
 | 4. Sandbox (All Three Platforms) | 0/TBD | Not started | - |
 | 5. Agent Loop (Event-Driven Core) | 0/TBD | Not started | - |
 | 6. Session Store + Transcript | 0/TBD | Not started | - |
@@ -326,3 +333,4 @@ Plans:
 *Roadmap created: 2026-04-19*
 *Last backlog update: 2026-04-20 — added 999.2 + 999.3 from Phase 2 quality-gates advisory*
 *Phase 2.5 plans authored: 2026-04-20 — 4 plans created (02.5-01 through 02.5-04)*
+*Phase 3 plans authored: 2026-04-20 — 5 plans created (03-01 through 03-05)*
