@@ -150,7 +150,22 @@ fn resolve_call_id(
     index_to_id: &mut HashMap<u32, String>,
 ) -> Option<String> {
     if let Some(id) = &tc.id {
-        let idx = tc.index.unwrap_or(index_to_id.len() as u32);
+        // If the provider omits `index`, synthesize one by scanning for the
+        // first free slot rather than using `index_to_id.len()` — the latter
+        // collides when the map has holes (e.g., existing indices {0, 2}
+        // with len()==2 would synthesize idx=2, clobbering the existing
+        // index-2 mapping and corrupting subsequent `index`-only lookups
+        // for the displaced id). Fix for REVIEW LO-01.
+        let idx = match tc.index {
+            Some(i) => i,
+            None => {
+                let mut i: u32 = 0;
+                while index_to_id.contains_key(&i) {
+                    i = i.saturating_add(1);
+                }
+                i
+            }
+        };
         index_to_id.insert(idx, id.clone());
         return Some(id.clone());
     }
@@ -430,5 +445,32 @@ mod unit {
             function: None,
         };
         assert_eq!(resolve_call_id(&tc, &mut map), None);
+    }
+
+    #[test]
+    fn resolve_call_id_synthesized_slot_skips_existing_holes() {
+        // REVIEW LO-01: if `index_to_id` has holes (indices 0 and 2
+        // registered, gap at 1), an id-only delta should synthesize idx=1
+        // (first free slot) — NOT idx=2 (which `len()`-based sizing would
+        // produce and which would clobber the existing index-2 mapping).
+        let mut map = HashMap::new();
+        map.insert(0u32, "call_zero".to_string());
+        map.insert(2u32, "call_two".to_string());
+
+        let tc = SseToolCallDelta {
+            id: Some("call_new".into()),
+            index: None,
+            function: None,
+        };
+        assert_eq!(resolve_call_id(&tc, &mut map), Some("call_new".into()));
+
+        // The gap at index 1 was filled — NOT index 2.
+        assert_eq!(map.get(&1), Some(&"call_new".to_string()));
+        assert_eq!(
+            map.get(&2),
+            Some(&"call_two".to_string()),
+            "existing index-2 mapping must not be clobbered"
+        );
+        assert_eq!(map.get(&0), Some(&"call_zero".to_string()));
     }
 }
