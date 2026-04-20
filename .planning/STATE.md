@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.0.0
 milestone_name: milestone
-status: phase_2.5_complete
-stopped_at: Phase 2.5 complete (2026-04-20). All 4 plans executed; verifier PASS 8/8 (02.5-VERIFICATION.md). Workspace builds cleanly with no --exclude kay-core. Ready to resume Phase 2 remaining plans (02-06..02-10) or advance per ROADMAP.
-last_updated: "2026-04-20T18:00:00Z"
-last_activity: 2026-04-20 -- Phase 2.5 executed end-to-end; 23 forge_* sub-crates + kay-core aggregator landed; CI cleanup merged; ATTRIBUTIONS updated; verifier PASS (commits b2ee10c..23e4a6d)
+status: phase_2_resumed
+stopped_at: Phase 2 resumed at 02-06 (2026-04-20). Plan 02-05 superseded by Phase 2.5 (archived). 02-CONTEXT.md Appendix A captures the 3 post-2.5 substitution rules (kay-core dep → direct forge_* deps, kay_core::forge_X → forge_X, file-path rewrites). Plans 02-06..02-10 remain authored-as-is; substitutions applied as Rule-2 deviations during execution.
+last_updated: "2026-04-20T18:30:00Z"
+last_activity: 2026-04-20 -- Phase 2 realignment after 2.5 closure; 02-05 archived as superseded; 02-CONTEXT.md Appendix A added; ROADMAP updated (9 active plans, was 10)
 progress:
   total_phases: 14
   completed_phases: 2
-  total_plans: 20
+  total_plans: 19
   completed_plans: 19
   percent: 19
 ---
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-19)
 
 **Core value:** Beat ForgeCode on Terminal-Bench 2.0 (>81.8%) as the first OSS agent that pairs a top-10 harness with a native desktop UI.
-**Current focus:** Phase 2 resumption — plans 02-06..02-10 (kay-core sub-crate split unblocked by Phase 2.5)
+**Current focus:** Phase 2 resumption — execute plan 02-06 (kay-provider-openrouter scaffolding) next, then 02-07..02-10
 
 ## Current Position
 
-Phase: Phase 2.5 DONE. Next: Phase 2 plans 02-06..02-10 (remaining Phase-2 work that was blocked on the sub-crate split).
-Status: Phase 2.5 complete and verified (8/8 PASS). `cargo check --workspace` builds cleanly with zero exclusions. 23 forge_* sub-crates + kay-core aggregator in place. CI/docs cleaned of every `--exclude kay-core`. ATTRIBUTIONS.md reflects new layout. Governance invariants pass.
-Last activity: 2026-04-20 -- Phase 2.5 executed end-to-end; verifier PASS at commit 23e4a6d
+Phase: Phase 2 (resumed after Phase 2.5 closure). Next plan to execute: **02-06** (kay-provider-openrouter scaffolding — Provider trait, AgentEvent, ProviderError, crate-wide #![deny(clippy::unwrap_used)]).
+Status: Phase 2.5 complete and verified (8/8 PASS). Plan 02-05 superseded (CI cleanup absorbed into 2.5-04 task 3; mechanical mono-crate rewrite obsolete). Plans 02-06..02-10 targeted against the post-2.5 sub-crate layout via the 3 substitution rules in 02-CONTEXT.md Appendix A. `cargo check --workspace` builds cleanly; kay-provider-openrouter Cargo.toml already has direct forge_* deps (2.5-04 commit 9d6a32a).
+Last activity: 2026-04-20 -- Phase 2 realignment: archived 02-05, added Appendix A realignment rules, updated ROADMAP + STATE
 
-Progress: [██░░░░░░░░░░░░] 19% (2 of 13 phases done incl. 2.5; Phase 2: 4 of 10 plans done + partial 02-05 still outstanding)
+Progress: [██░░░░░░░░░░░░] 19% (2 of 13 phases done; Phase 2: 4 of 9 active plans done — 02-05 superseded)
 
 ## Performance Metrics
 
@@ -105,11 +105,11 @@ Items acknowledged and carried forward:
 |----------|------|--------|-------------|
 | EVAL | EVAL-01a — run unmodified fork on TB 2.0 ≥80% | Blocked on OpenRouter key + ~$100 budget | Phase 1 (D-OP-01) |
 | Compile | kay-core 23 × E0583 (forge_* naming) | RESOLVED in plan 02-02 (2026-04-19, commit bb57694 — 23 renames, R100 on every file) | Phase 1 (01-03-SUMMARY §Deferrals) |
-| Compile | kay-core E0432/E0433 (cross-subtree import paths) | PARTIALLY RESOLVED in plans 02-03+02-04 (2026-04-20, 17 commits 9c515a7..674f0d0 + 1 commit 808edcc — 18 of 23 subtrees rewritten, count 2025→1712). REMAINING 1,712 scheduled for plan 02-05 (forge_services/infra/repo/api/main + --exclude kay-core CI cleanup) | Phase 2 (02-02-SUMMARY §Expected Downstream Errors; 02-03/04-SUMMARY §Next Phase Readiness) |
+| Compile | kay-core E0432/E0433 (cross-subtree import paths) | FULLY RESOLVED by Phase 2.5 sub-crate split (2026-04-20). Plan 02-05's mechanical rewrite was superseded; sub-crate split makes per-crate `use crate::X` correct by construction. `cargo check --workspace` passes with 0 exclusions. | Phase 2 (02-02/03/04-SUMMARY); resolved in 02.5-VERIFICATION.md |
 | Release signing | GPG/SSH signing of release tags | v0.0.x unsigned carve-out; mandatory v0.1.0+ | Phase 1 (SECURITY.md §Release Signing) |
 
 ## Session Continuity
 
-Last session: 2026-04-20 — Phase 2.5 planning complete (4 PLAN.md files authored and verified)
-Stopped at: Phase 2.5 planning complete. Plan-checker passed (iter 3/3). All 4 plans ready to execute: 02.5-01 (revert + resource files), 02.5-02 (Wave-0 sub-crates), 02.5-03 (Wave-1..5 sub-crates), 02.5-04 (forge_main + aggregator + CI cleanup). Final gate: cargo check --workspace --deny warnings with no --exclude flag.
-Resume file: `.planning/phases/02.5-kay-core-sub-crate-split/02.5-01-PLAN.md`
+Last session: 2026-04-20 — Phase 2.5 executed and verified; Phase 2 realigned for resumption
+Stopped at: Phase 2 ready to resume at plan 02-06. Plan 02-05 archived as superseded by Phase 2.5. 02-CONTEXT.md Appendix A documents 3 substitution rules for executor to apply during 02-06..02-10.
+Resume file: `.planning/phases/02-provider-hal-tolerant-json-parser/02-06-PLAN.md` (consult 02-CONTEXT.md Appendix A for post-2.5 substitutions)

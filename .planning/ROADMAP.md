@@ -66,15 +66,15 @@ Plans:
   3. Requests against models outside the Exacto-leaning allowlist are rejected with a typed `ProviderError::ModelNotAllowlisted` — no silent fallback to ICL parsing.
   4. Feeding fragmented, malformed, or null-`arguments` tool-call deltas into the parser yields a valid reassembled tool call (or a typed `ToolCallMalformed` error), never a panic.
   5. A session that crosses its `--max-usd` budget aborts with a user-visible event; 429/503 responses retry with jittered exponential backoff and surface user-visible retry events.
-**Plans**: 10 plans
+**Plans**: 9 active (02-05 superseded by Phase 2.5)
 
 Plans:
 - [x] 02-01-PLAN.md — Wave 0 test scaffolding: dev-deps, MockServer helper, 6 SSE cassettes + allowlist fixture (PROV-01, PROV-04, PROV-05, PROV-07)
 - [x] 02-02-PLAN.md — D-01 Step 1: atomic rename 23 forge_*/lib.rs to mod.rs (PROV-01 prereq)
 - [x] 02-03-PLAN.md — D-01 Step 2 sub-wave A+B+C: 17 leaf + forge_domain + forge_domain-dependent subtrees path-rewritten (PROV-01 prereq)
 - [x] 02-04-PLAN.md — D-01 Step 2 sub-wave forge_app: 212 import rewrites across 83 files, commit 808edcc (PROV-01 prereq)
-- [ ] 02-05-PLAN.md — D-01 Step 2 final + CI cleanup: forge_services/infra/repo/api/main + remove --exclude kay-core from ci/docs/STATE (PROV-01 prereq)
-- [ ] 02-06-PLAN.md — kay-provider-openrouter scaffolding: Cargo.toml deps, Provider trait, AgentEvent, ProviderError, crate-wide #![deny(clippy::unwrap_used)] (PROV-01, PROV-02, PROV-08)
+- [~] 02-05-PLAN.md — **SUPERSEDED by Phase 2.5** (2026-04-20). Mechanical mono-crate rewrite hit structural wall (1323 residual errors); D-01 was revised to Option (c) sub-crate split. CI cleanup portion absorbed into plan 02.5-04 task 3. Archived to `archive/02-05-PLAN.md.superseded`. No replacement plan — plans 02-06..02-10 now target the sub-crate layout directly.
+- [ ] 02-06-PLAN.md — kay-provider-openrouter scaffolding: Cargo.toml deps, Provider trait, AgentEvent, ProviderError, crate-wide #![deny(clippy::unwrap_used)] (PROV-01, PROV-02, PROV-08) *(post-2.5 realigned per 02-CONTEXT.md Appendix A)*
 - [ ] 02-07-PLAN.md — Allowlist gate (PROV-04) + API-key auth (PROV-03) with TM-01 Debug redaction + TM-04 charset validation
 - [ ] 02-08-PLAN.md — OpenRouterProvider impl: UpstreamClient + SSE translator + tool-call reassembly (PROV-01, PROV-02, PROV-05 part 1)
 - [ ] 02-09-PLAN.md — Tolerant two-pass JSON parser (forge_json_repair fallback) + proptest never-panic + 1MB cap (PROV-05, TM-06)
@@ -280,7 +280,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Fork, Governance, Infrastructure | 6/6   | Complete | 2026-04-19 |
-| 2. Provider HAL + Tolerant JSON Parser | 4/10 | Resumable (2.5 unblocks 02-06..02-10) | - |
+| 2. Provider HAL + Tolerant JSON Parser | 4/9 (02-05 superseded by 2.5) | Resumable (02-06..02-10 next) | - |
 | 2.5. kay-core sub-crate split *(INSERTED 2026-04-20)* | 4/4 | Complete (verifier PASS 8/8) | 2026-04-20 |
 | 3. Tool Registry + KIRA Core Tools | 0/TBD | Not started | - |
 | 4. Sandbox (All Three Platforms) | 0/TBD | Not started | - |

@@ -282,6 +282,106 @@ None.
 
 ---
 
+## Appendix A — Post-Phase-2.5 Realignment (added 2026-04-20)
+
+Phase 2.5 (the kay-core sub-crate split, executed 2026-04-20) changed the physical
+layout that plans 02-06..02-10 were authored against. The plans themselves remain
+semantically valid — their decisions (D-01..D-13), target REQ-IDs, task
+decompositions, and type contracts are unchanged. What **has** changed is the
+import-path and dependency surface. During execution of plans 02-06..02-10,
+the executor applies these three mechanical substitution rules wherever a plan
+references the old mono-crate layout:
+
+### Substitution Rule 1 — Cargo.toml `[dependencies]`
+
+Wherever a plan says:
+
+```toml
+kay-core = { path = "../kay-core" }
+```
+
+substitute the specific forge_* sub-crates that plan actually consumes. The
+sub-crate set for `kay-provider-openrouter` (already wired by Phase 2.5-04
+commit `9d6a32a`) is:
+
+```toml
+forge_domain       = { path = "../forge_domain" }
+forge_config       = { path = "../forge_config" }
+forge_services     = { path = "../forge_services" }
+forge_repo         = { path = "../forge_repo" }
+forge_json_repair  = { path = "../forge_json_repair" }
+```
+
+Add `forge_app = { path = "../forge_app" }` only if a plan references
+`forge_app::dto::openai::*` (plan 02-08 does; plan 02-06 does not).
+
+If a plan needs a type that isn't exposed by any of the 6 top-of-DAG crates
+(`forge_api`, `forge_config`, `forge_domain`, `forge_json_repair`, `forge_repo`,
+`forge_services`), consult the 23-crate DAG in `.planning/phases/02.5-kay-core-sub-crate-split/02.5-CONTEXT.md`
+to pick the right leaf sub-crate and add it to Cargo.toml.
+
+### Substitution Rule 2 — Rust `use` paths
+
+Wherever a plan writes:
+
+```rust
+use kay_core::forge_X::Y;
+```
+
+substitute:
+
+```rust
+use forge_X::Y;
+```
+
+(The sub-crate IS `forge_X`; no `kay_core::` prefix.) This applies to every
+`kay_core::forge_*::*` path reference in plans 02-06..02-10 — approximately
+620 references across the phase directory, but every one follows this single
+mechanical rule.
+
+### Substitution Rule 3 — Doc references & file paths
+
+Wherever a plan cites `crates/kay-core/src/forge_X/Y.rs` in `read_first` or
+documentation lines, substitute `crates/forge_X/src/Y.rs`. The file content
+is byte-identical to upstream (governance invariant still holds); only the
+physical path within the workspace has changed.
+
+### What does NOT need substitution
+
+- **`kay-core` the crate itself** is still a valid workspace member — now an
+  aggregator re-exporter with 6 `pub extern crate forge_*` lines. Plans may
+  still say "kay-core aggregates the forge_* crates" descriptively.
+- **Decision IDs (D-01..D-13)**, type contracts (ProviderError, AgentEvent,
+  Provider trait), REQ-ID mapping, task acceptance criteria — unchanged.
+- **Phase 2.5 added dep version bumps** (reedline 0.47, humantime 2.1,
+  convert_case 0.11, strum 0.28, update-informer pinned). These are already in
+  the workspace Cargo.toml and need no re-application.
+- **`crates/kay-provider-openrouter/Cargo.toml`** — already has the correct
+  direct forge_* deps (committed in Phase 2.5-04 task 2, `9d6a32a`). Plan
+  02-06 Task 1 is reduced to "add backon, async-trait, futures, tokio-stream"
+  since the forge_* deps are already present.
+
+### Deviation recording during execution
+
+When the executor encounters a mismatch between a plan's literal text and
+the post-2.5 reality (e.g. plan says `kay-core = { path = "../kay-core" }`
+but Cargo.toml already shows the direct deps), it applies the relevant rule
+above and records it as a **Rule-2 deviation** (plan text superseded by
+post-phase realignment) in the plan's SUMMARY.md `<deviations>` section.
+Do NOT modify the PLAN.md itself — leave the plan as authored and record
+all substitutions in SUMMARY.md for traceability.
+
+### Plan 02-05 supersession
+
+Plan 02-05 (mechanical mono-crate path rewrite for forge_services / _infra /
+_repo / _api / _main + CI cleanup) is **superseded** by Phase 2.5 and
+archived at `archive/02-05-PLAN.md.superseded`. Its CI cleanup scope (remove
+`--exclude kay-core`) was executed in plan 02.5-04 task 3. No replacement
+plan; plans 02-06..02-10 target the sub-crate layout directly.
+
+---
+
 *Phase: 02-provider-hal-tolerant-json-parser*
 *Context gathered: 2026-04-20*
 *Mode: auto-resolved per user "proceed autonomously" directive; every decision traceable to prior phase artifacts or explicit REQ-IDs*
+*Appendix A added: 2026-04-20 — post-Phase-2.5 realignment (3 substitution rules)*
