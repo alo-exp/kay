@@ -262,9 +262,13 @@ where
                     },
                 };
                 // Grep-verified: AgentEvent::Retry emission before sleep.
+                // `Duration::as_millis()` returns `u128`; saturate rather
+                // than truncate so future raises of `max_delay` or changes
+                // to the Retry-After parser do not hide overflow behind a
+                // lossy `as u64` cast (REVIEW LO-03).
                 pre_events.push(AgentEvent::Retry {
                     attempt,
-                    delay_ms: delay.as_millis() as u64,
+                    delay_ms: u64::try_from(delay.as_millis()).unwrap_or(u64::MAX),
                     reason,
                 });
                 tokio::time::sleep(delay).await;
