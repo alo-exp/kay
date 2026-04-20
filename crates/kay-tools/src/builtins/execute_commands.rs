@@ -335,12 +335,25 @@ async fn terminate_with_grace(child: &mut Child, grace_secs: u64) {
         // Per D-05: use killpg (positive pgid) to target the process group.
         // Spawned with process_group(0) so child.id() == pgid; shell-spawned
         // descendants inherit the pgid and receive SIGTERM.
-        send_sigterm_to_group(child);
-        if tokio::time::timeout(Duration::from_secs(grace_secs), child.wait())
-            .await
-            .is_err()
-        {
-            escalate_sigkill_and_reap(child).await;
+        //
+        // H-01 (SHELL-04): capture the pgid BEFORE wait() so we can still
+        // issue the SIGKILL escalation even if the shell LEADER died from
+        // SIGTERM while grandchildren in the group ignored it. Without the
+        // unconditional SIGKILL on the pgid below, orphaned descendants are
+        // reparented to PID 1 and survive the cascade.
+        let pgid = child.id().map(|p| p as i32);
+        send_sigterm_to_group_with_pgid(pgid);
+        let leader_exited =
+            tokio::time::timeout(Duration::from_secs(grace_secs), child.wait())
+                .await
+                .is_ok();
+        // Always escalate to SIGKILL on the pgid to sweep up any grandchild
+        // that ignored SIGTERM — even if the leader is already dead. This
+        // is a no-op when the group is fully drained (ESRCH is ignored).
+        escalate_sigkill_on_pgid(pgid);
+        if !leader_exited {
+            // Leader still hanging — reap it now that SIGKILL has landed.
+            let _ = child.wait().await;
         }
     }
     #[cfg(windows)]
@@ -356,22 +369,31 @@ async fn terminate_with_grace(child: &mut Child, grace_secs: u64) {
 /// Split-helper (a): SIGTERM the process group via `killpg`.
 /// Spawned with `process_group(0)` so `child.id() == pgid`.
 #[cfg(unix)]
-fn send_sigterm_to_group(child: &tokio::process::Child) {
+fn send_sigterm_to_group_with_pgid(pgid: Option<i32>) {
     use nix::sys::signal::{Signal, killpg};
     use nix::unistd::Pid;
-    if let Some(pid_u32) = child.id() {
-        let _ = killpg(Pid::from_raw(pid_u32 as i32), Signal::SIGTERM);
+    if let Some(p) = pgid {
+        let _ = killpg(Pid::from_raw(p), Signal::SIGTERM);
     }
 }
 
-/// Split-helper (b): SIGKILL escalation + waitpid reap.
-/// Called after the SIGTERM grace window expires.
+/// Split-helper (b): SIGKILL escalation on the process group.
+///
+/// Mirrors `send_sigterm_to_group_with_pgid`: we deliver SIGKILL to the
+/// process GROUP (killpg with the positive pgid), not just the shell
+/// leader. Calling `child.start_kill()` would only target the leader's
+/// PID, leaving any grandchildren that ignored SIGTERM alive and
+/// reparented to PID 1 (SHELL-04 requirement — see H-01 regression test).
 #[cfg(unix)]
-async fn escalate_sigkill_and_reap(child: &mut tokio::process::Child) {
-    // child.start_kill() sends SIGKILL on Unix; cannot be caught.
-    let _ = child.start_kill();
-    // Reap to avoid zombies — tokio's Child::wait() calls waitpid.
-    let _ = child.wait().await;
+fn escalate_sigkill_on_pgid(pgid: Option<i32>) {
+    use nix::sys::signal::{Signal, killpg};
+    use nix::unistd::Pid;
+    if let Some(p) = pgid {
+        // ESRCH (no such process group) is expected when the group is
+        // fully drained — we swallow it. Any other errno is also swallowed
+        // because there's no meaningful recovery at this point.
+        let _ = killpg(Pid::from_raw(p), Signal::SIGKILL);
+    }
 }
 
 // --- PTY path ------------------------------------------------------------
