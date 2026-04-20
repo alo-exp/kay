@@ -33,10 +33,7 @@ impl SandboxPolicy {
         Self {
             write_roots: vec![project_root],
             read_deny_list,
-            network_allowlist: vec![NetAllow {
-                host: "openrouter.ai".to_string(),
-                port: 443,
-            }],
+            network_allowlist: vec![NetAllow { host: "openrouter.ai".to_string(), port: 443 }],
         }
     }
 
@@ -45,7 +42,10 @@ impl SandboxPolicy {
     }
 
     pub fn allows_read(&self, path: &Path) -> bool {
-        !self.read_deny_list.iter().any(|deny| path.starts_with(deny))
+        !self
+            .read_deny_list
+            .iter()
+            .any(|deny| path.starts_with(deny))
     }
 
     pub fn allows_net(&self, host: &str, port: u16) -> bool {
@@ -106,6 +106,9 @@ mod tests {
         let json = serde_json::to_string(&policy).unwrap();
         let decoded: SandboxPolicy = serde_json::from_str(&json).unwrap();
         assert_eq!(decoded.write_roots, policy.write_roots);
-        assert_eq!(decoded.network_allowlist.len(), policy.network_allowlist.len());
+        assert_eq!(
+            decoded.network_allowlist.len(),
+            policy.network_allowlist.len()
+        );
     }
 }

@@ -54,8 +54,8 @@ const SIGTERM_GRACE_SECS: u64 = 2;
 /// htop, vim, nano, less, top, tmux, screen. Extended with common
 /// interactive tools (ssh, sudo, docker, nvim, watch, psql, mysql, sqlite3).
 const PTY_REQUIRING_FIRST_TOKENS: &[&str] = &[
-    "ssh", "sudo", "docker", "less", "more", "vim", "nvim", "nano", "top", "htop", "watch",
-    "psql", "mysql", "sqlite3", "tmux", "screen",
+    "ssh", "sudo", "docker", "less", "more", "vim", "nvim", "nano", "top", "htop", "watch", "psql",
+    "mysql", "sqlite3", "tmux", "screen",
 ];
 
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
@@ -167,11 +167,9 @@ impl Tool for ExecuteCommandsTool {
         } else {
             args
         };
-        let input: ExecuteCommandsInput =
-            serde_json::from_value(args).map_err(|e| ToolError::InvalidArgs {
-                tool: self.name.clone(),
-                reason: e.to_string(),
-            })?;
+        let input: ExecuteCommandsInput = serde_json::from_value(args).map_err(|e| {
+            ToolError::InvalidArgs { tool: self.name.clone(), reason: e.to_string() }
+        })?;
 
         // SHELL-05 defense-in-depth: reject commands that carry a marker
         // substring. The model cannot rationally need this.
@@ -242,12 +240,14 @@ async fn run_piped(
     }
 
     let mut child = cmd.spawn()?;
-    let stdout = child.stdout.take().ok_or_else(|| {
-        ToolError::Io(std::io::Error::other("no stdout pipe"))
-    })?;
-    let stderr = child.stderr.take().ok_or_else(|| {
-        ToolError::Io(std::io::Error::other("no stderr pipe"))
-    })?;
+    let stdout = child
+        .stdout
+        .take()
+        .ok_or_else(|| ToolError::Io(std::io::Error::other("no stdout pipe")))?;
+    let stderr = child
+        .stderr
+        .take()
+        .ok_or_else(|| ToolError::Io(std::io::Error::other("no stderr pipe")))?;
 
     // stream_sink is a sync Fn; we clone the Arc into each reader task.
     let sink_stdout = Arc::clone(&ctx.stream_sink);
@@ -302,10 +302,7 @@ async fn run_piped(
             };
             (ctx.stream_sink)(AgentEvent::ToolOutput {
                 call_id: call_id.to_string(),
-                chunk: ToolOutputChunk::Closed {
-                    exit_code,
-                    marker_detected,
-                },
+                chunk: ToolOutputChunk::Closed { exit_code, marker_detected },
             });
             Ok(ToolOutput::text(format!(
                 "exit_code={} marker_detected={}",
@@ -320,15 +317,9 @@ async fn run_piped(
             terminate_with_grace(&mut child, SIGTERM_GRACE_SECS).await;
             (ctx.stream_sink)(AgentEvent::ToolOutput {
                 call_id: call_id.to_string(),
-                chunk: ToolOutputChunk::Closed {
-                    exit_code: None,
-                    marker_detected: false,
-                },
+                chunk: ToolOutputChunk::Closed { exit_code: None, marker_detected: false },
             });
-            Err(ToolError::Timeout {
-                tool: tool.name.clone(),
-                elapsed: tool.timeout,
-            })
+            Err(ToolError::Timeout { tool: tool.name.clone(), elapsed: tool.timeout })
         }
     }
 }
@@ -347,10 +338,9 @@ async fn terminate_with_grace(child: &mut Child, grace_secs: u64) {
         // reparented to PID 1 and survive the cascade.
         let pgid = child.id().map(|p| p as i32);
         send_sigterm_to_group_with_pgid(pgid);
-        let leader_exited =
-            tokio::time::timeout(Duration::from_secs(grace_secs), child.wait())
-                .await
-                .is_ok();
+        let leader_exited = tokio::time::timeout(Duration::from_secs(grace_secs), child.wait())
+            .await
+            .is_ok();
         // Always escalate to SIGKILL on the pgid to sweep up any grandchild
         // that ignored SIGTERM — even if the leader is already dead. This
         // is a no-op when the group is fully drained (ESRCH is ignored).
@@ -414,12 +404,7 @@ async fn run_pty(
 
     let pty_system = native_pty_system();
     let pair = pty_system
-        .openpty(PtySize {
-            rows: 24,
-            cols: 80,
-            pixel_width: 0,
-            pixel_height: 0,
-        })
+        .openpty(PtySize { rows: 24, cols: 80, pixel_width: 0, pixel_height: 0 })
         .map_err(|e| ToolError::Io(std::io::Error::other(format!("openpty: {e}"))))?;
 
     #[cfg(unix)]
@@ -448,18 +433,23 @@ async fn run_pty(
         }
     }
 
-    let mut child = pair.slave.spawn_command(builder).map_err(|e| {
-        ToolError::Io(std::io::Error::other(format!("spawn_command: {e}")))
-    })?;
+    let mut child = pair
+        .slave
+        .spawn_command(builder)
+        .map_err(|e| ToolError::Io(std::io::Error::other(format!("spawn_command: {e}"))))?;
     // M-03: capture the child's PID before clone_killer / wait so the
     // timeout path can deliver a SIGTERM grace window before SIGKILL
     // (parity with the run_piped cascade). portable-pty calls setsid()
-    // in the child, making its PID == its own PGID on Unix.
+    // in the child, making its PID == its own PGID on Unix. Gated to
+    // unix because only the unix timeout path uses it (Windows relies
+    // on portable-pty's killer alone — see lines ~535-540).
+    #[cfg(unix)]
     let pty_pid: Option<i32> = child.process_id().map(|p| p as i32);
     let mut killer = child.clone_killer();
-    let mut reader = pair.master.try_clone_reader().map_err(|e| {
-        ToolError::Io(std::io::Error::other(format!("clone_reader: {e}")))
-    })?;
+    let mut reader = pair
+        .master
+        .try_clone_reader()
+        .map_err(|e| ToolError::Io(std::io::Error::other(format!("clone_reader: {e}"))))?;
     // M-04: drop master IMMEDIATELY so the slave's stdin sees EOF right
     // after spawn — Kay's agent-driven PTY path does not feed interactive
     // input today (no stdin producer). For stdin-free commands (`ssh -V`,
@@ -550,24 +540,15 @@ async fn run_pty(
             let _ = killer.kill();
             (ctx.stream_sink)(AgentEvent::ToolOutput {
                 call_id: call_id.to_string(),
-                chunk: ToolOutputChunk::Closed {
-                    exit_code: None,
-                    marker_detected: false,
-                },
+                chunk: ToolOutputChunk::Closed { exit_code: None, marker_detected: false },
             });
-            return Err(ToolError::Timeout {
-                tool: tool.name.clone(),
-                elapsed: tool.timeout,
-            });
+            return Err(ToolError::Timeout { tool: tool.name.clone(), elapsed: tool.timeout });
         }
     };
 
     (ctx.stream_sink)(AgentEvent::ToolOutput {
         call_id: call_id.to_string(),
-        chunk: ToolOutputChunk::Closed {
-            exit_code,
-            marker_detected,
-        },
+        chunk: ToolOutputChunk::Closed { exit_code, marker_detected },
     });
 
     Ok(ToolOutput::text(format!(
@@ -605,7 +586,10 @@ mod tests {
     fn construct_produces_hardened_schema() {
         let t = ExecuteCommandsTool::new(PathBuf::from("/tmp"));
         let obj = t.input_schema.as_object().expect("schema is object");
-        assert_eq!(obj.get("additionalProperties"), Some(&serde_json::json!(false)));
+        assert_eq!(
+            obj.get("additionalProperties"),
+            Some(&serde_json::json!(false))
+        );
         assert!(obj.get("required").is_some());
     }
 }

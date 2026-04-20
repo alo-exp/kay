@@ -106,21 +106,23 @@ impl Tool for ImageReadTool {
         ctx: &ToolCallContext,
         _call_id: &str,
     ) -> Result<ToolOutput, ToolError> {
-        let args = if args.is_null() { serde_json::json!({}) } else { args };
-        let input: ImageReadArgs =
-            serde_json::from_value(args).map_err(|e| ToolError::InvalidArgs {
-                tool: self.name.clone(),
-                reason: e.to_string(),
-            })?;
+        let args = if args.is_null() {
+            serde_json::json!({})
+        } else {
+            args
+        };
+        let input: ImageReadArgs = serde_json::from_value(args).map_err(|e| {
+            ToolError::InvalidArgs { tool: self.name.clone(), reason: e.to_string() }
+        })?;
 
         // Reserve a quota slot BEFORE touching the filesystem — a
         // failed read shouldn't consume quota.
-        self.quota.try_consume().map_err(|scope| {
-            ToolError::ImageCapExceeded {
+        self.quota
+            .try_consume()
+            .map_err(|scope| ToolError::ImageCapExceeded {
                 scope,
                 limit: self.quota.limit_for(scope),
-            }
-        })?;
+            })?;
 
         let path_buf = std::path::PathBuf::from(&input.path);
         let mime = detect_mime(&path_buf).ok_or_else(|| ToolError::InvalidArgs {
@@ -158,10 +160,7 @@ impl Tool for ImageReadTool {
         // Emit the ImageRead event BEFORE the base64 encoding so
         // downstream consumers receive the raw bytes. The returned
         // ToolOutput carries the data-URI form for the model to consume.
-        (ctx.stream_sink)(AgentEvent::ImageRead {
-            path: input.path.clone(),
-            bytes: bytes.clone(),
-        });
+        (ctx.stream_sink)(AgentEvent::ImageRead { path: input.path.clone(), bytes: bytes.clone() });
 
         let encoded = BASE64.encode(&bytes);
         Ok(ToolOutput::text(format!("data:{mime};base64,{encoded}")))
@@ -178,7 +177,10 @@ mod tests {
         let t = ImageReadTool::new(Arc::new(crate::quota::ImageQuota::new(2, 20)));
         let schema = t.input_schema();
         let obj = schema.as_object().expect("object");
-        assert_eq!(obj.get("additionalProperties"), Some(&serde_json::json!(false)));
+        assert_eq!(
+            obj.get("additionalProperties"),
+            Some(&serde_json::json!(false))
+        );
         assert!(obj.get("required").is_some());
     }
 

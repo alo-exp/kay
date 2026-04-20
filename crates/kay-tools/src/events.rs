@@ -28,7 +28,6 @@ use crate::seams::verifier::VerificationOutcome;
 #[derive(Debug)]
 pub enum AgentEvent {
     // -- Existing Phase 2 variants (UNCHANGED — D-08 parity guarantee) ----
-
     /// Streaming text chunk from the model's content channel.
     TextDelta { content: String },
 
@@ -78,7 +77,6 @@ pub enum AgentEvent {
     Error { error: ProviderError },
 
     // -- Phase 3 additive variants (D-08) --------------------------------
-
     /// Streamed output chunk from a running tool. Emitted during tool
     /// execution (typically `execute_commands`); one event per chunk plus
     /// a terminal `Closed` chunk. Phase 3 SHELL-03.
@@ -188,10 +186,7 @@ mod phase3_additions {
 
         let ev_closed = AgentEvent::ToolOutput {
             call_id: "c".to_string(),
-            chunk: ToolOutputChunk::Closed {
-                exit_code: Some(0),
-                marker_detected: true,
-            },
+            chunk: ToolOutputChunk::Closed { exit_code: Some(0), marker_detected: true },
         };
         let dbg_c = format!("{ev_closed:?}");
         assert!(dbg_c.contains("Closed"), "missing Closed: {dbg_c}");
@@ -203,13 +198,13 @@ mod phase3_additions {
 
         let ev_none = AgentEvent::ToolOutput {
             call_id: "c".to_string(),
-            chunk: ToolOutputChunk::Closed {
-                exit_code: None,
-                marker_detected: false,
-            },
+            chunk: ToolOutputChunk::Closed { exit_code: None, marker_detected: false },
         };
         let dbg_n = format!("{ev_none:?}");
-        assert!(dbg_n.contains("exit_code: None"), "missing None exit: {dbg_n}");
+        assert!(
+            dbg_n.contains("exit_code: None"),
+            "missing None exit: {dbg_n}"
+        );
         assert!(
             dbg_n.contains("marker_detected: false"),
             "missing false marker: {dbg_n}"
@@ -223,15 +218,13 @@ mod phase3_additions {
         let ev = AgentEvent::TaskComplete {
             call_id: "c1".to_string(),
             verified: false,
-            outcome: VerificationOutcome::Pending {
-                reason: "wave 2 stub".to_string(),
-            },
+            outcome: VerificationOutcome::Pending { reason: "wave 2 stub".to_string() },
         };
-        if let AgentEvent::TaskComplete {
-            verified, outcome, ..
-        } = &ev
-        {
-            assert!(!*verified, "Phase 3 NoOpVerifier never reports verified=true");
+        if let AgentEvent::TaskComplete { verified, outcome, .. } = &ev {
+            assert!(
+                !*verified,
+                "Phase 3 NoOpVerifier never reports verified=true"
+            );
             assert!(
                 matches!(outcome, VerificationOutcome::Pending { .. }),
                 "expected Pending outcome, got {outcome:?}"
@@ -272,7 +265,10 @@ mod phase3_additions {
         assert!(dbg.contains("cid-42"), "missing call_id: {dbg}");
         assert!(dbg.contains("fs_write"), "missing tool_name: {dbg}");
         assert!(dbg.contains("/etc/passwd"), "missing resource: {dbg}");
-        assert!(dbg.contains("write-outside-project-root"), "missing policy_rule: {dbg}");
+        assert!(
+            dbg.contains("write-outside-project-root"),
+            "missing policy_rule: {dbg}"
+        );
         assert!(dbg.contains("13"), "missing os_error: {dbg}");
     }
 
@@ -303,30 +299,19 @@ mod phase3_additions {
             },
             AgentEvent::ToolOutput {
                 call_id: "c".into(),
-                chunk: ToolOutputChunk::Closed {
-                    exit_code: Some(0),
-                    marker_detected: true,
-                },
+                chunk: ToolOutputChunk::Closed { exit_code: Some(0), marker_detected: true },
             },
             AgentEvent::TaskComplete {
                 call_id: "c".into(),
                 verified: false,
-                outcome: VerificationOutcome::Pending {
-                    reason: "p".into(),
-                },
+                outcome: VerificationOutcome::Pending { reason: "p".into() },
             },
-            AgentEvent::ImageRead {
-                path: "/tmp/i.png".into(),
-                bytes: vec![0xff],
-            },
+            AgentEvent::ImageRead { path: "/tmp/i.png".into(), bytes: vec![0xff] },
         ];
         assert!(matches!(&seq[0], AgentEvent::ToolOutput { .. }));
         assert!(matches!(
             &seq[1],
-            AgentEvent::ToolOutput {
-                chunk: ToolOutputChunk::Closed { .. },
-                ..
-            }
+            AgentEvent::ToolOutput { chunk: ToolOutputChunk::Closed { .. }, .. }
         ));
         assert!(matches!(&seq[2], AgentEvent::TaskComplete { .. }));
         assert!(matches!(&seq[3], AgentEvent::ImageRead { .. }));

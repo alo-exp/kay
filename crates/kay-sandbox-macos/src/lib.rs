@@ -33,10 +33,7 @@ impl KaySandboxMacos {
     pub fn new(policy: SandboxPolicy) -> Result<Self, SandboxError> {
         which_sandbox_exec()?;
         let cached_profile = Arc::from(build_sbpl_profile(&policy));
-        Ok(Self {
-            policy: Arc::new(policy),
-            cached_profile,
-        })
+        Ok(Self { policy: Arc::new(policy), cached_profile })
     }
 
     /// Build a sandboxed `std::process::Command` wrapping `command` in
@@ -154,7 +151,10 @@ mod tests {
     #[test]
     fn test_new_returns_ok_on_macos() {
         let result = KaySandboxMacos::new(test_policy());
-        assert!(result.is_ok(), "KaySandboxMacos::new should succeed: {result:?}");
+        assert!(
+            result.is_ok(),
+            "KaySandboxMacos::new should succeed: {result:?}"
+        );
     }
 
     #[cfg(target_os = "macos")]
@@ -211,9 +211,9 @@ mod tests {
 
         fn escape_sandbox() -> KaySandboxMacos {
             std::fs::create_dir_all("/tmp/kay_escape_test").ok();
-            KaySandboxMacos::new(SandboxPolicy::default_for_project(
-                PathBuf::from("/tmp/kay_escape_test"),
-            ))
+            KaySandboxMacos::new(SandboxPolicy::default_for_project(PathBuf::from(
+                "/tmp/kay_escape_test",
+            )))
             .expect("KaySandboxMacos::new failed in escape test")
         }
 

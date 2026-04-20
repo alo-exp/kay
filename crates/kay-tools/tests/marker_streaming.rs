@@ -27,18 +27,13 @@ async fn marker_detected_closes_stream() {
     let mut saw_closed = false;
     for ev in &events {
         match ev {
-            AgentEvent::ToolOutput {
-                chunk: ToolOutputChunk::Stdout(s),
-                ..
-            } if s.contains("hello") => {
+            AgentEvent::ToolOutput { chunk: ToolOutputChunk::Stdout(s), .. }
+                if s.contains("hello") =>
+            {
                 saw_stdout = true;
             }
             AgentEvent::ToolOutput {
-                chunk:
-                    ToolOutputChunk::Closed {
-                        exit_code: Some(0),
-                        marker_detected: true,
-                    },
+                chunk: ToolOutputChunk::Closed { exit_code: Some(0), marker_detected: true },
                 ..
             } => {
                 saw_closed = true;
@@ -68,10 +63,9 @@ async fn streams_multiple_lines_in_order() {
     let stdout_payloads: Vec<String> = events
         .iter()
         .filter_map(|ev| match ev {
-            AgentEvent::ToolOutput {
-                chunk: ToolOutputChunk::Stdout(s),
-                ..
-            } => Some(s.trim().to_string()),
+            AgentEvent::ToolOutput { chunk: ToolOutputChunk::Stdout(s), .. } => {
+                Some(s.trim().to_string())
+            }
             _ => None,
         })
         .collect();
@@ -91,13 +85,13 @@ async fn streams_multiple_lines_in_order() {
         matches!(
             ev,
             AgentEvent::ToolOutput {
-                chunk: ToolOutputChunk::Closed {
-                    marker_detected: true,
-                    ..
-                },
+                chunk: ToolOutputChunk::Closed { marker_detected: true, .. },
                 ..
             }
         )
     });
-    assert!(closed_ok, "expected Closed{{marker:true}}; events={events:?}");
+    assert!(
+        closed_ok,
+        "expected Closed{{marker:true}}; events={events:?}"
+    );
 }

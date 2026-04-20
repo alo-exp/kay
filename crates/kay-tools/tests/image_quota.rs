@@ -16,9 +16,7 @@
 
 use std::sync::Arc;
 
-use kay_tools::{
-    AgentEvent, CapScope, ImageQuota, ImageReadTool, Tool, ToolError,
-};
+use kay_tools::{AgentEvent, CapScope, ImageQuota, ImageReadTool, Tool, ToolError};
 use serde_json::json;
 use tempfile::TempDir;
 

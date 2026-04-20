@@ -51,9 +51,7 @@ impl TaskCompleteTool {
             .unwrap_or_else(|_| serde_json::json!({ "type": "object" }));
         harden_tool_schema(
             &mut schema,
-            &TruncationHints {
-                output_truncation_note: None,
-            },
+            &TruncationHints { output_truncation_note: None },
         );
         Self { name, description, input_schema: schema }
     }
@@ -87,12 +85,14 @@ impl Tool for TaskCompleteTool {
         ctx: &ToolCallContext,
         call_id: &str,
     ) -> Result<ToolOutput, ToolError> {
-        let args = if args.is_null() { serde_json::json!({}) } else { args };
-        let input: TaskCompleteArgs =
-            serde_json::from_value(args).map_err(|e| ToolError::InvalidArgs {
-                tool: self.name.clone(),
-                reason: e.to_string(),
-            })?;
+        let args = if args.is_null() {
+            serde_json::json!({})
+        } else {
+            args
+        };
+        let input: TaskCompleteArgs = serde_json::from_value(args).map_err(|e| {
+            ToolError::InvalidArgs { tool: self.name.clone(), reason: e.to_string() }
+        })?;
 
         let outcome = ctx.verifier.verify(&input.summary).await;
         let verified = matches!(outcome, VerificationOutcome::Pass { .. });
@@ -118,7 +118,10 @@ mod tests {
         let t = TaskCompleteTool::new();
         let schema = t.input_schema();
         let obj = schema.as_object().expect("object");
-        assert_eq!(obj.get("additionalProperties"), Some(&serde_json::json!(false)));
+        assert_eq!(
+            obj.get("additionalProperties"),
+            Some(&serde_json::json!(false))
+        );
         assert!(obj.get("required").is_some());
     }
 
@@ -131,19 +134,13 @@ mod tests {
     #[test]
     fn outcome_body_formats_each_variant() {
         assert!(
-            outcome_body(&VerificationOutcome::Pending {
-                reason: "x".into(),
-            })
-            .contains("pending")
+            outcome_body(&VerificationOutcome::Pending { reason: "x".into() }).contains("pending")
         );
         assert!(
             outcome_body(&VerificationOutcome::Pass { note: "ok".into() }).contains("verified")
         );
         assert!(
-            outcome_body(&VerificationOutcome::Fail {
-                reason: "bad".into(),
-            })
-            .contains("failed")
+            outcome_body(&VerificationOutcome::Fail { reason: "bad".into() }).contains("failed")
         );
     }
 }

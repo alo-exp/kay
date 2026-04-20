@@ -31,7 +31,9 @@ impl RngSeam for DeterministicRng {
         let mut state = self.seed;
         let mut bytes = vec![0u8; len];
         for b in &mut bytes {
-            state = state.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+            state = state
+                .wrapping_mul(6364136223846793005)
+                .wrapping_add(1442695040888963407);
             *b = (state >> 33) as u8;
         }
         hex::encode(&bytes)

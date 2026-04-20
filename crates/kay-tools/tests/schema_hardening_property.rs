@@ -6,9 +6,9 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use kay_tools::{harden_tool_schema, TruncationHints};
+use kay_tools::{TruncationHints, harden_tool_schema};
 use proptest::prelude::*;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 
 /// Alphabet used for property-name generation — small to force
 /// collisions that exercise the sort-stable required-array contract.
@@ -79,7 +79,13 @@ fn verbatim_delegation_on_empty_object() {
     assert_strict_invariants(&schema);
 
     let obj = schema.as_object().unwrap();
-    assert!(obj.get("properties").unwrap().as_object().unwrap().is_empty());
+    assert!(
+        obj.get("properties")
+            .unwrap()
+            .as_object()
+            .unwrap()
+            .is_empty()
+    );
     assert!(obj.get("required").unwrap().as_array().unwrap().is_empty());
 }
 

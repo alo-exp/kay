@@ -70,12 +70,16 @@ impl ImageQuota {
         // Saturating: if for some reason the counter is already 0 we
         // refuse to wrap around. `fetch_update` lets us do this in one
         // atomic op.
-        let _ = self.per_turn.fetch_update(Ordering::AcqRel, Ordering::Acquire, |n| {
-            Some(n.saturating_sub(1))
-        });
-        let _ = self.per_session.fetch_update(Ordering::AcqRel, Ordering::Acquire, |n| {
-            Some(n.saturating_sub(1))
-        });
+        let _ = self
+            .per_turn
+            .fetch_update(Ordering::AcqRel, Ordering::Acquire, |n| {
+                Some(n.saturating_sub(1))
+            });
+        let _ = self
+            .per_session
+            .fetch_update(Ordering::AcqRel, Ordering::Acquire, |n| {
+                Some(n.saturating_sub(1))
+            });
     }
 
     /// Observability helper for tests — current per-turn count.

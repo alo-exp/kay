@@ -14,10 +14,10 @@ use std::path::Path;
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use kay_sandbox_policy::SandboxPolicy;
 use kay_sandbox_policy::rules::{
     RULE_NET_NOT_ALLOWLISTED, RULE_READ_DENIED_PATH, RULE_WRITE_OUTSIDE_ROOT,
 };
-use kay_sandbox_policy::SandboxPolicy;
 use kay_tools::seams::sandbox::{Sandbox, SandboxDenial};
 use url::Url;
 
@@ -37,10 +37,7 @@ impl KaySandboxLinux {
                  Full filesystem path enforcement requires kernel 5.13+."
             );
         }
-        Self {
-            policy: Arc::new(policy),
-            landlock_available,
-        }
+        Self { policy: Arc::new(policy), landlock_available }
     }
 
     pub fn landlock_available(&self) -> bool {

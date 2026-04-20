@@ -21,11 +21,8 @@ async fn phase3_events_flow_through_registry_dispatch() {
         outcome: VerificationOutcome::Pending { reason: "p".into() },
     })
     .unwrap();
-    tx.send(AgentEvent::ImageRead {
-        path: "/tmp/x.png".into(),
-        bytes: vec![0x89],
-    })
-    .unwrap();
+    tx.send(AgentEvent::ImageRead { path: "/tmp/x.png".into(), bytes: vec![0x89] })
+        .unwrap();
     drop(tx);
 
     let e1 = rx.recv().await.expect("first event");

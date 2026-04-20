@@ -1,7 +1,5 @@
 //! Dispatcher — registry lookup + invoke (R-5 / Phase 5 entry point).
 
-use std::sync::Arc;
-
 use forge_domain::{ToolName, ToolOutput};
 use serde_json::Value;
 

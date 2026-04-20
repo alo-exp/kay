@@ -73,10 +73,7 @@ mod tests {
 
     #[test]
     fn image_cap_exceeded_display_names_scope() {
-        let e = ToolError::ImageCapExceeded {
-            scope: CapScope::PerTurn,
-            limit: 2,
-        };
+        let e = ToolError::ImageCapExceeded { scope: CapScope::PerTurn, limit: 2 };
         let s = format!("{e}");
         assert!(s.contains("PerTurn"), "display: {s}");
         assert!(s.contains('2'), "display: {s}");

@@ -59,20 +59,20 @@ impl Tool for FsSearchTool {
         ctx: &ToolCallContext,
         _call_id: &str,
     ) -> Result<ToolOutput, ToolError> {
-        let args = if args.is_null() { serde_json::json!({}) } else { args };
-        let input: FSSearch =
-            serde_json::from_value(args).map_err(|e| ToolError::InvalidArgs {
-                tool: self.name.clone(),
-                reason: e.to_string(),
-            })?;
+        let args = if args.is_null() {
+            serde_json::json!({})
+        } else {
+            args
+        };
+        let input: FSSearch = serde_json::from_value(args).map_err(|e| ToolError::InvalidArgs {
+            tool: self.name.clone(),
+            reason: e.to_string(),
+        })?;
 
         ctx.services
             .fs_search(input)
             .await
-            .map_err(|e| ToolError::ExecutionFailed {
-                tool: self.name.clone(),
-                source: e,
-            })
+            .map_err(|e| ToolError::ExecutionFailed { tool: self.name.clone(), source: e })
     }
 }
 
@@ -86,7 +86,10 @@ mod tests {
         let t = FsSearchTool::new();
         let schema = t.input_schema();
         let obj = schema.as_object().expect("object");
-        assert_eq!(obj.get("additionalProperties"), Some(&serde_json::json!(false)));
+        assert_eq!(
+            obj.get("additionalProperties"),
+            Some(&serde_json::json!(false))
+        );
         assert!(obj.get("required").is_some());
     }
 

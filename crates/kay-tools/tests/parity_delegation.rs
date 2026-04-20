@@ -25,7 +25,7 @@ use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
 use forge_app::{
-    Content, FsReadService, FsSearchService, FsWriteService, FsWriteOutput, HttpResponse, Match,
+    Content, FsReadService, FsSearchService, FsWriteOutput, FsWriteService, HttpResponse, Match,
     MatchResult, NetFetchService, ReadOutput, ResponseContext, SearchResult,
 };
 use forge_domain::{FSSearch, FileInfo, ToolOutput};
@@ -33,8 +33,7 @@ use kay_tools::forge_bridge::{
     format_fetch_output, format_read_output, format_search_output, format_write_output,
 };
 use kay_tools::{
-    FsReadTool, FsSearchTool, FsWriteTool, ForgeServicesFacade, NetFetchTool, Tool,
-    ToolCallContext,
+    ForgeServicesFacade, FsReadTool, FsSearchTool, FsWriteTool, NetFetchTool, Tool, ToolCallContext,
 };
 use pretty_assertions::assert_eq;
 use serde_json::json;
@@ -146,23 +145,19 @@ fn clone_write_output(o: &FsWriteOutput) -> FsWriteOutput {
 fn clone_match_result(r: &Option<MatchResult>) -> Option<MatchResult> {
     r.as_ref().map(|r| match r {
         MatchResult::Error(s) => MatchResult::Error(s.clone()),
-        MatchResult::Found { line_number, line } => MatchResult::Found {
-            line_number: *line_number,
-            line: line.clone(),
-        },
+        MatchResult::Found { line_number, line } => {
+            MatchResult::Found { line_number: *line_number, line: line.clone() }
+        }
         MatchResult::Count { count } => MatchResult::Count { count: *count },
         MatchResult::FileMatch => MatchResult::FileMatch,
-        MatchResult::ContextMatch {
-            line_number,
-            line,
-            before_context,
-            after_context,
-        } => MatchResult::ContextMatch {
-            line_number: *line_number,
-            line: line.clone(),
-            before_context: before_context.clone(),
-            after_context: after_context.clone(),
-        },
+        MatchResult::ContextMatch { line_number, line, before_context, after_context } => {
+            MatchResult::ContextMatch {
+                line_number: *line_number,
+                line: line.clone(),
+                before_context: before_context.clone(),
+                after_context: after_context.clone(),
+            }
+        }
     })
 }
 
@@ -171,10 +166,7 @@ fn clone_search(s: &Option<SearchResult>) -> Option<SearchResult> {
         matches: r
             .matches
             .iter()
-            .map(|m| Match {
-                path: m.path.clone(),
-                result: clone_match_result(&m.result),
-            })
+            .map(|m| Match { path: m.path.clone(), result: clone_match_result(&m.result) })
             .collect(),
     })
 }
@@ -259,18 +251,9 @@ async fn fs_read_tool_matches_direct_format() {
             },
             log: log.clone(),
         }),
-        Arc::new(FakeFsWrite {
-            out: write_fixture(),
-            log: log.clone(),
-        }),
-        Arc::new(FakeFsSearch {
-            out: None,
-            log: log.clone(),
-        }),
-        Arc::new(FakeNetFetch {
-            out: http_fixture(),
-            log: log.clone(),
-        }),
+        Arc::new(FakeFsWrite { out: write_fixture(), log: log.clone() }),
+        Arc::new(FakeFsSearch { out: None, log: log.clone() }),
+        Arc::new(FakeNetFetch { out: http_fixture(), log: log.clone() }),
     ));
     let ctx: ToolCallContext = make_ctx_with_services(EventLog::new(), facade);
     let tool: Arc<dyn Tool> = Arc::new(FsReadTool::new());
@@ -293,22 +276,10 @@ async fn fs_write_tool_matches_direct_format() {
     let direct_body = format_write_output(&fixture);
 
     let facade = Arc::new(ForgeServicesFacade::new(
-        Arc::new(FakeFsRead {
-            out: read_fixture(),
-            log: log.clone(),
-        }),
-        Arc::new(FakeFsWrite {
-            out: clone_write_output(&fixture),
-            log: log.clone(),
-        }),
-        Arc::new(FakeFsSearch {
-            out: None,
-            log: log.clone(),
-        }),
-        Arc::new(FakeNetFetch {
-            out: http_fixture(),
-            log: log.clone(),
-        }),
+        Arc::new(FakeFsRead { out: read_fixture(), log: log.clone() }),
+        Arc::new(FakeFsWrite { out: clone_write_output(&fixture), log: log.clone() }),
+        Arc::new(FakeFsSearch { out: None, log: log.clone() }),
+        Arc::new(FakeNetFetch { out: http_fixture(), log: log.clone() }),
     ));
     let ctx = make_ctx_with_services(EventLog::new(), facade);
     let tool: Arc<dyn Tool> = Arc::new(FsWriteTool::new());
@@ -330,40 +301,19 @@ async fn fs_search_tool_matches_direct_format() {
     let direct_body = format_search_output(&fixture);
 
     let facade = Arc::new(ForgeServicesFacade::new(
-        Arc::new(FakeFsRead {
-            out: read_fixture(),
-            log: log.clone(),
-        }),
-        Arc::new(FakeFsWrite {
-            out: write_fixture(),
-            log: log.clone(),
-        }),
-        Arc::new(FakeFsSearch {
-            out: clone_search(&fixture),
-            log: log.clone(),
-        }),
-        Arc::new(FakeNetFetch {
-            out: http_fixture(),
-            log: log.clone(),
-        }),
+        Arc::new(FakeFsRead { out: read_fixture(), log: log.clone() }),
+        Arc::new(FakeFsWrite { out: write_fixture(), log: log.clone() }),
+        Arc::new(FakeFsSearch { out: clone_search(&fixture), log: log.clone() }),
+        Arc::new(FakeNetFetch { out: http_fixture(), log: log.clone() }),
     ));
     let ctx = make_ctx_with_services(EventLog::new(), facade);
     let tool: Arc<dyn Tool> = Arc::new(FsSearchTool::new());
     let args = json!({"pattern": "fn", "path": "/"});
 
     let out = tool.invoke(args, &ctx, "call-3").await.expect("invoke ok");
-    assert_eq!(
-        text(&out),
-        direct_body,
-        "fs_search facade != direct format"
-    );
+    assert_eq!(text(&out), direct_body, "fs_search facade != direct format");
 
-    let captured = log
-        .search
-        .lock()
-        .unwrap()
-        .as_ref()
-        .map(|p| p.path.clone());
+    let captured = log.search.lock().unwrap().as_ref().map(|p| p.path.clone());
     assert_eq!(captured.flatten().as_deref(), Some("/"));
 }
 
@@ -374,33 +324,17 @@ async fn net_fetch_tool_matches_direct_format() {
     let direct_body = format_fetch_output(&fixture);
 
     let facade = Arc::new(ForgeServicesFacade::new(
-        Arc::new(FakeFsRead {
-            out: read_fixture(),
-            log: log.clone(),
-        }),
-        Arc::new(FakeFsWrite {
-            out: write_fixture(),
-            log: log.clone(),
-        }),
-        Arc::new(FakeFsSearch {
-            out: None,
-            log: log.clone(),
-        }),
-        Arc::new(FakeNetFetch {
-            out: clone_http(&fixture),
-            log: log.clone(),
-        }),
+        Arc::new(FakeFsRead { out: read_fixture(), log: log.clone() }),
+        Arc::new(FakeFsWrite { out: write_fixture(), log: log.clone() }),
+        Arc::new(FakeFsSearch { out: None, log: log.clone() }),
+        Arc::new(FakeNetFetch { out: clone_http(&fixture), log: log.clone() }),
     ));
     let ctx = make_ctx_with_services(EventLog::new(), facade);
     let tool: Arc<dyn Tool> = Arc::new(NetFetchTool::new());
     let args = json!({"url": "https://example.com/", "raw": false});
 
     let out = tool.invoke(args, &ctx, "call-4").await.expect("invoke ok");
-    assert_eq!(
-        text(&out),
-        direct_body,
-        "net_fetch facade != direct format"
-    );
+    assert_eq!(text(&out), direct_body, "net_fetch facade != direct format");
 
     let captured = log.fetch.lock().unwrap().clone().expect("recorded");
     assert_eq!(captured.0, "https://example.com/");

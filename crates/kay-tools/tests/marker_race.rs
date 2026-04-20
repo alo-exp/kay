@@ -45,10 +45,7 @@ async fn forged_marker_does_not_close() {
             match chunk {
                 ToolOutputChunk::Stdout(s) if s.contains("deadbeef") => saw_forged = true,
                 ToolOutputChunk::Stdout(s) if s.contains("after-forgery") => saw_after = true,
-                ToolOutputChunk::Closed {
-                    marker_detected: true,
-                    ..
-                } => saw_closed_real = true,
+                ToolOutputChunk::Closed { marker_detected: true, .. } => saw_closed_real = true,
                 _ => {}
             }
         }

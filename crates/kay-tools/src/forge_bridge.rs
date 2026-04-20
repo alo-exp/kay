@@ -112,12 +112,7 @@ pub fn format_search_match(m: &forge_app::Match) -> String {
         },
         Some(MatchResult::Count { count }) => format!("{}: {count}", m.path),
         Some(MatchResult::FileMatch) => m.path.clone(),
-        Some(MatchResult::ContextMatch {
-            line_number,
-            line,
-            before_context,
-            after_context,
-        }) => {
+        Some(MatchResult::ContextMatch { line_number, line, before_context, after_context }) => {
             let mut s = String::new();
             for b in before_context {
                 s.push_str(&format!("{}-: {}\n", m.path, b));

@@ -29,8 +29,8 @@ impl Default for NetFetchTool {
 impl NetFetchTool {
     pub fn new() -> Self {
         let name = ToolName::new("net_fetch");
-        let description = "Fetch a URL. file:// is blocked; large responses are truncated."
-            .to_string();
+        let description =
+            "Fetch a URL. file:// is blocked; large responses are truncated.".to_string();
         let mut schema = serde_json::to_value(schemars::schema_for!(NetFetch))
             .unwrap_or_else(|_| serde_json::json!({ "type": "object" }));
         harden_tool_schema(
@@ -63,12 +63,15 @@ impl Tool for NetFetchTool {
         ctx: &ToolCallContext,
         _call_id: &str,
     ) -> Result<ToolOutput, ToolError> {
-        let args = if args.is_null() { serde_json::json!({}) } else { args };
-        let input: NetFetch =
-            serde_json::from_value(args).map_err(|e| ToolError::InvalidArgs {
-                tool: self.name.clone(),
-                reason: e.to_string(),
-            })?;
+        let args = if args.is_null() {
+            serde_json::json!({})
+        } else {
+            args
+        };
+        let input: NetFetch = serde_json::from_value(args).map_err(|e| ToolError::InvalidArgs {
+            tool: self.name.clone(),
+            reason: e.to_string(),
+        })?;
 
         // Sandbox check on the parsed URL before handing off to the
         // facade. ForgeFetch itself enforces robots.txt and binary
@@ -88,10 +91,7 @@ impl Tool for NetFetchTool {
         ctx.services
             .net_fetch(input)
             .await
-            .map_err(|e| ToolError::ExecutionFailed {
-                tool: self.name.clone(),
-                source: e,
-            })
+            .map_err(|e| ToolError::ExecutionFailed { tool: self.name.clone(), source: e })
     }
 }
 
@@ -105,7 +105,10 @@ mod tests {
         let t = NetFetchTool::new();
         let schema = t.input_schema();
         let obj = schema.as_object().expect("object");
-        assert_eq!(obj.get("additionalProperties"), Some(&serde_json::json!(false)));
+        assert_eq!(
+            obj.get("additionalProperties"),
+            Some(&serde_json::json!(false))
+        );
         assert!(obj.get("required").is_some());
     }
 

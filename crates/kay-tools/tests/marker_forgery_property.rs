@@ -55,10 +55,7 @@ fn adversarial_line(real: &MarkerContext, attack: u8, payload: &[u8]) -> String 
 
     match attack % 8 {
         // Attack A: wrong nonce (pad to exactly 32 hex chars) + correct tail.
-        0 => format!(
-            "__CMDEND_{}_{}__EXITCODE=0",
-            hex_padded, real.seq
-        ),
+        0 => format!("__CMDEND_{}_{}__EXITCODE=0", hex_padded, real.seq),
         // Attack B: real nonce + wrong seq + correct tail.
         1 => format!(
             "__CMDEND_{}_{}__EXITCODE=0",
@@ -71,10 +68,7 @@ fn adversarial_line(real: &MarkerContext, attack: u8, payload: &[u8]) -> String 
             real.nonce_hex, real.seq, hex_payload
         ),
         // Attack D: real nonce + real seq + missing EXITCODE= prefix.
-        3 => format!(
-            "__CMDEND_{}_{}__CODE=0",
-            real.nonce_hex, real.seq
-        ),
+        3 => format!("__CMDEND_{}_{}__CODE=0", real.nonce_hex, real.seq),
         // Attack E: truncated mid-nonce.
         4 => format!("__CMDEND_{}", &hex_padded[..hex_padded.len().min(16)]),
         // Attack F: sigil only, no body.

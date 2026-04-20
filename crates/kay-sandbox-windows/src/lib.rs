@@ -12,10 +12,10 @@ use std::path::Path;
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use kay_sandbox_policy::SandboxPolicy;
 use kay_sandbox_policy::rules::{
     RULE_NET_NOT_ALLOWLISTED, RULE_READ_DENIED_PATH, RULE_WRITE_OUTSIDE_ROOT,
 };
-use kay_sandbox_policy::SandboxPolicy;
 use kay_tools::seams::sandbox::{Sandbox, SandboxDenial};
 use url::Url;
 
@@ -26,9 +26,7 @@ pub struct KaySandboxWindows {
 
 impl KaySandboxWindows {
     pub fn new(policy: SandboxPolicy) -> Self {
-        Self {
-            policy: Arc::new(policy),
-        }
+        Self { policy: Arc::new(policy) }
     }
 
     /// Create a Job Object for the given child process handle.
@@ -47,18 +45,16 @@ impl KaySandboxWindows {
     ) -> Result<JobHandle, std::io::Error> {
         use std::ptr::null;
         use windows_sys::Win32::System::JobObjects::{
-            AssignProcessToJobObject, CreateJobObjectW,
-            JobObjectExtendedLimitInformation, JOBOBJECT_EXTENDED_LIMIT_INFORMATION,
-            JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE,
+            AssignProcessToJobObject, CreateJobObjectW, JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE,
+            JOBOBJECT_EXTENDED_LIMIT_INFORMATION, JobObjectExtendedLimitInformation,
         };
 
         let job = unsafe { CreateJobObjectW(null(), null()) };
-        if job == 0 {
+        if job.is_null() {
             return Err(std::io::Error::last_os_error());
         }
 
-        let mut info: JOBOBJECT_EXTENDED_LIMIT_INFORMATION =
-            unsafe { std::mem::zeroed() };
+        let mut info: JOBOBJECT_EXTENDED_LIMIT_INFORMATION = unsafe { std::mem::zeroed() };
         info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
 
         let ok = unsafe {
@@ -194,20 +190,17 @@ mod tests {
                 .expect("spawn child failed");
 
             let pid = child.id();
-            let child_handle = unsafe {
-                OpenProcess(PROCESS_ALL_ACCESS, 0, pid)
-            };
-            assert!(child_handle != 0, "OpenProcess failed");
+            let child_handle = unsafe { OpenProcess(PROCESS_ALL_ACCESS, 0, pid) };
+            assert!(!child_handle.is_null(), "OpenProcess failed");
 
-            let sandbox = KaySandboxWindows::new(
-                SandboxPolicy::default_for_project(
-                    std::path::PathBuf::from("C:\\Users\\user\\project")
-                )
-            );
+            let sandbox = KaySandboxWindows::new(SandboxPolicy::default_for_project(
+                std::path::PathBuf::from("C:\\Users\\user\\project"),
+            ));
 
             {
                 let _job = unsafe {
-                    sandbox.create_job_for_child(child_handle)
+                    sandbox
+                        .create_job_for_child(child_handle)
                         .expect("create_job_for_child failed")
                 };
                 // Job handle dropped here → kills child
@@ -216,7 +209,10 @@ mod tests {
             // Give OS time to reap the process.
             std::thread::sleep(std::time::Duration::from_millis(200));
             let exit_status = child.try_wait().expect("try_wait failed");
-            assert!(exit_status.is_some(), "child must have been killed by Job Object");
+            assert!(
+                exit_status.is_some(),
+                "child must have been killed by Job Object"
+            );
         }
     }
 }

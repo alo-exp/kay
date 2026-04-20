@@ -71,7 +71,7 @@ impl Default for ToolRegistry {
 mod tests {
     use async_trait::async_trait;
     use forge_domain::{ToolName, ToolOutput};
-    use serde_json::{json, Value};
+    use serde_json::{Value, json};
 
     use super::*;
     use crate::contract::Tool;

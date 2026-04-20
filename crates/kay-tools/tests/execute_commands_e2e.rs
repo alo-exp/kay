@@ -34,10 +34,7 @@ async fn execute_simple_echo_round_trips() {
         events.iter().any(|ev| matches!(
             ev,
             AgentEvent::ToolOutput {
-                chunk: ToolOutputChunk::Closed {
-                    marker_detected: true,
-                    ..
-                },
+                chunk: ToolOutputChunk::Closed { marker_detected: true, .. },
                 ..
             }
         )),

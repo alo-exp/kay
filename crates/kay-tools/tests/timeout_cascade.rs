@@ -16,11 +16,7 @@ use support::{EventLog, make_ctx};
 fn stdout_concat(events: &[AgentEvent]) -> String {
     let mut out = String::new();
     for ev in events {
-        if let AgentEvent::ToolOutput {
-            chunk: ToolOutputChunk::Stdout(s),
-            ..
-        } = ev
-        {
+        if let AgentEvent::ToolOutput { chunk: ToolOutputChunk::Stdout(s), .. } = ev {
             out.push_str(s);
         }
     }
@@ -46,8 +42,7 @@ fn pid_is_alive(pid: i32) -> bool {
 #[tokio::test(flavor = "multi_thread")]
 #[cfg(not(windows))]
 async fn timeout_sigterm_then_sigkill() {
-    let tool =
-        ExecuteCommandsTool::with_timeout(std::env::temp_dir(), Duration::from_millis(500));
+    let tool = ExecuteCommandsTool::with_timeout(std::env::temp_dir(), Duration::from_millis(500));
     let log = EventLog::new();
     let ctx = make_ctx(log.clone());
 
@@ -72,10 +67,7 @@ async fn timeout_sigterm_then_sigkill() {
         matches!(
             ev,
             AgentEvent::ToolOutput {
-                chunk: ToolOutputChunk::Closed {
-                    exit_code: None,
-                    marker_detected: false,
-                },
+                chunk: ToolOutputChunk::Closed { exit_code: None, marker_detected: false },
                 ..
             }
         )
@@ -98,8 +90,7 @@ async fn timeout_sigterm_then_sigkill() {
 async fn timeout_cascade_kills_grandchild_that_ignores_sigterm() {
     // Timeout short so the cascade fires quickly. The 2s SIGTERM grace
     // then elapses; SIGKILL should hit the whole process group.
-    let tool =
-        ExecuteCommandsTool::with_timeout(std::env::temp_dir(), Duration::from_millis(500));
+    let tool = ExecuteCommandsTool::with_timeout(std::env::temp_dir(), Duration::from_millis(500));
     let log = EventLog::new();
     let ctx = make_ctx(log.clone());
 
@@ -124,9 +115,7 @@ async fn timeout_cascade_kills_grandchild_that_ignores_sigterm() {
         .lines()
         .find_map(|l| l.strip_prefix("GPID_LINE="))
         .and_then(|s| s.trim().parse().ok())
-        .unwrap_or_else(|| {
-            panic!("failed to parse grandchild PID from stdout: {combined:?}")
-        });
+        .unwrap_or_else(|| panic!("failed to parse grandchild PID from stdout: {combined:?}"));
 
     // The grandchild should be dead: SIGKILL delivered to the pgid
     // cannot be ignored. If `pid_is_alive` returns true we have the

@@ -153,9 +153,7 @@ mod tests {
         let mut schema = json!({
             "properties": { "name": { "type": "string" } }
         });
-        let hints = TruncationHints {
-            output_truncation_note: Some("Only note.".to_string()),
-        };
+        let hints = TruncationHints { output_truncation_note: Some("Only note.".to_string()) };
         harden_tool_schema(&mut schema, &hints);
         assert_eq!(schema.get("description"), Some(&json!("Only note.")));
     }
@@ -182,9 +180,7 @@ mod tests {
                 }
             }
         });
-        let hints = TruncationHints {
-            output_truncation_note: Some("APPEND".to_string()),
-        };
+        let hints = TruncationHints { output_truncation_note: Some("APPEND".to_string()) };
         harden_tool_schema(&mut schema, &hints);
 
         let top_desc = schema

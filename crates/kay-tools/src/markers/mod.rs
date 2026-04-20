@@ -45,11 +45,7 @@ impl MarkerContext {
         let nonce_hex = hex::encode(nonce_bytes);
         let seq = counter.fetch_add(1, Ordering::Relaxed);
         let line_prefix = format!("__CMDEND_{nonce_hex}_{seq}__");
-        Ok(Self {
-            nonce_hex,
-            seq,
-            line_prefix,
-        })
+        Ok(Self { nonce_hex, seq, line_prefix })
     }
 }
 

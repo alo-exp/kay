@@ -24,16 +24,14 @@ impl Default for FsWriteTool {
 impl FsWriteTool {
     pub fn new() -> Self {
         let name = ToolName::new("fs_write");
-        let description = "Create or overwrite a file on disk. Large writes may be rate-limited."
-            .to_string();
+        let description =
+            "Create or overwrite a file on disk. Large writes may be rate-limited.".to_string();
         let mut schema = serde_json::to_value(schemars::schema_for!(FSWrite))
             .unwrap_or_else(|_| serde_json::json!({ "type": "object" }));
         harden_tool_schema(
             &mut schema,
             &TruncationHints {
-                output_truncation_note: Some(
-                    "Large writes may be rate-limited.".to_string(),
-                ),
+                output_truncation_note: Some("Large writes may be rate-limited.".to_string()),
             },
         );
         Self { name, description, input_schema: schema }
@@ -58,20 +56,20 @@ impl Tool for FsWriteTool {
         ctx: &ToolCallContext,
         _call_id: &str,
     ) -> Result<ToolOutput, ToolError> {
-        let args = if args.is_null() { serde_json::json!({}) } else { args };
-        let input: FSWrite =
-            serde_json::from_value(args).map_err(|e| ToolError::InvalidArgs {
-                tool: self.name.clone(),
-                reason: e.to_string(),
-            })?;
+        let args = if args.is_null() {
+            serde_json::json!({})
+        } else {
+            args
+        };
+        let input: FSWrite = serde_json::from_value(args).map_err(|e| ToolError::InvalidArgs {
+            tool: self.name.clone(),
+            reason: e.to_string(),
+        })?;
 
         ctx.services
             .fs_write(input)
             .await
-            .map_err(|e| ToolError::ExecutionFailed {
-                tool: self.name.clone(),
-                source: e,
-            })
+            .map_err(|e| ToolError::ExecutionFailed { tool: self.name.clone(), source: e })
     }
 }
 
@@ -85,7 +83,10 @@ mod tests {
         let t = FsWriteTool::new();
         let schema = t.input_schema();
         let obj = schema.as_object().expect("object");
-        assert_eq!(obj.get("additionalProperties"), Some(&serde_json::json!(false)));
+        assert_eq!(
+            obj.get("additionalProperties"),
+            Some(&serde_json::json!(false))
+        );
         assert!(obj.get("required").is_some());
     }
 

@@ -14,7 +14,7 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use forge_domain::{ToolName, ToolOutput};
 use kay_tools::{Tool, ToolCallContext, ToolError, ToolRegistry};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 struct FakeTool {
     name: ToolName,
@@ -68,7 +68,10 @@ fn arc_dyn_tool_is_object_safe() {
     assert_eq!(t.name().as_str(), "proof");
     assert!(t.description().contains("fake tool"));
     let schema = t.input_schema();
-    assert!(schema.is_object(), "input_schema must return an object Value");
+    assert!(
+        schema.is_object(),
+        "input_schema must return an object Value"
+    );
     assert_eq!(schema["type"], "object");
 }
 
@@ -98,11 +101,7 @@ fn tool_definitions_emit_all_tools() {
     names.sort();
     assert_eq!(
         names,
-        vec![
-            "alpha".to_string(),
-            "beta".to_string(),
-            "gamma".to_string()
-        ]
+        vec!["alpha".to_string(), "beta".to_string(), "gamma".to_string()]
     );
     for d in &defs {
         assert!(

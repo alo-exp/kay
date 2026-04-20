@@ -65,20 +65,20 @@ impl Tool for FsReadTool {
         ctx: &ToolCallContext,
         _call_id: &str,
     ) -> Result<ToolOutput, ToolError> {
-        let args = if args.is_null() { serde_json::json!({}) } else { args };
-        let input: FSRead =
-            serde_json::from_value(args).map_err(|e| ToolError::InvalidArgs {
-                tool: self.name.clone(),
-                reason: e.to_string(),
-            })?;
+        let args = if args.is_null() {
+            serde_json::json!({})
+        } else {
+            args
+        };
+        let input: FSRead = serde_json::from_value(args).map_err(|e| ToolError::InvalidArgs {
+            tool: self.name.clone(),
+            reason: e.to_string(),
+        })?;
 
         ctx.services
             .fs_read(input)
             .await
-            .map_err(|e| ToolError::ExecutionFailed {
-                tool: self.name.clone(),
-                source: e,
-            })
+            .map_err(|e| ToolError::ExecutionFailed { tool: self.name.clone(), source: e })
     }
 }
 
@@ -92,7 +92,10 @@ mod tests {
         let t = FsReadTool::new();
         let schema = t.input_schema();
         let obj = schema.as_object().expect("object");
-        assert_eq!(obj.get("additionalProperties"), Some(&serde_json::json!(false)));
+        assert_eq!(
+            obj.get("additionalProperties"),
+            Some(&serde_json::json!(false))
+        );
         assert!(
             obj.get("required").is_some(),
             "required array must be present after hardening"

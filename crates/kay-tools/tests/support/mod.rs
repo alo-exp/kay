@@ -72,10 +72,7 @@ pub fn make_ctx(log: EventLog) -> ToolCallContext {
 
 /// Variant of `make_ctx` that accepts a caller-supplied `ServicesHandle`
 /// (used by parity tests to inject a real `ForgeServicesFacade`).
-pub fn make_ctx_with_services(
-    log: EventLog,
-    services: Arc<dyn ServicesHandle>,
-) -> ToolCallContext {
+pub fn make_ctx_with_services(log: EventLog, services: Arc<dyn ServicesHandle>) -> ToolCallContext {
     let log_arc = log.0.clone();
     let sink: Arc<dyn Fn(AgentEvent) + Send + Sync> = Arc::new(move |ev: AgentEvent| {
         if let Ok(mut guard) = log_arc.lock() {
