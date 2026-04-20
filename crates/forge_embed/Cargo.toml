@@ -1,0 +1,14 @@
+[package]
+name = "forge_embed"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "ForgeCode embedded asset utilities"
+
+[dependencies]
+include_dir = { workspace = true }
+handlebars = { workspace = true }
+anyhow = { workspace = true }

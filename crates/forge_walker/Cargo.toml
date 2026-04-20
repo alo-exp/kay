@@ -1,0 +1,15 @@
+[package]
+name = "forge_walker"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "ForgeCode file walker"
+
+[dependencies]
+ignore = { workspace = true }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+derive_setters = { workspace = true }

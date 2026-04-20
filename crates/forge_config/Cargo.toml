@@ -1,0 +1,24 @@
+[package]
+name = "forge_config"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "ForgeCode configuration management"
+
+[dependencies]
+thiserror = { workspace = true }
+config = { workspace = true }
+derive_setters = { workspace = true }
+dirs = { workspace = true }
+dotenvy = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+toml_edit = { workspace = true }
+url = { workspace = true }
+fake = { workspace = true }
+schemars = { workspace = true }
+strum_macros = { workspace = true }
+tracing = { workspace = true }

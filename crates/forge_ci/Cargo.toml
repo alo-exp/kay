@@ -1,0 +1,16 @@
+[package]
+name = "forge_ci"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "ForgeCode CI utilities"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+gh-workflow = "0.8"
+indexmap = { workspace = true }
+derive_setters = { workspace = true }

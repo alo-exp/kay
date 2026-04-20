@@ -1,0 +1,17 @@
+[package]
+name = "forge_select"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "ForgeCode fuzzy-select UI"
+
+[dependencies]
+anyhow = { workspace = true }
+colored = { workspace = true }
+console = { workspace = true }
+fzf-wrapped = { workspace = true }
+rustyline = { workspace = true }
+tracing = { workspace = true }

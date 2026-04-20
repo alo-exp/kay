@@ -1,0 +1,19 @@
+[package]
+name = "forge_markdown_stream"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "ForgeCode streaming Markdown renderer"
+
+[dependencies]
+streamdown-parser = "0.1.4"
+streamdown-core = "0.1.4"
+streamdown-ansi = "0.1.4"
+streamdown-render = "0.1.4"
+syntect = { workspace = true }
+colored = { workspace = true }
+unicode-width = { workspace = true }
+terminal-colorsaurus = "1.0.3"

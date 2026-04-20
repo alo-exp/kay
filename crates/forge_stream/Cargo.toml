@@ -1,0 +1,13 @@
+[package]
+name = "forge_stream"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "ForgeCode streaming utilities"
+
+[dependencies]
+futures = { workspace = true }
+tokio = { workspace = true }

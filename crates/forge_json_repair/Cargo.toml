@@ -1,0 +1,17 @@
+[package]
+name = "forge_json_repair"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Tolerant JSON repair for ForgeCode tool-call parsing"
+
+[dependencies]
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+regex = { workspace = true }
+serde = { workspace = true }
+schemars = { workspace = true }
+serde_json5 = { workspace = true }

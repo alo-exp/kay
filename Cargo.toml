@@ -12,6 +12,18 @@ members = [
     "crates/kay-sandbox-windows",
     "crates/kay-tauri",
     "crates/kay-tui",
+    "crates/forge_tool_macros",
+    "crates/forge_template",
+    "crates/forge_json_repair",
+    "crates/forge_stream",
+    "crates/forge_test_kit",
+    "crates/forge_embed",
+    "crates/forge_ci",
+    "crates/forge_walker",
+    "crates/forge_markdown_stream",
+    "crates/forge_select",
+    "crates/forge_display",
+    "crates/forge_config",
 ]
 
 [workspace.package]
@@ -33,12 +45,127 @@ reqwest-eventsource = "0.6"
 rustls = "0.23"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-schemars = "0.8"
+schemars = "1.2"
 clap = { version = "4.5", features = ["derive", "env"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 anyhow = "1"
 thiserror = "2"
+
+# Serialization/Data
+serde_yml = "0.0.12"
+toml_edit = { version = "0.22", features = ["serde"] }
+base64 = "0.22"
+merge = "0.1"
+convert_case = "0.6"
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+glob = "0.3"
+serde_json5 = "0.2.1"
+serde_urlencoded = "0.7.1"
+html-escape = "0.2.13"
+
+# Async/Network
+async-trait = "0.1"
+async-recursion = "1"
+futures = "0.3"
+tokio-stream = "0.1"
+tonic = "0.12"
+prost = "0.13"
+prost-types = "0.13"
+eventsource-stream = "0.2"
+google-cloud-auth = "0.17"
+backon = "1"
+oauth2 = { version = "5.0", features = ["reqwest"] }
+
+# CLI/TUI
+reedline = "0.37"
+crossterm = "0.29.0"
+nu-ansi-term = "0.50"
+clap_complete = "4.5"
+console = "0.15"
+colored = "2"
+fzf-wrapped = "0.1"
+rustyline = "15"
+terminal_size = "0.4"
+arboard = { version = "3.4", default-features = false }
+enable-ansi-support = "0.2"
+
+# Parsing/Text
+nom = "7"
+regex = "1"
+html2md = "0.2"
+handlebars = "6"
+gray_matter = "0.2"
+strip-ansi-escapes = "0.2"
+similar = { version = "2", features = ["inline"] }
+termimad = "0.30"
+syntect = "5"
+two-face = "0.5.1"
+unicode-width = "0.2"
+include_dir = "0.7"
+
+# Data Structures
+indexmap = { version = "2", features = ["serde"] }
+dashmap = "6"
+fnv_rs = "0.1"
+derive_more = { version = "1", features = ["full"] }
+derive_setters = "0.1"
+derive-getters = "0.5.0"
+strum = { version = "0.27", features = ["derive"] }
+strum_macros = "0.27"
+fake = { version = "5.1.0", features = ["derive"] }
+lazy_static = "1.5.0"
+
+# Database
+diesel = { version = "2.3.7", features = ["sqlite", "r2d2", "chrono"] }
+libsqlite3-sys = { version = "0.36.0", features = ["bundled"] }
+diesel_migrations = "2.2.0"
+
+# Utilities
+dirs = "5"
+dotenvy = "0.15"
+tempfile = "3"
+url = "2"
+http = "1"
+bytes = "1"
+humantime = "0.1"
+num-format = "0.4"
+sha2 = "0.10"
+hex = "0.4"
+infer = "0.19.0"
+open = "5"
+whoami = "1"
+sysinfo = "0.35"
+gix = { version = "0.70", default-features = false, features = ["max-performance-safe"] }
+update-informer = "1.2.0"
+cacache = "13.1.0"
+tiny_http = "0.12"
+posthog-rs = "0.5.0"
+tracing-appender = "0.2"
+grep-searcher = "0.1"
+grep-regex = "0.1"
+ignore = "0.4"
+rand = "0.10.0"
+indicatif = "0.18.4"
+async-openai = "0.26"
+config = "0.15"
+
+# AWS/Cloud
+aws-sdk-bedrockruntime = "1"
+aws-credential-types = "1"
+aws-smithy-types = "1"
+aws-smithy-runtime-api = "1"
+aws-smithy-runtime = "1"
+aws-smithy-async = "1"
+
+# Proc-macro support
+syn = { version = "2", features = ["full"] }
+quote = "1"
+proc-macro2 = "1"
+
+# Platform-specific
+windows-sys = { version = "0.61", features = ["Win32_System_Console"] }
 
 [profile.release]
 lto = true
