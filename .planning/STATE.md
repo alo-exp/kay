@@ -1,7 +1,7 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0.0
-milestone_name: milestone
+milestone: v0.1.0
+milestone_name: Provider HAL + Tolerant JSON Parser
 status: completed
 stopped_at: "Phase 2 COMPLETE (plan 02-10 landed; PROV-06/07/08 closed). Next: Phase 3 (Tool Registry + KIRA Core Tools)."
 last_updated: "2026-04-20T00:00:00Z"

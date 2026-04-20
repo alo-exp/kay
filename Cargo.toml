@@ -40,7 +40,7 @@ members = [
 [workspace.package]
 # Semver with a non-standard rule: never cut a major release. Any would-be
 # major bump is treated as minor. See docs/knowledge/2026-04.md §Key Decisions.
-version = "0.0.1"
+version = "0.1.0"
 edition = "2024"
 rust-version = "1.95"
 authors = ["Kay Contributors <contributors@kay.dev>"]

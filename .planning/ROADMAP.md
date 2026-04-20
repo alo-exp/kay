@@ -16,7 +16,7 @@ Kay is a benchmark-first product — if it does not beat ForgeCode on TB 2.0, it
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Fork, Governance, Infrastructure** - Fork ForgeCode cleanly; set up Apache-2.0 + DCO; enroll code-signing; workspace scaffold; parity-gate the unmodified fork on TB 2.0.
+- [x] **Phase 1: Fork, Governance, Infrastructure** *(COMPLETE 2026-04-19 — shipped as v0.0.1)* - Fork ForgeCode cleanly; set up Apache-2.0 + DCO; enroll code-signing; workspace scaffold; parity-gate the unmodified fork on TB 2.0.
 - [x] **Phase 2: Provider HAL + Tolerant JSON Parser** *(COMPLETE 2026-04-20)* - OpenRouter streaming client with tool-call reassembly, typed error taxonomy, and a two-pass tolerant parser for provider variance.
 - [x] **Phase 2.5: kay-core sub-crate split** *(INSERTED 2026-04-20; COMPLETE 2026-04-20)* - Structural fix for the mono-crate approach discovered during Phase 2 execution. ForgeCode's imported source was 23 separate crates; forcing them into one `kay-core` crate broke proc-macro self-reference, `include_str!` relative paths, trait object-safety, and visibility semantics (1323 residual errors after plan 02-05's mechanical rewrite). Resolved via D-01 Option (c): promoted each `forge_*` subtree to its own workspace sub-crate preserving ForgeCode's original layout; kay-core reduced to a thin aggregator re-exporter. `cargo check --workspace` now passes cleanly with zero exclusions. Verifier PASS 8/8 (02.5-VERIFICATION.md). Unblocks Phase 2 plans 02-06..02-10.
 - [ ] **Phase 3: Tool Registry + KIRA Core Tools** - Object-safe `Tool` trait, native tool-calling path, `execute_commands` (marker polling), `task_complete`, `image_read`, with hardened schemas.
