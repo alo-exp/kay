@@ -44,3 +44,29 @@ pub struct ToolCallContext {
     pub sandbox: Arc<dyn Sandbox>,
     pub verifier: Arc<dyn TaskVerifier>,
 }
+
+impl ToolCallContext {
+    /// Construct a `ToolCallContext`. External crates (integration tests,
+    /// Wave 4 `default_tool_set` callers) cannot use struct-literal syntax
+    /// because of `#[non_exhaustive]`; this constructor is the canonical
+    /// entry point. Plan 03-04 Wave 3 introduces this as a Rule-3 scaffold
+    /// augmentation (no field additions, only an accessor for the existing
+    /// shape).
+    pub fn new(
+        services: Arc<dyn ServicesHandle>,
+        stream_sink: Arc<dyn Fn(AgentEvent) + Send + Sync>,
+        image_budget: Arc<ImageBudget>,
+        cancel_token: CancellationToken,
+        sandbox: Arc<dyn Sandbox>,
+        verifier: Arc<dyn TaskVerifier>,
+    ) -> Self {
+        Self {
+            services,
+            stream_sink,
+            image_budget,
+            cancel_token,
+            sandbox,
+            verifier,
+        }
+    }
+}
