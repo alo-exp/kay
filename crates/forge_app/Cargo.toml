@@ -1,0 +1,53 @@
+[package]
+name = "forge_app"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "ForgeCode application layer"
+
+[dependencies]
+forge_domain      = { path = "../forge_domain" }
+forge_config      = { path = "../forge_config" }
+forge_stream      = { path = "../forge_stream" }
+forge_embed       = { path = "../forge_embed" }
+forge_display     = { path = "../forge_display" }
+forge_template    = { path = "../forge_template" }
+forge_json_repair = { path = "../forge_json_repair" }
+
+async-trait = { workspace = true }
+anyhow = { workspace = true }
+serde = { workspace = true }
+serde_yml = { workspace = true }
+futures = { workspace = true }
+tracing = { workspace = true }
+async-recursion = { workspace = true }
+chrono = { workspace = true }
+derive_setters = { workspace = true }
+handlebars = { workspace = true }
+include_dir = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+regex = { workspace = true }
+thiserror = { workspace = true }
+console = { workspace = true }
+derive_more = { workspace = true }
+tempfile = { workspace = true }
+strum = { workspace = true }
+strum_macros = { workspace = true }
+merge = { workspace = true }
+convert_case = { workspace = true }
+backon = { workspace = true }
+sha2 = { workspace = true }
+hex = { workspace = true }
+dashmap = { workspace = true }
+url = { workspace = true }
+reqwest = { workspace = true }
+bytes = { workspace = true }
+reqwest-eventsource = { workspace = true }
+schemars = { workspace = true }
+glob = { workspace = true }
+lazy_static = { workspace = true }
+tonic = { workspace = true }

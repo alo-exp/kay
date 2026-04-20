@@ -29,6 +29,8 @@ members = [
     "crates/forge_tracker",
     "crates/forge_fs",
     "crates/forge_snaps",
+    "crates/forge_app",
+    "crates/forge_services",
 ]
 
 [workspace.package]
@@ -101,7 +103,7 @@ nom = "8.0.0"
 regex = "1"
 html2md = "0.2"
 handlebars = "6"
-gray_matter = "0.2"
+gray_matter = "0.3.2"
 strip-ansi-escapes = "0.2"
 similar = { version = "2", features = ["inline"] }
 termimad = "0.30"
