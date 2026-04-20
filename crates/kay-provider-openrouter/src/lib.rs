@@ -26,6 +26,7 @@ mod error;
 mod event;
 mod openrouter_provider;
 mod provider;
+mod tool_parser;
 mod translator;
 
 pub use allowlist::Allowlist;
