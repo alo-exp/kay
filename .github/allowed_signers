@@ -1,0 +1,6 @@
+# Allowed signers for git tag/commit verification.
+# Format: <email> <ssh-key-type> <ssh-key-data>
+# Kay's signed-tag-gate CI job (.github/workflows/ci.yml) points
+# gpg.ssh.allowedSignersFile here to verify v0.1.0+ release tags.
+# Add new release signers by appending a new line.
+shafqat@sourcevo.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGcQDGmQzP+NFtnIVmafMgV2FhaUo+531+qviq+DCKap

@@ -158,11 +158,18 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
         with:
           fetch-depth: 0
+      - name: Configure SSH allowed_signers for tag verification
+        # git tag -v with SSH signatures requires gpg.ssh.allowedSignersFile.
+        # The repo-committed .github/allowed_signers is the single source of
+        # truth for authorized release signers. Add new signers by appending
+        # a line and getting the change merged through a normal PR.
+        run: |
+          git config gpg.ssh.allowedSignersFile "$GITHUB_WORKSPACE/.github/allowed_signers"
       - name: Verify tag signature
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
           if ! git tag -v "$TAG"; then
-            echo "::error::Tag $TAG is not GPG/SSH-signed. Unsigned release tags are rejected (see PROJECT.md GOV-05)." >&2
+            echo "::error::Tag $TAG is not GPG/SSH-signed by an authorized signer (see .github/allowed_signers and PROJECT.md GOV-05)." >&2
             exit 1
           fi
 
