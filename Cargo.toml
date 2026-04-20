@@ -27,6 +27,8 @@ members = [
     "crates/forge_domain",
     "crates/forge_spinner",
     "crates/forge_tracker",
+    "crates/forge_fs",
+    "crates/forge_snaps",
 ]
 
 [workspace.package]

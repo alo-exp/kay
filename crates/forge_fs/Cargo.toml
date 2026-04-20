@@ -1,0 +1,19 @@
+[package]
+name = "forge_fs"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "ForgeCode filesystem utilities"
+
+[dependencies]
+forge_domain = { path = "../forge_domain" }
+
+tokio = { workspace = true }
+anyhow = { workspace = true }
+sha2 = { workspace = true }
+hex = { workspace = true }
+infer = { workspace = true }
+thiserror = { workspace = true }
