@@ -115,6 +115,7 @@ impl UpstreamClient {
     }
 
     #[cfg(test)]
+    #[allow(dead_code)] // test-only diagnostic accessor; retained for future cases
     pub(crate) fn endpoint(&self) -> &Url {
         &self.endpoint
     }

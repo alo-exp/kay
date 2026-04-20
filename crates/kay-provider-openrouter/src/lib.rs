@@ -15,8 +15,6 @@
 // Backs threat model TM-01 (API-key leakage via panic trace) and
 // PROV-05 (never panic). Tests override with module-level attributes.
 #![deny(clippy::unwrap_used, clippy::expect_used)]
-// Allow unused until plans 02-07 through 02-10 wire everything up.
-#![allow(dead_code)]
 
 mod allowlist;
 mod auth;
