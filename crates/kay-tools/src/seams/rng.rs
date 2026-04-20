@@ -10,9 +10,13 @@ impl RngSeam for OsRngSeam {
     fn hex_nonce(&self, len: usize) -> String {
         use rand::TryRng;
         let mut bytes = vec![0u8; len];
+        // SysRng::try_fill_bytes only fails on catastrophic OS entropy failure.
+        // Propagating through hex_nonce would require changing the trait signature;
+        // panic here is the correct behavior (same as std's thread_rng on failure).
+        #[allow(clippy::expect_used)]
         rand::rngs::SysRng
             .try_fill_bytes(&mut bytes)
-            .expect("OsRng fill_bytes failed");
+            .expect("OS entropy source failed — cannot generate secure nonce");
         hex::encode(&bytes)
     }
 }
