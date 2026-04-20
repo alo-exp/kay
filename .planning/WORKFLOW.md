@@ -26,8 +26,8 @@ Mode: autonomous (bypass-permissions detected; standing directive: never stall)
 | 7 | DISCUSS-PHASE | skipped | 03-CONTEXT.md + 03-DISCUSSION-LOG.md already exist (committed 6825ccb) | ✓ |
 | 8 | ANALYZE-DEPS | pending | dependency graph rechecked (will surface via plan revision) | — |
 | 9 | PLAN-REVISION | complete | 03-01..05-PLAN.md revised + 03-REVISION-LOG.md | ✓ audit subagent confirmed 8/8 BLOCKERS resolved; B2 residual (03-05:613) patched post-audit |
-| 10 | EXECUTE + TDD | pending | atomic commits per RED→GREEN→REFACTOR | — |
-| 11 | VERIFY + TEST-GAP-FILL | pending | 03-VERIFICATION.md + 03-UAT.md | — |
+| 10 | EXECUTE + TDD | complete | Waves 0-4 commits (1bb792d..8a9a0d5); 100+ kay-* tests green; 6 Rule-3 reconciliations logged in per-wave SUMMARY.md | ✓ all 5 waves landed; clippy clean |
+| 11 | VERIFY + TEST-GAP-FILL | in_progress | 03-VERIFICATION.md + 03-UAT.md | — |
 | 12 | REVIEW (SP + GSD + cross-AI) | pending | 03-REVIEW.md | — |
 | 13 | SECURE | pending | 03-SECURITY.md | — |
 | 14 | VALIDATE-PHASE (Nyquist) | pending | — | — |
@@ -38,7 +38,7 @@ Mode: autonomous (bypass-permissions detected; standing directive: never stall)
 ## Phase Iterations
 | Phase | Flows 5-13 Status |
 |-------|-------------------|
-| 3 | FLOW 5a ✓ → FLOW 5c ✓ → FLOW 6 ✓ → FLOW 9 ✓ → FLOW 10 ⏳ (next) → FLOW 11–17 ⏳ |
+| 3 | FLOW 5a ✓ → FLOW 5c ✓ → FLOW 6 ✓ → FLOW 9 ✓ → FLOW 10 ✓ (Waves 0-4 shipped) → FLOW 11 ⏳ (next) → FLOW 12–17 ⏳ |
 
 ## Dynamic Insertions
 | After | Inserted | Reason |
@@ -72,8 +72,8 @@ Mode: autonomous (bypass-permissions detected; standing directive: never stall)
 | FLOW 3b E3 | Add trybuild workspace dep + compile_fail fixtures as first-class supported test tier | tooling enhancement |
 
 ## Heartbeat
-Last-flow: 9 (PLAN-REVISION — 8/8 BLOCKERS cleared; 03-REVISION-LOG.md written)
-Last-beat: 2026-04-21T02:30:00Z
+Last-flow: 10 (EXECUTE+TDD — Waves 0-4 landed on phase/03-tool-registry; 100+ kay-* tests green; clippy clean)
+Last-beat: 2026-04-21T04:00:00Z
 
 ## Next Flow
-FLOW 10: TDD-Execute via `gsd-execute-phase` wrapped in `superpowers:test-driven-development`. Wave 0 (Task 3-01-01: scaffold kay-tools crate) begins. Per-task loop: RED commit (failing test) → GREEN commit (minimal impl) → REFACTOR commit (clippy clean). Each task's `<acceptance_criteria>` block from revised 03-0X-PLAN.md is the completion gate. Non-Negotiable #1 (ForgeCode parity) re-runs after Wave 4 close; Non-Negotiable #2 (signed tags) enforced at FLOW 17.
+FLOW 11: `gsd-verify-work` against Phase 3 acceptance criteria (TOOL-01..06 + SHELL-01..05 + ROADMAP SC #1-#5). Produces 03-VERIFICATION.md + 03-UAT.md. Test-gap fill via `gsd-add-tests` if UAT surfaces coverage gaps. Pre-existing workspace-wide compile issue in forge_domain (json feature-gate, Phase 2.5 debt) spawned as out-of-scope task — does not block kay-* verification. Non-Negotiable #1 (ForgeCode parity) byte-diff proof already landed in Wave 4 (parity_delegation.rs). Non-Negotiable #2 (signed tags) enforced at FLOW 17.
