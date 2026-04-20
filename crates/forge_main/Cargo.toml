@@ -1,0 +1,74 @@
+[package]
+name = "forge_main"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "ForgeCode CLI entry point (will be rebranded to kay-cli in Phase 5)"
+
+[[bin]]
+name = "forge"
+path = "src/main.rs"
+
+[dependencies]
+forge_app             = { path = "../forge_app" }
+forge_api             = { path = "../forge_api" }
+forge_domain          = { path = "../forge_domain" }
+forge_config          = { path = "../forge_config" }
+forge_walker          = { path = "../forge_walker" }
+forge_display         = { path = "../forge_display" }
+forge_tracker         = { path = "../forge_tracker" }
+forge_spinner         = { path = "../forge_spinner" }
+forge_select          = { path = "../forge_select" }
+forge_fs              = { path = "../forge_fs" }
+forge_embed           = { path = "../forge_embed" }
+forge_markdown_stream = { path = "../forge_markdown_stream" }
+
+thiserror = { workspace = true }
+clap = { workspace = true }
+clap_complete = { workspace = true }
+console = { workspace = true }
+merge = { workspace = true }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+futures = { workspace = true }
+colored = { workspace = true }
+anyhow = { workspace = true }
+derive_setters = { workspace = true }
+lazy_static = { workspace = true }
+reedline = { workspace = true }
+crossterm = { workspace = true }
+nu-ansi-term = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+chrono = { workspace = true }
+serde_json = { workspace = true }
+serde = { workspace = true }
+toml_edit = { workspace = true }
+strum = { workspace = true }
+strum_macros = { workspace = true }
+convert_case = { workspace = true }
+gix = { workspace = true }
+update-informer = { version = "1.2.0", default-features = false, features = ["github", "ureq", "rustls-tls"] }
+dirs = { workspace = true }
+open = { workspace = true }
+humantime = { workspace = true }
+num-format = { workspace = true }
+url = { workspace = true }
+include_dir = { workspace = true }
+indexmap = { workspace = true }
+async-recursion = { workspace = true }
+strip-ansi-escapes = { workspace = true }
+terminal_size = { workspace = true }
+rustls = { workspace = true }
+tempfile = { workspace = true }
+tiny_http = { workspace = true }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true }
+enable-ansi-support = { workspace = true }
+
+[target.'cfg(not(target_os = "android"))'.dependencies]
+arboard = { workspace = true }

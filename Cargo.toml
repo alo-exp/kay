@@ -34,6 +34,7 @@ members = [
     "crates/forge_infra",
     "crates/forge_repo",
     "crates/forge_api",
+    "crates/forge_main",
 ]
 
 [workspace.package]
@@ -67,7 +68,7 @@ serde_yml = "0.0.12"
 toml_edit = { version = "0.22", features = ["serde"] }
 base64 = "0.22"
 merge = "0.1"
-convert_case = "0.6"
+convert_case = "0.11.0"
 uuid = { version = "1", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 glob = "0.3"
@@ -89,7 +90,7 @@ backon = "1"
 oauth2 = { version = "5.0", features = ["reqwest"] }
 
 # CLI/TUI
-reedline = "0.37"
+reedline = "0.47.0"
 crossterm = "0.29.0"
 nu-ansi-term = "0.50"
 clap_complete = "4.5"
@@ -122,8 +123,8 @@ fnv_rs = "0.4"
 derive_more = { version = "2.1.1", features = ["from", "display", "debug", "deref", "as_ref", "try_into"] }
 derive_setters = "0.1"
 derive-getters = "0.5.0"
-strum = { version = "0.27", features = ["derive"] }
-strum_macros = "0.27"
+strum = "0.28.0"
+strum_macros = "0.28.0"
 fake = { version = "5.1.0", features = ["derive"] }
 lazy_static = "1.5.0"
 
@@ -139,7 +140,7 @@ tempfile = "3"
 url = { version = "2", features = ["serde"] }
 http = "1"
 bytes = "1"
-humantime = "0.1"
+humantime = "2.1.0"
 num-format = "0.4"
 sha2 = "0.10"
 hex = "0.4"
