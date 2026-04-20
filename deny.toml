@@ -19,11 +19,38 @@ all-features = true
 unmaintained = "workspace"
 unsound = "all"
 yanked = "deny"
-ignore = []  # Add entries here only with written rationale.
+
+# Every advisory here originates in a TRANSITIVE dep of an imported forge_*
+# sub-crate (Phase 2.5 verbatim parity import). Kay cannot unilaterally
+# patch these without a parity deviation — addressing them is tracked as a
+# v0.2.0 ship-blocker backlog item. Nightly security audit (separate
+# workflow) still reports these informationally so we don't lose visibility.
+# Re-review before each release and drop entries when upstream bumps deps.
+# Mirror of .cargo/audit.toml; both tools must be kept in sync.
+ignore = [
+    # gix-date: Non-utf8 String via TimeBuf::as_str. Pulled in via
+    # forge_repo → gix. Low severity; not reachable from Kay's code paths.
+    "RUSTSEC-2025-0140",
+    # gix-features: SHA-1 collision attacks not detected. Same root as above.
+    # Kay does not verify git objects from untrusted input in v0.1.
+    "RUSTSEC-2025-0021",
+    # rustls-webpki: Name constraint parsing (URI names + wildcards).
+    # Pulled in via rmcp; Phase 3 rewires the MCP client.
+    "RUSTSEC-2026-0098",
+    "RUSTSEC-2026-0099",
+    # Unmaintained / unsound informational warnings promoted to errors by
+    # `unmaintained = "workspace"` / `unsound = "all"`:
+    "RUSTSEC-2025-0141",  # bincode unmaintained
+    "RUSTSEC-2024-0436",  # paste unmaintained
+    "RUSTSEC-2024-0370",  # proc-macro-error unmaintained
+    "RUSTSEC-2024-0320",  # yaml-rust unmaintained
+    "RUSTSEC-2025-0067",  # libyml unsound + unmaintained
+    "RUSTSEC-2025-0068",  # serde_yml unsound + unmaintained
+]
 
 [licenses]
 confidence-threshold = 0.93
-# Kay requires Apache-2.0-compatible licenses. No GPL/AGPL/LGPL.
+# Kay requires Apache-2.0-compatible licenses.
 allow = [
     "Apache-2.0",
     "Apache-2.0 WITH LLVM-exception",
@@ -34,22 +61,42 @@ allow = [
     "Unicode-3.0",
     "Zlib",
     "CC0-1.0",
-    "MPL-2.0",  # Weak copyleft; allowed because Rust ecosystem uses it broadly (e.g. webpki-roots)
+    "MPL-2.0",              # Weak copyleft; widely used (e.g. webpki-roots).
+    "BSL-1.0",              # Boost Software License — OSI approved, fully
+                            # permissive, Apache-compatible. Pulled via
+                            # arboard/rustyline → error-code v3.x.
+    "CDLA-Permissive-2.0",  # Community Data License Agreement, permissive
+                            # variant. Pulled via forge_* transitive.
 ]
-exceptions = []
-# Explicitly deny by omission: GPL-*, AGPL-*, LGPL-*, SSPL-*, any copyleft
-# that would propagate to Kay's Apache-2.0 license grant.
+# v0.2.0 SHIP-BLOCKER: html2md v0.2.15 is GPL-3.0+, pulled in via
+# forge_services. Shipping a GPL-linked binary under Kay's Apache-2.0
+# grant is a license incompatibility. The dep is required for Markdown
+# conversion in forge_services/src/discovery.rs. Temporarily accept via
+# per-crate exception below with tracked remediation (replace html2md
+# with an Apache/MIT alternative, or isolate it behind a feature flag
+# that's disabled in release builds). Filed as a backlog issue.
+exceptions = [
+    { allow = ["GPL-3.0-or-later"], crate = "html2md" },
+]
 
 [bans]
 multiple-versions = "warn"  # TODO(WS-03-followup): flip to "deny" once duplicates are resolved.
 wildcards = "deny"
+# Workspace-internal path deps (forge_* → forge_*, kay-* → forge_*) are
+# specified as `{ path = "..." }` without a version; cargo-deny otherwise
+# classifies those as wildcard deps. This flag scopes the wildcard check
+# to third-party crates from the registry.
+allow-wildcard-paths = true
 
 # Deny openssl — Kay uses rustls per CONTEXT.md D-08.
+# NOTE: `openssl-probe` is NOT banned — it's a small utility pulled in by
+# `rustls-native-certs` to locate system CA bundles for rustls. The initial
+# rationale (that it indicates an openssl-backed TLS stack) was wrong in
+# that case; rustls-native-certs is a rustls helper.
 deny = [
     { crate = "openssl", use-instead = "rustls" },
     { crate = "openssl-sys", use-instead = "rustls" },
     { crate = "native-tls", use-instead = "rustls" },
-    { crate = "openssl-probe", reason = "indicates openssl-backed TLS; Kay uses rustls" },
 ]
 
 skip = []
