@@ -20,6 +20,7 @@
 
 mod allowlist;
 mod auth;
+mod client;
 mod error;
 mod event;
 mod provider;

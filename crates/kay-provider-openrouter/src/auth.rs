@@ -26,6 +26,16 @@ impl ApiKey {
     }
 }
 
+/// Constructor for builder-side use (plan 02-08 T1). Trims ambient whitespace
+/// so callers can pass raw env/config values without a separate sanitize step.
+/// Empty input is allowed here — the upstream HTTP call will surface a 401,
+/// mapped to `Auth::Invalid` by the classifier in plan 02-10.
+impl From<String> for ApiKey {
+    fn from(s: String) -> Self {
+        Self(s.trim().to_string())
+    }
+}
+
 /// TM-01: custom Debug that redacts the inner string. NEVER #[derive(Debug)]
 /// on ApiKey — that would trivially leak the key through any error trace.
 impl std::fmt::Debug for ApiKey {
