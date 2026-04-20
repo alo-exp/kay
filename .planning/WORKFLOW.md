@@ -20,8 +20,8 @@ Mode: autonomous (bypass-permissions detected; standing directive: never stall)
 | 3 | BRAINSTORM (b) superpowers:brainstorming | complete | 03-BRAINSTORM.md §Engineering-Lens (E1–E11: 4-module layout, Tool trait sig, object-safety harness, dep unification, zero-placeholder policy, FLOW 5a seam) | ✓ |
 | 4 | SPECIFY | complete | REQUIREMENTS.md + 03-CONTEXT.md (pre-existing, scope fully captured) | ✓ skip-condition met: spec artifacts already exist upstream |
 | 5a | TEST-STRATEGY (/testing-strategy) | complete | 03-TEST-STRATEGY.md (72 tests: 45 unit + 2 trybuild + 18 integ + 3 property + 2 smoke + 2 E2E) | ✓ per-REQ closure matrix, macOS tooling, CI matrix, FLOW 6 gate criteria |
-| 5b | WRITING-PLANS (silver:writing-plans) | complete | 03-01..05-PLAN.md (produced upstream by gsd-planner; revised in FLOW 9) | ✓ skip-condition met: PLAN.md files already exist; revision used instead of regen |
-| 5c | PRE-BUILD VALIDATION (silver:validate) | complete | .planning/VALIDATION.md (8 BLOCK engineered, 6 WARN, 14 INFO) | ✓ BLOCKERS already designed in §Engineering-Lens; applied in FLOW 9 |
+| 5b | WRITING-PLANS (silver:writing-plans) | merged into FLOW 9 | 03-01..05-PLAN.md (produced upstream by gsd-planner; revised in FLOW 9) | ✓ revision mode used instead of regen |
+| 5c | PRE-BUILD VALIDATION (silver:validate) | merged into FLOW 9 | .planning/VALIDATION.md (8 BLOCK engineered, 6 WARN, 14 INFO) | ✓ BLOCKERS applied via plan revision |
 | 6 | QUALITY-GATES-1 (design-time) | complete | 03-QUALITY-GATES.md (9/9 ✅ conditional pass) | ✓ all 9 dimensions pass; conditional on FLOW 9 applying E1–E11 |
 | 7 | DISCUSS-PHASE | complete | 03-CONTEXT.md + 03-DISCUSSION-LOG.md (pre-existing, committed 6825ccb) | ✓ skip-condition met: discussion artifacts already exist |
 | 8 | ANALYZE-DEPS | complete | resolved inline via plan revision (Wave deps locked in 03-01..05 PLAN headers) | ✓ |
