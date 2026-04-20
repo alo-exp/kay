@@ -20,7 +20,7 @@ pub enum ProviderError {
     Http { status: u16, body: String },
 
     #[error("rate limited; retry after {retry_after:?}")]
-    RateLimited { retry_after: Duration },
+    RateLimited { retry_after: Option<Duration> },
 
     #[error("server error HTTP {status}")]
     ServerError { status: u16 },
