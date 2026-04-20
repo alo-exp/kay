@@ -63,6 +63,17 @@ impl MockServer {
             .await
     }
 
+    /// Generic status + body mock used by `tests/error_taxonomy.rs` to
+    /// cover the full PROV-08 taxonomy (401 / 402 / 404 / 502 / etc.).
+    pub async fn mock_status_body(&mut self, status: usize, body: &str) -> Mock {
+        self.server
+            .mock("POST", "/api/v1/chat/completions")
+            .with_status(status)
+            .with_body(body)
+            .create_async()
+            .await
+    }
+
     /// Load an SSE cassette from tests/fixtures/sse/*.jsonl as a Vec<String>
     /// suitable for passing to mock_openrouter_chat_stream.
     ///

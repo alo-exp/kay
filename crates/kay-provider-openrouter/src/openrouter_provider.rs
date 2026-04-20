@@ -37,7 +37,7 @@ use bytes::Bytes;
 use futures::StreamExt;
 use indexmap::IndexMap;
 use reqwest::Url;
-use reqwest_eventsource::EventSource;
+use reqwest_eventsource::{Event, EventSource};
 use serde::ser::{SerializeMap, Serializer};
 use serde::Serialize;
 use serde_json::Value;
@@ -49,7 +49,7 @@ use crate::cost_cap::CostCap;
 use crate::error::{ProviderError, RetryReason};
 use crate::event::AgentEvent;
 use crate::provider::{AgentEventStream, ChatRequest, Provider};
-use crate::retry::{default_backoff, is_retryable};
+use crate::retry::{classify_http_error, default_backoff, is_retryable};
 use crate::translator::translate_stream;
 
 pub struct OpenRouterProvider {
@@ -176,12 +176,14 @@ impl Provider for OpenRouterProvider {
         let body_vec = build_request_body(&wire_model, &request)?;
         let body = Bytes::from(body_vec);
 
-        // 5. PROV-07 retry wrapper around POST + SSE. pre_events collects
-        //    AgentEvent::Retry frames emitted during the retry loop.
+        // 5. PROV-07 retry wrapper around POST + SSE handshake. Each
+        //    attempt opens an `EventSource` AND probes its first event so
+        //    that HTTP-status errors (401/429/5xx) — which surface inside
+        //    `EventSource::next`, not on `stream_chat` return — reach the
+        //    retry loop. `pre_events` collects `AgentEvent::Retry` frames.
         let upstream = &self.upstream;
-        let (pre_events, es_result) = retry_with_emitter_using(|| {
-            let body = body.clone();
-            async move { upstream.stream_chat(body).await }
+        let (pre_events, es_result) = retry_with_emitter_using(|| async {
+            open_and_probe(upstream, body.clone()).await
         })
         .await;
         let es = es_result?;
@@ -269,18 +271,67 @@ where
 }
 
 /// Production retry wrapper: delegates to the generic form with the
-/// concrete `UpstreamClient::stream_chat` call. Kept as a named helper
-/// so grep assertions (`retry_with_emitter`) resolve.
+/// `open_and_probe` HTTP-firing closure. Kept as a named helper so grep
+/// assertions (`retry_with_emitter`) resolve.
 #[allow(dead_code)]
 async fn retry_with_emitter(
     upstream: &UpstreamClient,
     body: Bytes,
 ) -> (Vec<AgentEvent>, Result<EventSource, ProviderError>) {
-    retry_with_emitter_using(|| {
-        let body = body.clone();
-        async move { upstream.stream_chat(body).await }
-    })
-    .await
+    retry_with_emitter_using(|| async { open_and_probe(upstream, body.clone()).await }).await
+}
+
+/// Open an `EventSource` for this attempt AND probe its first delivered
+/// event. Returns:
+///
+/// - `Ok(es)` — `Event::Open` was observed; the EventSource is ready to
+///   hand to the translator. The stream-resume is automatic: the
+///   translator's first `.next().await` picks up where we left off
+///   (Messages after the Open).
+/// - `Err(ProviderError)` — an HTTP-status error (401/429/5xx) or a
+///   transport failure surfaced on the first event. Classified via
+///   `classify_http_error` using the response's headers + body.
+///
+/// Why we probe the first event here: `reqwest_eventsource` delivers
+/// HTTP-status errors as stream errors, not as `stream_chat` return
+/// errors — the `POST` returns the moment the headers arrive, which is
+/// BEFORE the status code is inspected at the SSE layer. Without this
+/// probe, 429 / 5xx would skip the retry loop entirely and surface to
+/// the translator's error path (unretried).
+async fn open_and_probe(
+    upstream: &UpstreamClient,
+    body: Bytes,
+) -> Result<EventSource, ProviderError> {
+    let mut es = upstream.stream_chat(body).await?;
+    match es.next().await {
+        Some(Ok(Event::Open)) => Ok(es),
+        Some(Ok(Event::Message(_))) => {
+            // OpenRouter + reqwest_eventsource normally delivers Open before
+            // any Message. Tolerate the rare ordering variation by treating
+            // first-Message as equivalent to Open (and letting the translator
+            // see that message next). This branch is defensive — no known
+            // OpenRouter path produces it.
+            Ok(es)
+        }
+        Some(Err(reqwest_eventsource::Error::InvalidStatusCode(status, resp))) => {
+            let headers = resp.headers().clone();
+            let status = status.as_u16();
+            let body_text = resp.text().await.unwrap_or_default();
+            Err(classify_http_error(status, &headers, body_text))
+        }
+        Some(Err(reqwest_eventsource::Error::InvalidContentType(_, resp))) => {
+            Err(ProviderError::Http {
+                status: resp.status().as_u16(),
+                body: "invalid content type".into(),
+            })
+        }
+        Some(Err(reqwest_eventsource::Error::Transport(e))) => Err(ProviderError::Network(e)),
+        Some(Err(reqwest_eventsource::Error::StreamEnded)) => {
+            Err(ProviderError::Stream("stream ended before open".into()))
+        }
+        Some(Err(other)) => Err(ProviderError::Stream(format!("upstream: {other}"))),
+        None => Err(ProviderError::Stream("stream closed before open".into())),
+    }
 }
 
 /// Hand-rolled request body (Option B per plan <interfaces>).
