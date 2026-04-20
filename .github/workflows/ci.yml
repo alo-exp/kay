@@ -31,15 +31,33 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
         with:
           fetch-depth: 0
-      - uses: tim-actions/get-pr-commits@198af03565609bb4ed924d1260247b4881f09e7d  # v1.3.1
-        id: pr_commits
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-      # tim-actions/dco publishes no tags; master is the canonical ref.
-      # Snapshot date: 2026-04-19. Dependabot follows the master branch head.
-      - uses: tim-actions/dco@f2279e6e62d5a7d9115b0cb8e837b777b1b02e21  # master
-        with:
-          commits: ${{ steps.pr_commits.outputs.commits }}
+      # Inline DCO check. tim-actions/dco crashed with "Argument list too long"
+      # for PRs >~20 commits because it passes the full commit JSON array as a
+      # single process argument. This shell version scans each commit on the PR
+      # branch via `git log`, which scales to arbitrary PR size and produces
+      # clear per-commit error messages. Also Node-deprecation-proof.
+      - name: Verify Signed-off-by on every PR commit
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -eu
+          bad=0
+          count=0
+          for commit in $(git rev-list "$BASE_SHA..$HEAD_SHA"); do
+            count=$((count + 1))
+            author=$(git log --format='%an <%ae>' -n 1 "$commit")
+            msg=$(git log --format=%B -n 1 "$commit")
+            if ! printf '%s\n' "$msg" | grep -qE '^Signed-off-by: .+ <.+@.+>\s*$'; then
+              echo "::error::Commit $commit by $author is missing a Signed-off-by trailer."
+              bad=1
+            fi
+          done
+          if [ "$bad" -eq 1 ]; then
+            echo "DCO check FAILED. Amend the offending commits with 'git commit --amend -s' (or rebase with 'git rebase --signoff') and force-push."
+            exit 1
+          fi
+          echo "DCO check passed: $count commit(s) all carry Signed-off-by trailers."
 
   lint:
     name: Lint (fmt + clippy + deny + audit)
