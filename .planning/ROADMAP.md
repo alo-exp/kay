@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Fork, Governance, Infrastructure** - Fork ForgeCode cleanly; set up Apache-2.0 + DCO; enroll code-signing; workspace scaffold; parity-gate the unmodified fork on TB 2.0.
 - [ ] **Phase 2: Provider HAL + Tolerant JSON Parser** - OpenRouter streaming client with tool-call reassembly, typed error taxonomy, and a two-pass tolerant parser for provider variance.
-- [ ] **Phase 2.5: kay-core sub-crate split** *(INSERTED 2026-04-20)* - Structural fix for the mono-crate approach discovered during Phase 2 execution. ForgeCode's imported source was 23 separate crates; forcing them into one `kay-core` crate breaks proc-macro self-reference, `include_str!` relative paths, trait object-safety, and visibility semantics (1323 residual errors after plan 02-05's mechanical rewrite). Option (c) from D-01 analysis: promote each `forge_*` subtree to its own workspace member crate preserving ForgeCode's original layout. Unblocks Phase 2 plans 02-06..02-10.
+- [x] **Phase 2.5: kay-core sub-crate split** *(INSERTED 2026-04-20; COMPLETE 2026-04-20)* - Structural fix for the mono-crate approach discovered during Phase 2 execution. ForgeCode's imported source was 23 separate crates; forcing them into one `kay-core` crate broke proc-macro self-reference, `include_str!` relative paths, trait object-safety, and visibility semantics (1323 residual errors after plan 02-05's mechanical rewrite). Resolved via D-01 Option (c): promoted each `forge_*` subtree to its own workspace sub-crate preserving ForgeCode's original layout; kay-core reduced to a thin aggregator re-exporter. `cargo check --workspace` now passes cleanly with zero exclusions. Verifier PASS 8/8 (02.5-VERIFICATION.md). Unblocks Phase 2 plans 02-06..02-10.
 - [ ] **Phase 3: Tool Registry + KIRA Core Tools** - Object-safe `Tool` trait, native tool-calling path, `execute_commands` (marker polling), `task_complete`, `image_read`, with hardened schemas.
 - [ ] **Phase 4: Sandbox (All Three Platforms)** - Per-OS sandbox: macOS `sandbox-exec`, Linux Landlock+seccomp, Windows Job Objects + restricted token.
 - [ ] **Phase 5: Agent Loop + Canonical CLI** - `tokio::select!` loop, frozen `AgentEvent` shape, YAML personas (forge/sage/muse — inherited from ForgeCode), mandatory verification gate, rebranded `forge_main` → `kay-cli` with structured-event JSONL stream (the contract GUI and TUI frontends consume).
@@ -280,8 +280,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Fork, Governance, Infrastructure | 6/6   | Complete | 2026-04-19 |
-| 2. Provider HAL + Tolerant JSON Parser | 4/10 | Blocked on 2.5 | - |
-| 2.5. kay-core sub-crate split *(INSERTED 2026-04-20)* | 0/4 | Planned — ready for execution | - |
+| 2. Provider HAL + Tolerant JSON Parser | 4/10 | Resumable (2.5 unblocks 02-06..02-10) | - |
+| 2.5. kay-core sub-crate split *(INSERTED 2026-04-20)* | 4/4 | Complete (verifier PASS 8/8) | 2026-04-20 |
 | 3. Tool Registry + KIRA Core Tools | 0/TBD | Not started | - |
 | 4. Sandbox (All Three Platforms) | 0/TBD | Not started | - |
 | 5. Agent Loop (Event-Driven Core) | 0/TBD | Not started | - |

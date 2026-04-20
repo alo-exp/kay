@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0.0
 milestone_name: milestone
-status: phase_2.5_planning_complete
-stopped_at: Phase 2.5 planning complete (2026-04-20). 4 plans authored (02.5-01..02.5-04), plan-checker passed (iter 3/3). Ready to execute via /gsd-execute-phase 2.5.
-last_updated: "2026-04-20T09:00:00Z"
-last_activity: 2026-04-20 -- Phase 2.5 planning complete; 4 PLAN.md files created (01 revert+resources, 02 Wave-0 sub-crates, 03 Wave-1-5 sub-crates, 04 forge_main+aggregator+CI); RESEARCH.md open questions resolved; plan-checker PASS on iter 3/3
+status: phase_2.5_complete
+stopped_at: Phase 2.5 complete (2026-04-20). All 4 plans executed; verifier PASS 8/8 (02.5-VERIFICATION.md). Workspace builds cleanly with no --exclude kay-core. Ready to resume Phase 2 remaining plans (02-06..02-10) or advance per ROADMAP.
+last_updated: "2026-04-20T18:00:00Z"
+last_activity: 2026-04-20 -- Phase 2.5 executed end-to-end; 23 forge_* sub-crates + kay-core aggregator landed; CI cleanup merged; ATTRIBUTIONS updated; verifier PASS (commits b2ee10c..23e4a6d)
 progress:
   total_phases: 14
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 20
-  completed_plans: 15
-  percent: 12
+  completed_plans: 19
+  percent: 19
 ---
 
 # Project State
@@ -21,16 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-19)
 
 **Core value:** Beat ForgeCode on Terminal-Bench 2.0 (>81.8%) as the first OSS agent that pairs a top-10 harness with a native desktop UI.
-**Current focus:** Phase 2.5 — kay-core sub-crate split (INSERTED 2026-04-20; blocks remaining Phase 2 work)
+**Current focus:** Phase 2 resumption — plans 02-06..02-10 (kay-core sub-crate split unblocked by Phase 2.5)
 
 ## Current Position
 
-Phase: 2.5 of 13 (kay-core sub-crate split, INSERTED)
-Plan: 0 of 4 — planning complete, ready for `/gsd-execute-phase 2.5`
-Status: Phase 2.5 fully planned. 4 plans (02.5-01..02.5-04) verified by plan-checker (iter 3/3). Execute plan 01 first (revert 24 commits + fetch 9 resource files), then 02 (12 Wave-0 sub-crates), then 03 (9 Wave-1..5 sub-crates), then 04 (forge_main + aggregator + CI cleanup — final gate: cargo check --workspace --deny warnings).
-Last activity: 2026-04-20 -- Phase 2.5 planning complete (4 PLAN.md files, plan-checker PASS)
+Phase: Phase 2.5 DONE. Next: Phase 2 plans 02-06..02-10 (remaining Phase-2 work that was blocked on the sub-crate split).
+Status: Phase 2.5 complete and verified (8/8 PASS). `cargo check --workspace` builds cleanly with zero exclusions. 23 forge_* sub-crates + kay-core aggregator in place. CI/docs cleaned of every `--exclude kay-core`. ATTRIBUTIONS.md reflects new layout. Governance invariants pass.
+Last activity: 2026-04-20 -- Phase 2.5 executed end-to-end; verifier PASS at commit 23e4a6d
 
-Progress: [█░░░░░░░░░░░░] 12% (1 of 13 phases done; Phase 2: 4 of 10 plans done + partial 02-05; Phase 2.5: 0 of 4 plans executed)
+Progress: [██░░░░░░░░░░░░] 19% (2 of 13 phases done incl. 2.5; Phase 2: 4 of 10 plans done + partial 02-05 still outstanding)
 
 ## Performance Metrics
 
