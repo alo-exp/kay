@@ -138,17 +138,18 @@ fn parse_arguments_strict(raw: &str) -> Result<Value, serde_json::Error> {
 
 /// Resolve which call_id an incoming delta refers to. First chunk usually
 /// carries `id` (we register `index → id`); subsequent chunks may carry
-/// only `index`. If neither is present and no prior id has been seen, the
-/// delta is discarded (defensive — OpenRouter always sends at least one
-/// on chunk 0).
+/// only `index`. If the opening chunk carries `id` but omits `index`
+/// (observed in Anthropic-via-OpenRouter style), we backfill the mapping
+/// under a monotonically-assigned slot so that subsequent `index`-only
+/// chunks still resolve. If neither is present and no prior id has been
+/// seen, the delta is discarded (defensive).
 fn resolve_call_id(
     tc: &SseToolCallDelta,
     index_to_id: &mut HashMap<u32, String>,
 ) -> Option<String> {
     if let Some(id) = &tc.id {
-        if let Some(idx) = tc.index {
-            index_to_id.insert(idx, id.clone());
-        }
+        let idx = tc.index.unwrap_or(index_to_id.len() as u32);
+        index_to_id.insert(idx, id.clone());
         return Some(id.clone());
     }
     if let Some(idx) = tc.index
