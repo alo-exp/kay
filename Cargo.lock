@@ -4309,16 +4309,35 @@ dependencies = [
 [[package]]
 name = "kay-core"
 version = "0.0.1"
+dependencies = [
+ "forge_api",
+ "forge_config",
+ "forge_domain",
+ "forge_json_repair",
+ "forge_repo",
+ "forge_services",
+]
 
 [[package]]
 name = "kay-provider-openrouter"
 version = "0.0.1"
 dependencies = [
+ "anyhow",
+ "forge_config",
+ "forge_domain",
+ "forge_json_repair",
+ "forge_repo",
+ "forge_services",
  "mockito",
  "pretty_assertions",
  "proptest",
+ "reqwest 0.12.28",
+ "reqwest-eventsource",
+ "serde",
  "serde_json",
+ "thiserror 2.0.18",
  "tokio",
+ "tracing",
 ]
 
 [[package]]

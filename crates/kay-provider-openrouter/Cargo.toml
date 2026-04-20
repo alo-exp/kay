@@ -9,6 +9,20 @@ repository.workspace = true
 description = "OpenRouter provider HAL (Phase 2)"
 
 [dependencies]
+forge_domain = { path = "../forge_domain" }
+forge_config = { path = "../forge_config" }
+forge_services = { path = "../forge_services" }
+forge_repo = { path = "../forge_repo" }
+forge_json_repair = { path = "../forge_json_repair" }
+
+tokio = { workspace = true }
+reqwest = { workspace = true }
+reqwest-eventsource = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt-multi-thread", "macros", "test-util"] }

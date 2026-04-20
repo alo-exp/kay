@@ -6,6 +6,12 @@ rust-version.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "Kay's core harness — imports ForgeCode at 022ecd994eaec30b519b13348c64ef314f825e21 as parity baseline"
+description = "Kay's core harness — aggregator re-exporter for forge_* sub-crates (ForgeCode parity baseline at 022ecd994eaec30b519b13348c64ef314f825e21)"
 
 [dependencies]
+forge_api = { path = "../forge_api" }
+forge_config = { path = "../forge_config" }
+forge_domain = { path = "../forge_domain" }
+forge_json_repair = { path = "../forge_json_repair" }
+forge_repo = { path = "../forge_repo" }
+forge_services = { path = "../forge_services" }
