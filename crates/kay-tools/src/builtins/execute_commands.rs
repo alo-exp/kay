@@ -451,11 +451,23 @@ async fn run_pty(
     let mut child = pair.slave.spawn_command(builder).map_err(|e| {
         ToolError::Io(std::io::Error::other(format!("spawn_command: {e}")))
     })?;
+    // M-03: capture the child's PID before clone_killer / wait so the
+    // timeout path can deliver a SIGTERM grace window before SIGKILL
+    // (parity with the run_piped cascade). portable-pty calls setsid()
+    // in the child, making its PID == its own PGID on Unix.
+    let pty_pid: Option<i32> = child.process_id().map(|p| p as i32);
     let mut killer = child.clone_killer();
     let mut reader = pair.master.try_clone_reader().map_err(|e| {
         ToolError::Io(std::io::Error::other(format!("clone_reader: {e}")))
     })?;
-    // Drop master to signal EOF on slave stdin after the command finishes.
+    // M-04: drop master IMMEDIATELY so the slave's stdin sees EOF right
+    // after spawn — Kay's agent-driven PTY path does not feed interactive
+    // input today (no stdin producer). For stdin-free commands (`ssh -V`,
+    // `echo`, `ls`) this is fine; for genuinely interactive commands
+    // (`sudo` prompting for a password, `vim`, `psql`) the child sees a
+    // closed stdin immediately. Real-interactive PTY support is out of
+    // scope for Phase 3 — tracked for Phase 5 if agent use-cases require
+    // it. See 03-REVIEW.md M-04 / L-02 notes.
     drop(pair.master);
 
     let (line_tx, mut line_rx) = mpsc::channel::<String>(64);
@@ -513,6 +525,28 @@ async fn run_pty(
             }
         }
         Err(_elapsed) => {
+            // M-03: SIGTERM grace window before SIGKILL — parity with
+            // run_piped's cascade. PTY-run commands (ssh, vim, psql) are
+            // exactly the ones most likely to benefit from graceful
+            // shutdown (state flush, tty restore). portable-pty's
+            // ChildKiller::kill sends SIGHUP on Unix, so we issue our own
+            // killpg(SIGTERM) → grace → killpg(SIGKILL) directly. On
+            // Windows we fall back to the ChildKiller since job objects
+            // are a Phase 4 item (same MVP stance as terminate_with_grace).
+            #[cfg(unix)]
+            {
+                use nix::sys::signal::{Signal, killpg};
+                use nix::unistd::Pid;
+                if let Some(p) = pty_pid {
+                    let _ = killpg(Pid::from_raw(p), Signal::SIGTERM);
+                }
+                tokio::time::sleep(Duration::from_secs(SIGTERM_GRACE_SECS)).await;
+                if let Some(p) = pty_pid {
+                    let _ = killpg(Pid::from_raw(p), Signal::SIGKILL);
+                }
+            }
+            // Always ask portable-pty to tear down its master/slave state
+            // (idempotent with killpg on unix, the only path on windows).
             let _ = killer.kill();
             (ctx.stream_sink)(AgentEvent::ToolOutput {
                 call_id: call_id.to_string(),
