@@ -94,4 +94,37 @@ impl ToolCallContext {
             verifier,
         }
     }
+
+    /// Minimal context for unit tests. Uses no-op impls for all seams.
+    #[cfg(test)]
+    pub fn for_test() -> Self {
+        use crate::seams::sandbox::NoOpSandbox;
+        use crate::seams::verifier::NoOpVerifier;
+
+        struct NullServices;
+        #[async_trait::async_trait]
+        impl ServicesHandle for NullServices {
+            async fn fs_read(&self, _: FSRead) -> anyhow::Result<ToolOutput> {
+                Ok(ToolOutput::text(""))
+            }
+            async fn fs_write(&self, _: FSWrite) -> anyhow::Result<ToolOutput> {
+                Ok(ToolOutput::text(""))
+            }
+            async fn fs_search(&self, _: FSSearch) -> anyhow::Result<ToolOutput> {
+                Ok(ToolOutput::text(""))
+            }
+            async fn net_fetch(&self, _: NetFetch) -> anyhow::Result<ToolOutput> {
+                Ok(ToolOutput::text(""))
+            }
+        }
+
+        Self::new(
+            Arc::new(NullServices),
+            Arc::new(|_| {}),
+            Arc::new(ImageBudget::new(u32::MAX, u32::MAX)),
+            CancellationToken::new(),
+            Arc::new(NoOpSandbox),
+            Arc::new(NoOpVerifier),
+        )
+    }
 }
