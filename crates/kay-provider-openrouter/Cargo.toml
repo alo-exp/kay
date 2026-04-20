@@ -24,6 +24,14 @@ anyhow = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 
+# Retry orchestration (PROV-02 names backon; D-09 configures it)
+backon = "1.6"
+
+# Stream + async-trait adapters
+async-trait = "0.1"
+futures = "0.3"
+tokio-stream = "0.1"
+
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt-multi-thread", "macros", "test-util"] }
 mockito = "1.7"
