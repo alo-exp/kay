@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v0.1.0
 milestone_name: Provider HAL + Tolerant JSON Parser
-status: completed
-stopped_at: "Phase 2 COMPLETE (plan 02-10 landed; PROV-06/07/08 closed). Next: Phase 3 (Tool Registry + KIRA Core Tools)."
+status: in_progress
+stopped_at: "Phase 3 discuss-phase complete (03-CONTEXT.md + 03-DISCUSSION-LOG.md landed; 12 decisions locked). Next: /gsd-plan-phase 3."
 last_updated: "2026-04-20T00:00:00Z"
-last_activity: 2026-04-20 -- Plan 02-10 executed (4 tasks, 3 code commits fc59f93 + 6f82445 + 8b76303 + docs closeout, ~40 min, DCO signoff, 5 auto-fix deviations — 1 Rule-2 open_and_probe pattern, 1 Rule-3 Option<Duration>, 3 Rule-1 test fixes)
+last_activity: 2026-04-20 -- Phase 3 discuss-phase: 12 decisions auto-resolved (Tool trait via Arc<dyn Tool>, schema hardening reuse, __CMDEND__ marker with subtle compare, PTY fallback, timeout cascade, NoOpVerifier, image_read caps, AgentEvent extensions, ToolError enum, 7-tool scope, immutable registry, Sandbox DI seam). Committed 6825ccb.
 progress:
   total_phases: 17
   completed_phases: 3
@@ -25,9 +25,22 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 
 ## Current Position
 
-Phase: Phase 2 COMPLETE. Next phase to execute: **Phase 3** (Tool Registry + KIRA Core Tools — object-safe `Tool` trait, native tool-calling path, `execute_commands` with marker polling, `task_complete`, `image_read`, hardened schemas).
-Status: Plan 02-10 complete. Retry policy (backon 500ms base / 2x / 8s cap / 3 attempts with full jitter), per-session cost cap with turn-boundary enforcement (Pitfall 3 — turn completes; next turn rejected), and full `ProviderError` taxonomy (401→Auth::Invalid, 429→RateLimited with Retry-After precedence, 5xx→ServerError, else→Http{body}) all live on the wire path. `open_and_probe` pattern probes the first SSE event so HTTP-status errors reach the retry loop (Rule-2 critical-functionality deviation). `AgentEvent::Retry` frames prefix the translator stream via `futures::stream::iter(...).chain(...)`. 79 tests green (55 lib + 24 integration); clippy `-D warnings` clean.
-Last activity: 2026-04-20 -- Plan 02-10 executed (4 tasks, 3 code commits fc59f93 + 6f82445 + 8b76303 + closeout docs, ~40 min, DCO signoff, 5 auto-fix deviations)
+Phase: Phase 3 IN PROGRESS (discuss-phase complete). Active: **Phase 3** (Tool Registry + KIRA Core Tools — object-safe `Tool` trait, native tool-calling path, `execute_commands` with marker polling, `task_complete`, `image_read`, hardened schemas).
+Status: Phase 3 discuss-phase complete (2026-04-20). 12 decisions locked in `.planning/phases/03-tool-registry-kira-core-tools/03-CONTEXT.md`:
+  - D-01 Tool trait: new `kay-tools` crate with `Arc<dyn Tool>` + immutable `ToolRegistry`; built-ins delegate to `forge_app::ToolExecutor::execute` (preserves parity while satisfying TOOL-01 object-safety).
+  - D-02 Schema hardening: reuse `forge_app::utils::enforce_strict_schema` unchanged; Kay wrapper adds truncation-reminder description fields only (TOOL-05).
+  - D-03 Marker protocol: `__CMDEND_<128-bit-nonce>_<seq>__EXITCODE=N` with `subtle::ConstantTimeEq` (SHELL-01 + SHELL-05, prompt-injection resistant).
+  - D-04 PTY: default `tokio::process`; `portable-pty = "0.8"` fallback on heuristic denylist OR `tty: true` flag (SHELL-02).
+  - D-05 Timeout: reuse `ForgeConfig.tool_timeout_secs`; SIGTERM → 2s grace → SIGKILL (SHELL-04).
+  - D-06 task_complete: ships with `NoOpVerifier` returning `VerificationOutcome::Pending` (honors SC #5 — no false success); Phase 8 swaps real impl via `TaskVerifier` trait DI.
+  - D-07 image_read: per-turn = 2, per-session = 20 (upper bound of SC #4 range), toml+env overridable.
+  - D-08 AgentEvent extensions: `ToolOutput { call_id, chunk }` + `TaskComplete { call_id, verified, outcome }` (additive per `#[non_exhaustive]`, no Phase 2 break).
+  - D-09 Errors: dedicated `ToolError` enum in `kay-tools`, separate from `ProviderError`.
+  - D-10 Scope: 7 tools (KIRA trio: `execute_commands` + `task_complete` + `image_read`; parity minimum: `fs_read` + `fs_write` + `fs_search` + `net_fetch`); other parity tools deferred to Phase 5+.
+  - D-11 Registration: `kay-cli` builds immutable registry at startup via `default_tool_set(...)`; no runtime mutation.
+  - D-12 Sandbox: `Arc<dyn Sandbox>` DI seam; Phase 3 ships `NoOpSandbox`; Phase 4 swaps impl without retrofitting tool code.
+Artifacts: `03-CONTEXT.md` (canonical) + `03-DISCUSSION-LOG.md` (audit trail of alternatives) committed in 6825ccb.
+Last activity: 2026-04-20 -- Phase 3 discuss-phase complete (12 decisions auto-resolved per standing directive). Next: /gsd-plan-phase 3.
 
 Progress: [██████░░░░░░░░] 23% (3 of 13 phases done; Phase 2 complete with 8 of 9 active plans — 02-05 superseded; Phase 2.5 complete)
 
@@ -115,6 +128,6 @@ Items acknowledged and carried forward:
 
 ## Session Continuity
 
-Last session: 2026-04-20 — Plan 02-10 executed: src/retry.rs (backon + Retry-After + classify_http_error) + translator rewire to take Arc<CostCap> and accumulate inside Usage branch + OpenRouterProviderBuilder::max_usd setter + pre-flight cost_cap.check() + open_and_probe (Rule-2 critical-functionality deviation) + retry_with_emitter_using generic + 3 integration test files (retry_429_503, cost_cap_turn_boundary, error_taxonomy). PROV-06/07/08 complete; Phase 2 CLOSED.
-Stopped at: Phase 2 COMPLETE. Ready to start Phase 3 (Tool Registry + KIRA Core Tools).
-Resume file: Begin Phase 3 planning via `/gsd-discuss-phase 3` (ROADMAP says "Plans: TBD"; no PLAN.md exists yet for 03-xx).
+Last session: 2026-04-20 — Phase 3 discuss-phase executed per standing "proceed autonomously" directive. Scouted codebase for reusable assets (`forge_app::utils::enforce_strict_schema`, `forge_app::tool_executor::ToolExecutor`, `forge_app::tool_registry` timeout helper, `forge_domain::ToolCatalog`, `CommandInfra`), identified 12 gray areas, auto-resolved each with rationale. Produced `03-CONTEXT.md` (2-domain + 12-decisions + canonical-refs + code-context + specifics + deferred + Appendix A reminders) and `03-DISCUSSION-LOG.md` (alternatives audit trail). Committed 6825ccb.
+Stopped at: Phase 3 discuss-phase complete — 12 decisions locked. Ready to auto-advance to planning.
+Resume file: `/gsd-plan-phase 3` (chains automatically per standing directive; CONTEXT.md feeds the research + planner agents).
