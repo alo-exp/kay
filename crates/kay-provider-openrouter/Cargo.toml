@@ -9,10 +9,6 @@ repository.workspace = true
 description = "OpenRouter provider HAL (Phase 2)"
 
 [dependencies]
-forge_domain = { path = "../forge_domain" }
-forge_config = { path = "../forge_config" }
-forge_services = { path = "../forge_services" }
-forge_repo = { path = "../forge_repo" }
 forge_json_repair = { path = "../forge_json_repair" }
 
 tokio = { workspace = true }
@@ -20,7 +16,6 @@ reqwest = { workspace = true }
 reqwest-eventsource = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-anyhow = { workspace = true }
 # NN-7 load-bearing: IndexMap preserves insertion order so build_request_body
 # can emit `required` before `properties` in tool parameter schemas without
 # enabling serde_json/preserve_order (which triggers a clippy large-enum
@@ -28,7 +23,6 @@ anyhow = { workspace = true }
 # T2 Step 6 Path A variant + nn7 unit test.
 indexmap = { workspace = true }
 thiserror = { workspace = true }
-tracing = { workspace = true }
 
 # Retry orchestration (PROV-02 names backon; D-09 configures it)
 backon = "1.6"
@@ -38,7 +32,6 @@ async-trait = "0.1"
 async-stream = "0.3"
 bytes = "1"
 futures = "0.3"
-tokio-stream = "0.1"
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt-multi-thread", "macros", "test-util"] }
