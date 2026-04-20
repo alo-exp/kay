@@ -24,16 +24,16 @@ Mode: autonomous (bypass-permissions detected; standing directive: never stall)
 | 5c | PRE-BUILD VALIDATION (silver:validate) | complete | .planning/VALIDATION.md (8 BLOCK engineered, 6 WARN, 14 INFO) | ✓ BLOCKERS already designed in §Engineering-Lens; applied in FLOW 9 |
 | 6 | QUALITY-GATES-1 (design-time) | complete | 03-QUALITY-GATES.md (9/9 ✅ conditional pass) | ✓ all 9 dimensions pass; conditional on FLOW 9 applying E1–E11 |
 | 7 | DISCUSS-PHASE | skipped | 03-CONTEXT.md + 03-DISCUSSION-LOG.md already exist (committed 6825ccb) | ✓ |
-| 8 | ANALYZE-DEPS | pending | dependency graph rechecked (will surface via plan revision) | — |
+| 8 | ANALYZE-DEPS | complete | resolved inline via plan revision (Wave deps locked in 03-01..05 PLAN headers) | ✓ |
 | 9 | PLAN-REVISION | complete | 03-01..05-PLAN.md revised + 03-REVISION-LOG.md | ✓ audit subagent confirmed 8/8 BLOCKERS resolved; B2 residual (03-05:613) patched post-audit |
-| 10 | EXECUTE + TDD | complete | Waves 0-4 commits (1bb792d..8a9a0d5); 100+ kay-* tests green; 6 Rule-3 reconciliations logged in per-wave SUMMARY.md | ✓ all 5 waves landed; clippy clean |
-| 11 | VERIFY + TEST-GAP-FILL | in_progress | 03-VERIFICATION.md + 03-UAT.md | — |
-| 12 | REVIEW (SP + GSD + cross-AI) | pending | 03-REVIEW.md | — |
-| 13 | SECURE | pending | 03-SECURITY.md | — |
-| 14 | VALIDATE-PHASE (Nyquist) | pending | — | — |
-| 15 | TECH-DEBT | pending | — | — |
-| 16 | QUALITY-GATES-2 (adversarial) | pending | append to 03-QUALITY-GATES.md | — |
-| 17 | FINISH-BRANCH + SHIP | pending | signed tag + PR | — |
+| 10 | EXECUTE + TDD | complete | Waves 0-4 commits (1bb792d..8a9a0d5); 174 kay-* tests green; 6 Rule-3 reconciliations logged in per-wave SUMMARY.md | ✓ all 5 waves landed; clippy clean |
+| 11 | VERIFY + TEST-GAP-FILL | complete | 03-VERIFICATION.md + 03-UAT.md | ✓ 16/16 must-haves PASS; all 11 REQs traced |
+| 12 | REVIEW (SP + GSD + cross-AI) | complete | 03-REVIEW.md + 03-REVIEW-FIXES.md | ✓ 0 CRITICAL, H-01 + M-01..M-05 fixed + regression-locked |
+| 13 | SECURE | complete | 03-SECURITY.md | ✓ 8-threat model verified; 7/7 NN compliant; H-01 locked |
+| 14 | VALIDATE-PHASE (Nyquist) | complete | 03-NYQUIST.md + tests/marker_forgery_property.rs (30k cases) + scripts/smoke/phase3-*.sh | ✓ per-REQ ≥2x sampling PASS |
+| 15 | TECH-DEBT | complete | R-1..R-6 filed in 03-SECURITY.md residuals; Phase 2.5 forge_domain json-feature debt spawned as background task | ✓ |
+| 16 | QUALITY-GATES-2 (adversarial) | complete | 03-QUALITY-GATES-ADVERSARIAL.md | ✓ 9/9 ✅ all dimensions PASS |
+| 17 | FINISH-BRANCH + SHIP | complete | v0.1.1 ED25519-signed tag + branch push + PR | ✓ Good signature verified; 28 commits / 37 DCO trailers |
 
 ## Phase Iterations
 | Phase | Flows 5-13 Status |
