@@ -24,6 +24,9 @@ members = [
     "crates/forge_select",
     "crates/forge_display",
     "crates/forge_config",
+    "crates/forge_domain",
+    "crates/forge_spinner",
+    "crates/forge_tracker",
 ]
 
 [workspace.package]
@@ -40,7 +43,7 @@ description = "Open-source terminal coding agent — Rust fork of ForgeCode with
 
 [workspace.dependencies]
 tokio = { version = "1.51", features = ["rt-multi-thread", "macros", "io-util", "process", "signal", "sync", "fs", "time"] }
-reqwest = { version = "0.13", default-features = false, features = ["rustls-tls", "json", "stream", "gzip", "brotli"] }
+reqwest = { version = "0.13", default-features = false, features = ["rustls", "json", "stream", "gzip", "brotli"] }
 reqwest-eventsource = "0.6"
 rustls = "0.23"
 serde = { version = "1", features = ["derive"] }
@@ -92,7 +95,7 @@ arboard = { version = "3.4", default-features = false }
 enable-ansi-support = "0.2"
 
 # Parsing/Text
-nom = "7"
+nom = "8.0.0"
 regex = "1"
 html2md = "0.2"
 handlebars = "6"
@@ -108,8 +111,8 @@ include_dir = "0.7"
 # Data Structures
 indexmap = { version = "2", features = ["serde"] }
 dashmap = "6"
-fnv_rs = "0.1"
-derive_more = { version = "1", features = ["full"] }
+fnv_rs = "0.4"
+derive_more = { version = "2.1.1", features = ["from", "display", "debug", "deref", "as_ref", "try_into"] }
 derive_setters = "0.1"
 derive-getters = "0.5.0"
 strum = { version = "0.27", features = ["derive"] }
@@ -126,7 +129,7 @@ diesel_migrations = "2.2.0"
 dirs = "5"
 dotenvy = "0.15"
 tempfile = "3"
-url = "2"
+url = { version = "2", features = ["serde"] }
 http = "1"
 bytes = "1"
 humantime = "0.1"
@@ -135,7 +138,8 @@ sha2 = "0.10"
 hex = "0.4"
 infer = "0.19.0"
 open = "5"
-whoami = "1"
+whoami = "2.1.0"
+machineid-rs = "1.2.4"
 sysinfo = "0.35"
 gix = { version = "0.70", default-features = false, features = ["max-performance-safe"] }
 update-informer = "1.2.0"

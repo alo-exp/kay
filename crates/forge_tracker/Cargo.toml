@@ -1,0 +1,34 @@
+[package]
+name = "forge_tracker"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "ForgeCode analytics tracker"
+
+[dependencies]
+forge_domain = { path = "../forge_domain" }
+
+reqwest = { workspace = true }
+derive_more = { workspace = true }
+url = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+sysinfo = { workspace = true }
+posthog-rs = { workspace = true }
+async-trait = { workspace = true }
+chrono = { workspace = true }
+whoami = { workspace = true }
+machineid-rs = { workspace = true }
+convert_case = { workspace = true }
+http = { workspace = true }
+regex = { workspace = true }
+tracing-appender = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }
+lazy_static = { workspace = true }
+dirs = { workspace = true }

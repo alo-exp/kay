@@ -1,0 +1,18 @@
+[package]
+name = "forge_spinner"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "ForgeCode progress spinner"
+
+[dependencies]
+forge_domain = { path = "../forge_domain" }
+
+anyhow = { workspace = true }
+colored = { workspace = true }
+tokio = { workspace = true }
+indicatif = { workspace = true }
+rand = { workspace = true }

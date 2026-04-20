@@ -1,0 +1,44 @@
+[package]
+name = "forge_domain"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "ForgeCode domain types (AgentEvent, Provider, Tool, Session shapes)"
+
+[dependencies]
+forge_template    = { path = "../forge_template" }
+forge_tool_macros = { path = "../forge_tool_macros" }
+forge_json_repair = { path = "../forge_json_repair" }
+
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+chrono = { workspace = true }
+derive_more = { workspace = true }
+derive_setters = { workspace = true }
+fnv_rs = { workspace = true }
+indexmap = { workspace = true }
+nom = { workspace = true }
+schemars = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true, features = ["raw_value"] }
+eserde = { version = "0.1.7", features = ["json"] }
+strum = { workspace = true }
+strum_macros = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+uuid = { workspace = true }
+tracing = { workspace = true }
+url = { workspace = true }
+merge = { workspace = true }
+serde_yml = { workspace = true }
+base64 = { workspace = true }
+derive-getters = { workspace = true }
+regex = { workspace = true }
+lazy_static = { workspace = true }
+convert_case = { workspace = true }
+glob = { workspace = true }
+fake = { workspace = true }
