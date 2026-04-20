@@ -91,13 +91,19 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. `cargo check --workspace --deny warnings` passes on macOS, Linux, Windows **without** `--exclude kay-core`.
   2. `forge_tool_macros` is its own proc-macro sub-crate (required by Rust — a proc-macro cannot be used from the same crate that defines it).
-  3. Each of the 23 forge_* subtrees lives in its own workspace member at `crates/kay-<name>/`, preserving the original ForgeCode lib.rs as the crate root (not `mod.rs`).
-  4. `include_str!` resource files (templates/, shell-plugin/, commands/, vertex.json etc.) are either copied to the appropriate sub-crate at crate-root-relative paths OR their `include_str!` calls are rewritten to use fully-qualified workspace-root-relative paths — whichever preserves source semantics.
+  3. Each of the 23 forge_* subtrees lives in its own workspace member at `crates/forge_<name>/`, preserving the original ForgeCode lib.rs as the crate root (not `mod.rs`).
+  4. `include_str!` resource files (templates/, shell-plugin/, commands/, vertex.json etc.) are placed at repo root so include_str! relative paths resolve correctly when sub-crates are at `crates/<name>/`.
   5. The forgecode-parity-baseline tag's semantic integrity is preserved: combined sha256 of source files imported in Phase 1 remains unchanged (only module-system packaging differs).
   6. All path rewrites from plans 02-02..02-05 are reverted as part of the sub-crate split (each sub-crate's `use crate::X` is now correct because `crate` refers to that sub-crate itself, not to kay-core).
-  7. `kay-provider-openrouter` declares path-dependencies on specific forge_* sub-crates it needs (likely: `kay-forge-domain`, `kay-forge-services`, `kay-forge-repo`, `kay-forge-json-repair`) — rather than the single kay-core.
+  7. `kay-provider-openrouter` declares path-dependencies on specific forge_* sub-crates it needs (forge_domain, forge_config, forge_services, forge_repo, forge_json_repair) — rather than the single kay-core.
   8. Existing kay-provider-openrouter Wave 0 test scaffold (plan 02-01 artifacts — MockServer, 6 SSE cassettes) continues to compile unchanged.
-**Plans**: TBD (to be authored via `/gsd-plan-phase 2.5`)
+**Plans**: 4 plans
+
+Plans:
+- [ ] 02.5-01-PLAN.md — Prep and revert: discard 132 uncommitted files, revert 24 source-change commits (02-02..02-05), fetch missing resource files from upstream SHA 022ecd9 (WS-05)
+- [ ] 02.5-02-PLAN.md — Wave 0 sub-crates (12 crates, no forge_* deps): forge_tool_macros (proc-macro=true), forge_template, forge_json_repair, forge_stream, forge_test_kit, forge_embed, forge_ci, forge_walker, forge_markdown_stream, forge_select, forge_display, forge_config (WS-05)
+- [ ] 02.5-03-PLAN.md — Wave 1-5 sub-crates (9 crates, forge_domain through forge_api): forge_domain, forge_spinner, forge_tracker, forge_fs, forge_snaps, forge_app, forge_services, forge_infra, forge_repo, forge_api (integration gate) (WS-05, PROV-01)
+- [ ] 02.5-04-PLAN.md — forge_main + kay-core aggregator + kay-provider-openrouter wiring + CI cleanup: remove --exclude kay-core, cargo fmt --all, final cargo check --workspace --deny warnings gate (WS-05, PROV-01)
 **UI hint**: no
 
 ### Phase 3: Tool Registry + KIRA Core Tools
@@ -275,7 +281,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 |-------|----------------|--------|-----------|
 | 1. Fork, Governance, Infrastructure | 6/6   | Complete | 2026-04-19 |
 | 2. Provider HAL + Tolerant JSON Parser | 4/10 | Blocked on 2.5 | - |
-| 2.5. kay-core sub-crate split *(INSERTED 2026-04-20)* | 0/TBD | Not planned yet | - |
+| 2.5. kay-core sub-crate split *(INSERTED 2026-04-20)* | 0/4 | Planned — ready for execution | - |
 | 3. Tool Registry + KIRA Core Tools | 0/TBD | Not started | - |
 | 4. Sandbox (All Three Platforms) | 0/TBD | Not started | - |
 | 5. Agent Loop (Event-Driven Core) | 0/TBD | Not started | - |
@@ -319,3 +325,4 @@ Plans:
 ---
 *Roadmap created: 2026-04-19*
 *Last backlog update: 2026-04-20 — added 999.2 + 999.3 from Phase 2 quality-gates advisory*
+*Phase 2.5 plans authored: 2026-04-20 — 4 plans created (02.5-01 through 02.5-04)*
