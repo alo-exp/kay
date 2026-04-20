@@ -107,6 +107,25 @@ pub enum AgentEvent {
     /// file contents. Consumers may choose to forward, truncate, or
     /// log-redact bytes in UI layers.
     ImageRead { path: String, bytes: Vec<u8> },
+
+    /// A sandbox policy violation was detected for a tool call. Phase 4 SEC-01.
+    ///
+    /// **MUST NOT** be serialized back into the model's message history as a
+    /// tool call result — doing so would teach the model to route around the
+    /// policy (QG-C4 / prompt-injection risk). Route to the UI/user event
+    /// stream only. Phase 5 planning constraint: enforce at the agent loop level.
+    ///
+    /// `policy_rule` MUST be one of the `RULE_*` constants from
+    /// `kay-sandbox-policy` to ensure consistent cross-OS violation messages.
+    SandboxViolation {
+        call_id: String,
+        tool_name: String,
+        resource: String,
+        /// Value MUST be a `kay_sandbox_policy::rules::RULE_*` constant.
+        policy_rule: String,
+        /// `None` = pre-flight userspace check; `Some(errno)` = kernel denial.
+        os_error: Option<i32>,
+    },
 }
 
 /// A single streamed output frame from a tool. Phase 3 SHELL-03.
@@ -235,6 +254,42 @@ mod phase3_additions {
             assert_eq!(bytes[0], 0x89);
         } else {
             panic!("not an ImageRead: {ev:?}");
+        }
+    }
+
+    #[test]
+    fn sandbox_violation_variant_shape() {
+        // U-37: SandboxViolation has all 5 required fields (QG-C3/QG-C4).
+        let ev = AgentEvent::SandboxViolation {
+            call_id: "cid-42".to_string(),
+            tool_name: "fs_write".to_string(),
+            resource: "/etc/passwd".to_string(),
+            policy_rule: "write-outside-project-root".to_string(),
+            os_error: Some(13),
+        };
+        let dbg = format!("{ev:?}");
+        assert!(dbg.contains("SandboxViolation"), "missing variant: {dbg}");
+        assert!(dbg.contains("cid-42"), "missing call_id: {dbg}");
+        assert!(dbg.contains("fs_write"), "missing tool_name: {dbg}");
+        assert!(dbg.contains("/etc/passwd"), "missing resource: {dbg}");
+        assert!(dbg.contains("write-outside-project-root"), "missing policy_rule: {dbg}");
+        assert!(dbg.contains("13"), "missing os_error: {dbg}");
+    }
+
+    #[test]
+    fn sandbox_violation_preflight_has_no_os_error() {
+        // U-38: pre-flight violations have os_error = None.
+        let ev = AgentEvent::SandboxViolation {
+            call_id: "cid-43".to_string(),
+            tool_name: "net_fetch".to_string(),
+            resource: "http://evil.com".to_string(),
+            policy_rule: "net-not-allowlisted".to_string(),
+            os_error: None,
+        };
+        if let AgentEvent::SandboxViolation { os_error, .. } = &ev {
+            assert!(os_error.is_none(), "preflight must have no OS error");
+        } else {
+            panic!("not a SandboxViolation: {ev:?}");
         }
     }
 
