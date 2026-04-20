@@ -12,3 +12,4 @@ description = "Kay headless CLI for benchmark + CI use"
 [dependencies]
 clap = { workspace = true }
 anyhow = { workspace = true }
+kay-tools = { path = "../kay-tools" }

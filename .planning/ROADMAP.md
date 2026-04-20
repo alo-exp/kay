@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Fork, Governance, Infrastructure** *(COMPLETE 2026-04-19 — shipped as v0.0.1)* - Fork ForgeCode cleanly; set up Apache-2.0 + DCO; enroll code-signing; workspace scaffold; parity-gate the unmodified fork on TB 2.0.
 - [x] **Phase 2: Provider HAL + Tolerant JSON Parser** *(COMPLETE 2026-04-20)* - OpenRouter streaming client with tool-call reassembly, typed error taxonomy, and a two-pass tolerant parser for provider variance.
 - [x] **Phase 2.5: kay-core sub-crate split** *(INSERTED 2026-04-20; COMPLETE 2026-04-20)* - Structural fix for the mono-crate approach discovered during Phase 2 execution. ForgeCode's imported source was 23 separate crates; forcing them into one `kay-core` crate broke proc-macro self-reference, `include_str!` relative paths, trait object-safety, and visibility semantics (1323 residual errors after plan 02-05's mechanical rewrite). Resolved via D-01 Option (c): promoted each `forge_*` subtree to its own workspace sub-crate preserving ForgeCode's original layout; kay-core reduced to a thin aggregator re-exporter. `cargo check --workspace` now passes cleanly with zero exclusions. Verifier PASS 8/8 (02.5-VERIFICATION.md). Unblocks Phase 2 plans 02-06..02-10.
-- [ ] **Phase 3: Tool Registry + KIRA Core Tools** - Object-safe `Tool` trait, native tool-calling path, `execute_commands` (marker polling), `task_complete`, `image_read`, with hardened schemas.
+- [x] **Phase 3: Tool Registry + KIRA Core Tools** *(COMPLETE 2026-04-21 — shipped as v0.1.1)* - Object-safe `Tool` trait, native tool-calling path, `execute_commands` (marker polling with 30k-case adversarial proptest lock), `task_complete`, `image_read`, 4 parity-delegated FS/net tools, with hardened schemas. 174 tests green; 7/7 NN compliant; H-01 SIGKILL-pgid regression-locked.
 - [ ] **Phase 4: Sandbox (All Three Platforms)** - Per-OS sandbox: macOS `sandbox-exec`, Linux Landlock+seccomp, Windows Job Objects + restricted token.
 - [ ] **Phase 5: Agent Loop + Canonical CLI** - `tokio::select!` loop, frozen `AgentEvent` shape, YAML personas (forge/sage/muse — inherited from ForgeCode), mandatory verification gate, rebranded `forge_main` → `kay-cli` with structured-event JSONL stream (the contract GUI and TUI frontends consume).
 - [ ] **Phase 6: Session Store + Transcript** - JSONL source-of-truth transcripts + SQLite index, resume/fork, pre-edit snapshots, self-contained session export.
@@ -117,7 +117,14 @@ Plans:
   3. A long-running command can be cleanly terminated by a configurable hard timeout, with signal propagation and zombie reap verified on all three OSes.
   4. The `image_read` tool accepts a base64 terminal screenshot and feeds it to a multimodal model turn, bounded by per-turn (1-2) and per-session (10-20) caps.
   5. User-injected input containing a fake marker is detected before execution and rejected, and `task_complete` does not return success until the Phase 8 verifier has run.
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Wave 0 scaffold: kay-tools crate skeleton, module stubs, test harness files, workspace wiring (WS-05 structural)
+- [ ] 03-02-PLAN.md — Wave 1: Tool trait (object-safe, async), ToolRegistry (immutable Arc<dyn Tool>), ToolError, Sandbox/TaskVerifier DI seams, NoOpSandbox + NoOpVerifier (TOOL-01, TOOL-03, TOOL-06)
+- [ ] 03-03-PLAN.md — Wave 2: Schema hardening wrapper delegating to forge_app::enforce_strict_schema + AgentEvent::ToolOutput/TaskComplete additive extensions + VerificationOutcome in kay-provider-openrouter::event (TOOL-05, events)
+- [ ] 03-04-PLAN.md — Wave 3: Marker protocol (__CMDEND_<hex128>_<seq>__ with subtle::ConstantTimeEq) + execute_commands tool (piped+PTY paths, timeout cascade SIGTERM→SIGKILL, streaming ToolOutput) (TOOL-02, SHELL-01..05)
+- [ ] 03-05-PLAN.md — Wave 4: 4 parity tools (fs_read/fs_write/fs_search/net_fetch), image_read with AtomicU32 quotas, task_complete with verifier gate, default_tool_set() builder, kay-cli registry wiring at startup (TOOL-01, TOOL-03, TOOL-04, TOOL-06)
 **UI hint**: no
 
 ### Phase 4: Sandbox (All Three Platforms)
@@ -130,6 +137,9 @@ Plans:
   2. Reads from the project tree and the user's Kay config directory succeed; reads from arbitrary parts of `$HOME` (e.g. `~/.aws/credentials`, `~/.ssh/`) are blocked by default policy.
   3. Outbound network traffic is allowed only to the configured OpenRouter host by default; other destinations fail with a visible policy-violation event.
   4. Each platform's sandbox is exercised in CI with a "must-fail" escape suite, and failures appear loudly in the agent trace, not silently.
+  5. **Phase 4 entry gate** — `cargo test --workspace --all-targets` passes cleanly. Resolves the Phase 2.5 pre-existing debt in `forge_domain` where `forge_test_kit::json_fixture` is imported unconditionally but the helper is gated behind `#[cfg(feature = "json")]`. Fix: add `features = ["json"]` to the `forge_domain` dev-dep on `forge_test_kit`, or gate the import with `#[cfg(feature = "json")]`. This debt was spawned as a side-task during Phase 3 but never closed.
+  6. **Phase 3 residual R-4** — Windows timeout cascade uses Job Objects to guarantee grandchild kill when the leader ignores SIGTERM (symmetric to the Unix `killpg(pgid, SIGKILL)` cascade locked in `kay-tools/tests/timeout_cascade.rs`). Regression test mirrors the grandchild-that-ignores-SIGTERM pattern on Windows CI.
+  7. **Phase 3 residual R-5** — `crates/kay-tools/src/runtime/dispatcher.rs` and `crates/kay-tools/src/seams/rng.rs` are either populated with sandbox-routing logic (dispatcher) and rng-seam consumers, or explicitly `#[cfg(test)]`-gated if still unused after Phase 4 lands.
 **Plans**: TBD
 **UI hint**: no
 
@@ -144,6 +154,9 @@ Plans:
   3. A running turn can be paused, resumed, or aborted cleanly via a control channel, and `muse` or `forge` can invoke `sage` as a read-only sub-tool.
   4. `AgentEvent` is marked `#[non_exhaustive]` and documented as a frozen API surface for downstream Tauri and CLI consumers.
   5. `task_complete` never returns success to the loop until a verification pass has run (no-op critic stub in Phase 5, real critics in Phase 8).
+  6. **Phase 3 residual R-1** — `kay-tools::execute_commands` PTY-routing heuristic tokenizes the command on `[\s;|&]` before matching the engage-denylist, so compound metacharacter first-tokens (e.g. `ssh;echo owned`) route correctly to the PTY path instead of falling through to the piped path. Regression test exercises 6 compound forms.
+  7. **Phase 3 residual R-2** — `ForgeConfig.image_read` grows a `max_image_bytes` field (default 20 MiB); `ImageReadTool::new` reads the cap and rejects reads exceeding it with a structured `ToolError::ImageTooLarge` event before allocating. Prevents `AgentEvent::ImageRead { bytes }` unbounded-payload DoS.
+  8. **Testing infra (from WORKFLOW.md §Deferred Improvements, FLOW 3b E3)** — `trybuild` added as a workspace dev-dep + first-class compile-fail test tier; `kay-tools/tests/compile_fail/` fixtures lock object-safety (`Tool` trait remains `dyn`-safe, `ServicesHandle` remains `dyn`-safe, `default_tool_set` factory-closure signature) against future edits.
 **Plans**: TBD
 **UI hint**: no
 
@@ -241,6 +254,7 @@ Plans:
   3. The Tauri bundler produces `.app`, `.msi`, `.AppImage` bundles with reproducible build metadata and signed artifacts.
   4. `tauri-plugin-updater` ships with a minisign keypair whose public key was pinned in `tauri.conf.json` before the first release — rotations are not possible without a documented migration.
   5. Windows CI runs the full interactive PTY suite (ConPTY flags, `Ctrl+C`, resize) green.
+  6. **Supply-chain hygiene (carried from Phase 3 03-SECURITY.md §2)** — CI runs a fully networked `cargo audit` against the RustSec advisory DB and captures a clean transcript (the Phase 3 run timed out on the yanked-check phase in the sandboxed FLOW 13 environment; clean retry deferred to release CI).
 **Plans**: TBD
 **UI hint**: no
 
@@ -254,6 +268,7 @@ Plans:
   2. A held-out task subset (never referenced during development) is revealed for final validation and scores within 2 percentage points of the full-set local score.
   3. Nightly real-repo eval (Rails, React+TS, Rust crate, Python package, monorepo >10k files) passes and its result is published alongside the TB 2.0 score.
   4. The public TB 2.0 leaderboard lists Kay >81.8% with a documented, model-pinned reference run whose full transcript is archived in the repo.
+  5. **Phase 12 entry gate — EVAL-01a carried from Phase 1** — the unmodified `forgecode-parity-baseline` fork has been executed against TB 2.0 end-to-end (not just byte-diff locked via `parity_delegation.rs`) and scored ≥80%. This closes the empirical half of NN#1 (ForgeCode parity gate): Phase 3 proved *structural* parity via byte-diff; Phase 12 proves *behavioral* parity via live benchmark. Blocks final v1.0 tag. Unblocks when OpenRouter key + ~$100 eval budget are available — if still blocked at Phase 12 entry, item escalates as a must-fix gate rather than a deferred-deferral.
 **Plans**: TBD
 **UI hint**: no
 
@@ -282,7 +297,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 1. Fork, Governance, Infrastructure | 6/6   | Complete | 2026-04-19 |
 | 2. Provider HAL + Tolerant JSON Parser | 9/9 (02-05 superseded by 2.5) | Complete | 2026-04-20 |
 | 2.5. kay-core sub-crate split *(INSERTED 2026-04-20)* | 4/4 | Complete (verifier PASS 8/8) | 2026-04-20 |
-| 3. Tool Registry + KIRA Core Tools | 0/TBD | Not started | - |
+| 3. Tool Registry + KIRA Core Tools | 0/5 | Planning complete | - |
 | 4. Sandbox (All Three Platforms) | 0/TBD | Not started | - |
 | 5. Agent Loop (Event-Driven Core) | 0/TBD | Not started | - |
 | 6. Session Store + Transcript | 0/TBD | Not started | - |
@@ -326,3 +341,4 @@ Plans:
 *Roadmap created: 2026-04-19*
 *Last backlog update: 2026-04-20 — added 999.2 + 999.3 from Phase 2 quality-gates advisory*
 *Phase 2.5 plans authored: 2026-04-20 — 4 plans created (02.5-01 through 02.5-04)*
+*Phase 3 plans authored: 2026-04-20 — 5 plans created (03-01 through 03-05)*
