@@ -190,6 +190,16 @@ jobs:
           # the pushed tag is annotated and signed. We need the actual tag
           # object here to verify the signature.
           fetch-tags: true
+      - name: Restore annotated tag object
+        # actions/checkout@v4, even with fetch-tags: true, performs a second
+        # fetch of the form `+<sha>:refs/tags/<TAG>` which OVERWRITES the
+        # annotated tag we just fetched with a lightweight tag pointing at
+        # the underlying commit. Force-refetch the annotated tag object so
+        # `git tag -v` sees the signature.
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          git fetch origin --force "refs/tags/$TAG:refs/tags/$TAG"
+          git cat-file -t "$TAG"  # expect: tag
       - name: Configure SSH allowed_signers for tag verification
         # git tag -v with SSH signatures requires gpg.ssh.allowedSignersFile.
         # The repo-committed .github/allowed_signers is the single source of
