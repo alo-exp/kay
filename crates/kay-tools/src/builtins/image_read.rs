@@ -14,13 +14,12 @@
 //!    forge_services/image_read impl does the same — `ImageFormat`
 //!    enum over `.jpg/.jpeg/.png/.webp/.gif`. Kay's ImageReadTool
 //!    stays consistent with upstream.
-//! 3. **Direct `tokio::fs::read` instead of going through the sandbox
-//!    seam or ImageReadService**. The sandbox read-bytes hook only
-//!    accepts URL-style inputs in the current seam trait (Wave 1); a
-//!    filesystem read is a distinct capability that Phase 5 will
-//!    fold into an expanded sandbox. For Wave 4 the tool reads the
-//!    resolved absolute path directly — any size-limit / auth check
-//!    Phase 5 adds will happen at the sandbox layer.
+//! 3. **Direct `tokio::fs::read` for the raw bytes**, but the path IS
+//!    checked via `ctx.sandbox.check_fs_read(&path)` first (M-05).
+//!    NoOpSandbox is a pass-through today; Phase 4's per-OS sandbox
+//!    gains real enforcement here without further changes to this tool.
+//!    Any size-limit / content-auth check Phase 5 adds will continue
+//!    to happen at the sandbox layer.
 
 use std::path::Path;
 use std::sync::Arc;
@@ -131,6 +130,19 @@ impl Tool for ImageReadTool {
                 input.path
             ),
         })?;
+
+        // M-05: consult the sandbox BEFORE reading. Mirrors `net_fetch`'s
+        // pattern — NoOpSandbox is a pass-through today; Phase 4's real
+        // sandbox will enforce filesystem scoping here without further
+        // changes to this tool. Release the quota slot on denial so a
+        // blocked read does not silently consume the cap.
+        if let Err(denial) = ctx.sandbox.check_fs_read(&path_buf).await {
+            self.quota.release();
+            return Err(ToolError::SandboxDenied {
+                tool: self.name.clone(),
+                reason: denial.reason,
+            });
+        }
 
         // M-02: release the quota slot if the FS read fails — otherwise a
         // prompt supplying 20 non-existent paths drains the per-session
