@@ -21,6 +21,12 @@ reqwest-eventsource = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 anyhow = { workspace = true }
+# NN-7 load-bearing: IndexMap preserves insertion order so build_request_body
+# can emit `required` before `properties` in tool parameter schemas without
+# enabling serde_json/preserve_order (which triggers a clippy large-enum
+# warning in upstream forge_app and would violate parity). See plan 02-08
+# T2 Step 6 Path A variant + nn7 unit test.
+indexmap = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 

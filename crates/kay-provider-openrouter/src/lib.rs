@@ -21,14 +21,19 @@
 mod allowlist;
 mod auth;
 mod client;
+mod cost_cap;
 mod error;
 mod event;
+mod openrouter_provider;
 mod provider;
+mod translator;
 
 pub use allowlist::Allowlist;
 pub use auth::{ConfigAuthSource, resolve_api_key};
 // Note: ApiKey is NOT re-exported — it's crate-internal. Only used by
 // plan 02-08's delegation layer via its pub(crate) as_str() accessor.
+pub use cost_cap::CostCap;
 pub use error::{AuthErrorKind, ProviderError, RetryReason};
 pub use event::AgentEvent;
+pub use openrouter_provider::{OpenRouterProvider, OpenRouterProviderBuilder};
 pub use provider::{AgentEventStream, ChatRequest, Message, Provider, ToolSchema};

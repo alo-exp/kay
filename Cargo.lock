@@ -4323,14 +4323,17 @@ name = "kay-provider-openrouter"
 version = "0.0.1"
 dependencies = [
  "anyhow",
+ "async-stream",
  "async-trait",
  "backon",
+ "bytes",
  "forge_config",
  "forge_domain",
  "forge_json_repair",
  "forge_repo",
  "forge_services",
  "futures",
+ "indexmap 2.14.0",
  "mockito",
  "pretty_assertions",
  "proptest",
