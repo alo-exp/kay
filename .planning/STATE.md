@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.1.0
-milestone_name: Provider HAL + Tolerant JSON Parser
-status: in_progress
-stopped_at: "Phase 3 Wave 3 complete (03-04: execute_commands marker-protocol tool shipped). Next: Wave 4 (03-05 — default_tool_set + remaining built-ins)."
-last_updated: "2026-04-21T00:00:00Z"
-last_activity: 2026-04-21 -- Phase 3 Wave 3 (03-04) executed: MarkerContext + scan_line (subtle::ConstantTimeEq), ExecuteCommandsTool w/ streaming + PTY fallback + SIGTERM-2s-SIGKILL cascade + process_group isolation. SHELL-01..05 + TOOL-02 locked. 59 kay-tools tests green (43 lib-unit + 8 new SHELL/TOOL integration + 8 prior integration). Commits ef439af, 9dffe1a, 1362b99.
+milestone: v0.1.1
+milestone_name: Tool Registry + KIRA Core Tools
+status: complete
+stopped_at: "Phase 3 complete — all 14 /silver flows closed. FLOW 17 ship pending signed-tag push + PR."
+last_updated: "2026-04-21T04:30:00Z"
+last_activity: 2026-04-21 -- Phase 3 CLOSED. All 5 waves shipped + FLOW 11 verify (16/16 PASS) + FLOW 12 review (1H+5M fixed) + FLOW 13 security (PASS, 6 residuals to Phase 4/5 backlog) + FLOW 14 Nyquist (30k-case adversarial marker-forgery proptest + phase3 smoke scripts) + FLOW 16 adversarial quality-gates (9/9 PASS). 174 tests green across kay-tools surface; clippy -D warnings clean; cargo-deny green. 29 DCO-signed commits on phase/03-tool-registry.
 progress:
   total_phases: 17
   completed_phases: 3
