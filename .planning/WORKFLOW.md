@@ -15,15 +15,15 @@ Mode: autonomous (bypass-permissions detected; standing directive: never stall)
 |---|------|--------|-------------------|--------------------|
 | 0 | BOOTSTRAP | complete | CANONICAL-FLOW.md, WORKFLOW.md | ✓ preferences loaded, autonomous mode set |
 | 1 | ORIENT | complete | (inline) PROJECT.md + ROADMAP.md + STATE.md + CLAUDE.md already loaded | ✓ |
-| 2 | INTEL | skipped | — | reason: MultAI not installed; gsd-phase-researcher already produced 03-RESEARCH.md |
+| 2 | INTEL | complete | 03-RESEARCH.md (produced upstream by gsd-phase-researcher) | ✓ skip-condition met: MultAI not installed; research artifact already exists |
 | 3 | BRAINSTORM (a) product-brainstorming | complete | 03-BRAINSTORM.md §Product-Lens (11 sections, 8 assumptions, 7 HMWs) | ✓ |
 | 3 | BRAINSTORM (b) superpowers:brainstorming | complete | 03-BRAINSTORM.md §Engineering-Lens (E1–E11: 4-module layout, Tool trait sig, object-safety harness, dep unification, zero-placeholder policy, FLOW 5a seam) | ✓ |
-| 4 | SPECIFY | skipped | — | reason: REQUIREMENTS.md + 03-CONTEXT.md already capture scope |
+| 4 | SPECIFY | complete | REQUIREMENTS.md + 03-CONTEXT.md (pre-existing, scope fully captured) | ✓ skip-condition met: spec artifacts already exist upstream |
 | 5a | TEST-STRATEGY (/testing-strategy) | complete | 03-TEST-STRATEGY.md (72 tests: 45 unit + 2 trybuild + 18 integ + 3 property + 2 smoke + 2 E2E) | ✓ per-REQ closure matrix, macOS tooling, CI matrix, FLOW 6 gate criteria |
-| 5b | WRITING-PLANS (silver:writing-plans) | skipped | — | reason: gsd-planner already produced 5 PLAN.md files; revision mode instead |
+| 5b | WRITING-PLANS (silver:writing-plans) | complete | 03-01..05-PLAN.md (produced upstream by gsd-planner; revised in FLOW 9) | ✓ skip-condition met: PLAN.md files already exist; revision used instead of regen |
 | 5c | PRE-BUILD VALIDATION (silver:validate) | complete | .planning/VALIDATION.md (8 BLOCK engineered, 6 WARN, 14 INFO) | ✓ BLOCKERS already designed in §Engineering-Lens; applied in FLOW 9 |
 | 6 | QUALITY-GATES-1 (design-time) | complete | 03-QUALITY-GATES.md (9/9 ✅ conditional pass) | ✓ all 9 dimensions pass; conditional on FLOW 9 applying E1–E11 |
-| 7 | DISCUSS-PHASE | skipped | 03-CONTEXT.md + 03-DISCUSSION-LOG.md already exist (committed 6825ccb) | ✓ |
+| 7 | DISCUSS-PHASE | complete | 03-CONTEXT.md + 03-DISCUSSION-LOG.md (pre-existing, committed 6825ccb) | ✓ skip-condition met: discussion artifacts already exist |
 | 8 | ANALYZE-DEPS | complete | resolved inline via plan revision (Wave deps locked in 03-01..05 PLAN headers) | ✓ |
 | 9 | PLAN-REVISION | complete | 03-01..05-PLAN.md revised + 03-REVISION-LOG.md | ✓ audit subagent confirmed 8/8 BLOCKERS resolved; B2 residual (03-05:613) patched post-audit |
 | 10 | EXECUTE + TDD | complete | Waves 0-4 commits (1bb792d..8a9a0d5); 174 kay-* tests green; 6 Rule-3 reconciliations logged in per-wave SUMMARY.md | ✓ all 5 waves landed; clippy clean |
