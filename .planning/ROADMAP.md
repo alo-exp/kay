@@ -77,7 +77,7 @@ Plans:
 - [x] 02-06-PLAN.md — kay-provider-openrouter scaffolding: Cargo.toml deps, Provider trait, AgentEvent, ProviderError, crate-wide #![deny(clippy::unwrap_used)] (PROV-01, PROV-02, PROV-08) *(post-2.5 realigned per 02-CONTEXT.md Appendix A; completed 2026-04-20, ~7 min, 2 commits f36083f + b0bcc8d, 3 Rule-1/2 deviations auto-fixed — see 02-06-SUMMARY.md)*
 - [x] 02-07-PLAN.md — Allowlist gate (PROV-04) + API-key auth (PROV-03) with TM-01 Debug redaction + TM-04 charset validation *(completed 2026-04-20, ~6 min, 2 commits 0b4a8c1 + f3586e8, 5 Rule-1/3 deviations auto-fixed — see 02-07-SUMMARY.md)*
 - [x] 02-08-PLAN.md — OpenRouterProvider impl: UpstreamClient + SSE translator + tool-call reassembly (PROV-01, PROV-02, PROV-05 part 1) *(completed 2026-04-20, ~55 min, 3 commits 786bd7a + e754631 + 84e1893, 5 Rule-1/3 deviations auto-fixed incl. NN-7 Path-A via OrderedObject+IndexMap sidestepping forge_app preserve_order clippy regression — see 02-08-SUMMARY.md)*
-- [ ] 02-09-PLAN.md — Tolerant two-pass JSON parser (forge_json_repair fallback) + proptest never-panic + 1MB cap (PROV-05, TM-06)
+- [x] 02-09-PLAN.md — Tolerant two-pass JSON parser (forge_json_repair fallback) + proptest never-panic + 1MB cap (PROV-05, TM-06) *(completed 2026-04-20, ~18 min, 3 commits 73adc6e + e7f91c7 + 7d3031b, 4 Rule-1/2/3 deviations auto-fixed — see 02-09-SUMMARY.md)*
 - [ ] 02-10-PLAN.md — Retry policy (backon + Retry-After) + cost cap turn-boundary + error taxonomy + STATE.md closeout (PROV-06, PROV-07, PROV-08)
 **UI hint**: no
 
@@ -280,7 +280,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Fork, Governance, Infrastructure | 6/6   | Complete | 2026-04-19 |
-| 2. Provider HAL + Tolerant JSON Parser | 7/9 (02-05 superseded by 2.5) | In progress (02-09, 02-10 next) | - |
+| 2. Provider HAL + Tolerant JSON Parser | 8/9 (02-05 superseded by 2.5) | In progress (02-10 next) | - |
 | 2.5. kay-core sub-crate split *(INSERTED 2026-04-20)* | 4/4 | Complete (verifier PASS 8/8) | 2026-04-20 |
 | 3. Tool Registry + KIRA Core Tools | 0/TBD | Not started | - |
 | 4. Sandbox (All Three Platforms) | 0/TBD | Not started | - |
