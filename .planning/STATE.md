@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0.0
 milestone_name: milestone
 status: phase_2_in_progress
-stopped_at: Phase 2 plan 02-06 complete (2026-04-20). kay-provider-openrouter public contract frozen — Provider trait, AgentEvent (8 variants), ProviderError (11 variants), helper types, crate-root #![deny(clippy::unwrap_used, clippy::expect_used)] lint. 2/2 unit tests passing. 3 Rule-1/2 deviations auto-fixed (Clone derive drop on AgentEvent per Rust type system; 2 Appendix A realignment substitutions). Plans 02-07..02-10 unblocked — contract is frozen for them to implement against.
-last_updated: "2026-04-20T03:18:15Z"
-last_activity: 2026-04-20 -- Phase 2 plan 02-06 executed: kay-provider-openrouter scaffolding (Provider trait + AgentEvent + ProviderError + never-panic lint). 2 commits (f36083f, b0bcc8d) with DCO signoff. ~7 min duration.
+stopped_at: Phase 2 plan 02-07 complete (2026-04-20). kay-provider-openrouter now has allowlist gate (PROV-04, TM-04 CRLF reject, TM-08 :exacto wire suffix, Pitfall 7 normalization) and API-key auth (PROV-03, D-08 env-wins-over-config, TM-01 Debug redaction to `ApiKey(<redacted>)`). 26 tests green (16 lib + 6 allowlist_gate + 4 auth_env_vs_config). 5 Rule-1/3 deviations auto-fixed (Rust 2024 unsafe-env wrap; test env-mutex serialization; clippy collapsible_if → let-chain; #[allow] on test modules; Appendix A Rule-2 no-op record). Plan 02-08 unblocked.
+last_updated: "2026-04-20T03:31:11Z"
+last_activity: 2026-04-20 -- Phase 2 plan 02-07 executed: allowlist gate (PROV-04) + API-key auth (PROV-03) + TM-01/04/08 mitigations. 2 commits (0b4a8c1, f3586e8) with DCO signoff. ~6 min duration.
 progress:
   total_phases: 14
   completed_phases: 2
   total_plans: 19
-  completed_plans: 20
+  completed_plans: 21
   percent: 20
 ---
 
@@ -21,35 +21,35 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-19)
 
 **Core value:** Beat ForgeCode on Terminal-Bench 2.0 (>81.8%) as the first OSS agent that pairs a top-10 harness with a native desktop UI.
-**Current focus:** Phase 2 — plan 02-06 complete; next is 02-07 (allowlist gate + API-key auth).
+**Current focus:** Phase 2 — plan 02-07 complete; next is 02-08 (OpenRouterProvider impl: UpstreamClient + SSE translator + tool-call reassembly).
 
 ## Current Position
 
-Phase: Phase 2 in progress. Next plan to execute: **02-07** (allowlist gate per PROV-04 + API-key auth per PROV-03 + TM-01 Debug redaction + TM-04 charset validation).
-Status: Plan 02-06 complete. kay-provider-openrouter now exports Provider trait (async_trait, object-safe), AgentEvent (8 #[non_exhaustive] variants), ProviderError (11 #[non_exhaustive] variants, thiserror), helper types (ChatRequest/Message/ToolSchema), AgentEventStream<'a>. Crate-root `#![deny(clippy::unwrap_used, clippy::expect_used)]` active. 2/2 unit tests passing (Debug-no-leak + Display-carries-context). `cargo check --workspace` clean; governance invariants PASS.
-Last activity: 2026-04-20 -- Plan 02-06 executed (2 tasks, 2 commits f36083f + b0bcc8d, ~7 min, DCO signoff, 3 auto-fix deviations)
+Phase: Phase 2 in progress. Next plan to execute: **02-08** (OpenRouterProvider impl: UpstreamClient + SSE translator + tool-call reassembly per PROV-01/02/05 part 1).
+Status: Plan 02-07 complete. kay-provider-openrouter now has allowlist gate (Allowlist::from_path/check/to_wire_model with TM-04 charset validation and TM-08 Exacto wire-suffix discipline) and API-key auth (resolve_api_key with D-08 env-wins-over-config precedence; ApiKey newtype with TM-01 Debug redaction to `ApiKey(<redacted>)`). 26 tests green (16 lib + 6 allowlist_gate + 4 auth_env_vs_config). Clippy `-D warnings` clean on all targets. Workspace check + governance invariants PASS.
+Last activity: 2026-04-20 -- Plan 02-07 executed (2 tasks, 2 commits 0b4a8c1 + f3586e8, ~6 min, DCO signoff, 5 auto-fix deviations)
 
-Progress: [██░░░░░░░░░░░░] 20% (2 of 13 phases done; Phase 2: 5 of 9 active plans done — 02-05 superseded)
+Progress: [██░░░░░░░░░░░░] 20% (2 of 13 phases done; Phase 2: 6 of 9 active plans done — 02-05 superseded)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 11 (6 in Phase 1 + 5 in Phase 2; Phase 2.5's 4 plans tracked separately)
+- Total plans completed: 12 (6 in Phase 1 + 6 in Phase 2; Phase 2.5's 4 plans tracked separately)
 - Average duration: ~10 min/plan (weighted across phases)
-- Total execution time: ~108 min of direct plan execution (excludes review loops, fixes, release)
+- Total execution time: ~114 min of direct plan execution (excludes review loops, fixes, release)
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01    | 6     | 6     | ~5 min   |
-| 02    | 5     | 11    | ~15 min  |
+| 02    | 6     | 11    | ~14 min  |
 
 **Recent Trend:**
 
-- Last 5 plans: 02-02, 02-03, 02-04, 02.5-04, 02-06 (all PASS; sequential/main-worktree mode with DCO signoff on every commit)
-- Trend: Stable; Phase 2 type-contract layer now frozen. Plan 02-06 executed in 7 min with 3 auto-fix deviations (1 Rule-1 Clone-derive drop forced by non-Clone source types in transitive ProviderError; 2 Rule-2 Appendix-A realignment substitutions, one of which was a no-op preemptive record). Crate-root never-panic lint active at HAL boundary.
+- Last 5 plans: 02-03, 02-04, 02.5-04, 02-06, 02-07 (all PASS; sequential/main-worktree mode with DCO signoff on every commit)
+- Trend: Stable; Phase 2 security/auth layer now in place. Plan 02-07 executed in ~6 min with 5 auto-fix deviations (3 Rule-1 bug fixes: Rust 2024 unsafe-env wrap, test env-mutex serialization, clippy collapsible_if → let-chain + test-module `#[allow]`; 1 Rule-3 blocking Rust 2024 edition change; 1 Rule-2 Appendix-A no-op record). TM-01 API-key redaction + TM-04 CRLF-smuggle reject + TM-08 :exacto wire-suffix discipline all structurally enforced + covered by tests.
 
 *Updated after each plan completion*
 
@@ -81,6 +81,7 @@ Recent decisions affecting current work:
 - Phase 2 Plan 04: PROV-01 checkbox NOT marked — same rationale as plans 02-02/03; this plan remains a "PROV-01 prereq" per ROADMAP. Behavioral PROV-01 completion still owned by 02-06/08.
 - Phase 2 Plan 05 PARTIAL (2026-04-20): Committed 5 upper-subtree rewrites (`404ff21` forge_services, `a6f37f7` forge_infra, `4991060` forge_repo, `57045a4` forge_api, `3d85520` forge_main). STRUCTURAL FINDING: kay-core mono-crate approach hit a wall at 1323 residual errors from proc-macro self-reference, missing `include_str!` files, missing dependencies, trait object-safety, and ambiguous path issues. Mechanical path-rewrite approach (D-01 Options a/b) ruled out. **D-01 decision revised to Option (c): split kay-core into 23 workspace sub-crates** preserving ForgeCode's original structure. Plan 02-05 Task 2 (CI cleanup) absorbed into Phase 2.5. 132 files remain uncommitted in working tree (extended indented-use rewrite) — recommended to revert as obsolete since sub-crate split will redo module structure.
 - Phase 2 Plan 06 (2026-04-20): kay-provider-openrouter public contract frozen. Drop-Clone forced on AgentEvent because ProviderError embeds reqwest::Error and serde_json::Error — neither implements Clone, so plan's `#[derive(Debug, Clone)]` spec was compile-impossible. Dropped Clone entirely (events flow by move through Stream); documented as Rule-1 auto-fix. Appendix-A Rule-1 realignment applied to Cargo.toml (kept existing direct forge_* path-deps from 2.5-04; added only the 4 NEW deps backon/async-trait/futures/tokio-stream). Appendix-A Rule-2 logged as "not exercised in this plan" — the four source files have zero forge_*/kay_core imports by plan design (imports land in 02-08). Crate-root `#![deny(clippy::unwrap_used, clippy::expect_used)]` now locks PROV-05 (never panic) + TM-01 (no key leak via panic trace) at compile time.
+- Phase 2 Plan 07 (2026-04-20): Allowlist gate (PROV-04) + API-key auth (PROV-03) shipped with three threat-model mitigations structurally enforced: TM-01 (ApiKey custom Debug returns `ApiKey(<redacted>)`; no Display; pub(crate) as_str() only; ApiKey NOT re-exported), TM-04 (validate_charset rejects `\r \n \t` + non-ASCII with empty-allowed-list — smuggler gets no allowlist hint), TM-08 (to_wire_model always appends `:exacto`; canonicalize always strips). Five auto-fix deviations: (1) Rust 2024 unsafe-env mutation wrap in `unsafe {}` blocks (Rule-3 edition-forced); (2) test env-mutex serialization via `static ENV_LOCK: Mutex<()>` to fix cross-test races under cargo's parallel test harness (Rule-1); (3) clippy collapsible_if → Rust 2024 let-chain (`if let Some() = a && let Some() = b`) in resolve_api_key (Rule-1); (4) `#[allow(clippy::expect_used, clippy::unwrap_used)]` on auth unit-test module because crate-root `#![deny]` propagates through `#[cfg(test)]` modules contrary to the lib.rs comment's implication (Rule-1); (5) Appendix-A Rule-2 applicable-but-not-exercised (plan 02-07 has zero forge_*/kay_core imports — purely self-contained within kay-provider-openrouter). Canonical env-mutating test pattern established: module-static Mutex + poisoned-lock recovery via `unwrap_or_else(|e| e.into_inner())` + `unsafe {}` wrapper — to be reused across Phase 2 plans 02-08/09/10 and beyond.
 
 ### Roadmap Evolution
 
@@ -111,6 +112,6 @@ Items acknowledged and carried forward:
 
 ## Session Continuity
 
-Last session: 2026-04-20 — Plan 02-06 executed: kay-provider-openrouter public contract frozen (Provider trait + AgentEvent + ProviderError + never-panic lint)
-Stopped at: Plan 02-06 complete. Ready to execute plan 02-07 (allowlist gate + API-key auth).
-Resume file: `.planning/phases/02-provider-hal-tolerant-json-parser/02-07-PLAN.md` (continue applying 02-CONTEXT.md Appendix A substitutions as needed)
+Last session: 2026-04-20 — Plan 02-07 executed: allowlist gate (PROV-04) + API-key auth (PROV-03) with TM-01/04/08 mitigations structurally enforced
+Stopped at: Plan 02-07 complete. Ready to execute plan 02-08 (OpenRouterProvider impl: UpstreamClient + SSE translator + tool-call reassembly).
+Resume file: `.planning/phases/02-provider-hal-tolerant-json-parser/02-08-PLAN.md` (continue applying 02-CONTEXT.md Appendix A substitutions — Rule 2 `use kay_core::forge_X::Y` → `use forge_X::Y` will actually fire here when OpenRouterProvider wires forge_json_repair + forge_app::dto::openai imports)
