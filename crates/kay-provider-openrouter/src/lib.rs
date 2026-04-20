@@ -18,10 +18,12 @@
 // Allow unused until plans 02-07 through 02-10 wire everything up.
 #![allow(dead_code)]
 
+mod allowlist;
 mod error;
 mod event;
 mod provider;
 
+pub use allowlist::Allowlist;
 pub use error::{AuthErrorKind, ProviderError, RetryReason};
 pub use event::AgentEvent;
 pub use provider::{AgentEventStream, ChatRequest, Message, Provider, ToolSchema};
