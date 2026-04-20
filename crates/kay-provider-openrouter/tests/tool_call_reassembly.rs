@@ -85,23 +85,16 @@ async fn fragmented_tool_call_reassembles_under_single_id() {
         let ev = ev.expect("stream event err-free");
         match ev {
             AgentEvent::ToolCallStart { id, name } => starts.push((id, name)),
-            AgentEvent::ToolCallDelta {
-                id,
-                arguments_delta,
-            } => deltas.push((id, arguments_delta)),
-            AgentEvent::ToolCallComplete {
-                id,
-                name,
-                arguments,
-            } => completes.push((id, name, arguments)),
+            AgentEvent::ToolCallDelta { id, arguments_delta } => deltas.push((id, arguments_delta)),
+            AgentEvent::ToolCallComplete { id, name, arguments } => {
+                completes.push((id, name, arguments))
+            }
             AgentEvent::ToolCallMalformed { raw, error, .. } => {
                 malformed.push(format!("raw={raw} err={error}"));
             }
-            AgentEvent::Usage {
-                prompt_tokens,
-                completion_tokens,
-                cost_usd,
-            } => usage = Some((prompt_tokens, completion_tokens, cost_usd)),
+            AgentEvent::Usage { prompt_tokens, completion_tokens, cost_usd } => {
+                usage = Some((prompt_tokens, completion_tokens, cost_usd))
+            }
             AgentEvent::TextDelta { content } => text.push(content),
             AgentEvent::Retry { .. } => {}
             AgentEvent::Error { error } => errors.push(format!("{error:?}")),

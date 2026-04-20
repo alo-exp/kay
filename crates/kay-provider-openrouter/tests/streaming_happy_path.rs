@@ -64,11 +64,7 @@ async fn happy_path_emits_text_deltas_and_usage() {
         let ev = ev.expect("stream event err-free");
         match ev {
             AgentEvent::TextDelta { content } => text_chunks.push(content),
-            AgentEvent::Usage {
-                prompt_tokens,
-                completion_tokens,
-                cost_usd,
-            } => {
+            AgentEvent::Usage { prompt_tokens, completion_tokens, cost_usd } => {
                 usage_seen = Some((prompt_tokens, completion_tokens, cost_usd));
             }
             other => {
@@ -130,4 +126,3 @@ async fn non_allowlisted_model_rejected_before_http_call() {
         }
     }
 }
-

@@ -17,3 +17,8 @@ termimad = { workspace = true }
 syntect = { workspace = true }
 terminal-colorsaurus = "1.0.3"
 two-face = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+insta             = { workspace = true }
+strip-ansi-escapes = { workspace = true }

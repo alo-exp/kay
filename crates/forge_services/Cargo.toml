@@ -58,3 +58,9 @@ infer = { workspace = true }
 uuid = { workspace = true }
 tonic = { workspace = true }
 async-stream = "0.3"
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+forge_test_kit    = { path = "../forge_test_kit" }
+tempfile          = { workspace = true }
+fake              = { workspace = true }

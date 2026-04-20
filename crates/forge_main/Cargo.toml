@@ -72,3 +72,8 @@ enable-ansi-support = { workspace = true }
 
 [target.'cfg(not(target_os = "android"))'.dependencies]
 arboard = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+insta             = { workspace = true }
+fake              = { workspace = true }

@@ -42,3 +42,8 @@ lazy_static = { workspace = true }
 convert_case = { workspace = true }
 glob = { workspace = true }
 fake = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+insta             = { workspace = true }
+forge_test_kit    = { path = "../forge_test_kit" }

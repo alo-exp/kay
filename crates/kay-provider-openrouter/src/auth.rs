@@ -79,9 +79,7 @@ pub fn resolve_api_key(config: Option<&ConfigAuthSource>) -> Result<ApiKey, Prov
     }
 
     // 3. Nothing found -> typed error.
-    Err(ProviderError::Auth {
-        reason: AuthErrorKind::Missing,
-    })
+    Err(ProviderError::Auth { reason: AuthErrorKind::Missing })
 }
 
 #[cfg(test)]
@@ -145,9 +143,7 @@ mod unit {
         let r = resolve_api_key(None);
         assert!(matches!(
             r,
-            Err(ProviderError::Auth {
-                reason: AuthErrorKind::Missing
-            })
+            Err(ProviderError::Auth { reason: AuthErrorKind::Missing })
         ));
     }
 
@@ -161,9 +157,7 @@ mod unit {
         let r = resolve_api_key(Some(&cfg));
         assert!(matches!(
             r,
-            Err(ProviderError::Auth {
-                reason: AuthErrorKind::Missing
-            })
+            Err(ProviderError::Auth { reason: AuthErrorKind::Missing })
         ));
     }
 

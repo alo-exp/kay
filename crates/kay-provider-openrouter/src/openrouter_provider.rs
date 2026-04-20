@@ -41,8 +41,8 @@ use futures::StreamExt;
 use indexmap::IndexMap;
 use reqwest::Url;
 use reqwest_eventsource::{Event, EventSource};
-use serde::ser::{SerializeMap, Serializer};
 use serde::Serialize;
+use serde::ser::{SerializeMap, Serializer};
 use serde_json::Value;
 
 use crate::allowlist::Allowlist;
@@ -149,11 +149,7 @@ impl OpenRouterProviderBuilder {
             None => Arc::new(CostCap::uncapped()),
             Some(n) => Arc::new(CostCap::with_cap(n)?),
         };
-        Ok(OpenRouterProvider {
-            allowlist,
-            upstream,
-            cost_cap,
-        })
+        Ok(OpenRouterProvider { allowlist, upstream, cost_cap })
     }
 }
 
@@ -185,10 +181,9 @@ impl Provider for OpenRouterProvider {
         //    `EventSource::next`, not on `stream_chat` return — reach the
         //    retry loop. `pre_events` collects `AgentEvent::Retry` frames.
         let upstream = &self.upstream;
-        let (pre_events, es_result) = retry_with_emitter_using(|| async {
-            open_and_probe(upstream, body.clone()).await
-        })
-        .await;
+        let (pre_events, es_result) =
+            retry_with_emitter_using(|| async { open_and_probe(upstream, body.clone()).await })
+                .await;
         let es = es_result?;
 
         // 6. SSE → AgentEvent, threading Arc<CostCap> so translator can
@@ -250,9 +245,7 @@ where
                 };
                 // Retry-After overrides backon (D-09 + RESEARCH §Pitfall 6).
                 let delay = match &err {
-                    ProviderError::RateLimited {
-                        retry_after: Some(d),
-                    } => *d,
+                    ProviderError::RateLimited { retry_after: Some(d) } => *d,
                     _ => match schedule.next() {
                         Some(d) => d,
                         None => {
@@ -407,14 +400,8 @@ fn build_request_body(wire_model: &str, req: &ChatRequest) -> Result<Vec<u8>, Pr
 fn tool_to_ordered_object(t: &crate::provider::ToolSchema) -> OrderedObject {
     let mut function = OrderedObject::new();
     function.insert("name", Value::String(t.name.clone()));
-    function.insert(
-        "description",
-        Value::String(t.description.clone()),
-    );
-    function.insert_object(
-        "parameters",
-        reorder_tool_parameters(&t.input_schema),
-    );
+    function.insert("description", Value::String(t.description.clone()));
+    function.insert_object("parameters", reorder_tool_parameters(&t.input_schema));
 
     let mut tool = OrderedObject::new();
     tool.insert("type", Value::String("function".to_string()));
@@ -599,11 +586,11 @@ mod retry_emission_unit {
     //!
     //! The generic form `retry_with_emitter_using<F, Fut, T>` uses `T = ()`
     //! so we don't need to construct a real `EventSource`.
-    use std::sync::{Arc, Mutex};
-    use std::time::Duration;
     use super::*;
     use crate::error::{AuthErrorKind, ProviderError, RetryReason};
     use crate::event::AgentEvent;
+    use std::sync::{Arc, Mutex};
+    use std::time::Duration;
 
     #[tokio::test(start_paused = true)]
     async fn rate_limited_first_then_success_emits_one_retry_event() {
@@ -615,9 +602,7 @@ mod retry_emission_unit {
                 let mut n = a.lock().unwrap();
                 *n += 1;
                 if *n == 1 {
-                    Err(ProviderError::RateLimited {
-                        retry_after: Some(Duration::from_millis(10)),
-                    })
+                    Err(ProviderError::RateLimited { retry_after: Some(Duration::from_millis(10)) })
                 } else {
                     Ok::<(), ProviderError>(())
                 }
@@ -679,20 +664,20 @@ mod retry_emission_unit {
             let a = Arc::clone(&attempts_cl);
             async move {
                 *a.lock().unwrap() += 1;
-                Err::<(), ProviderError>(ProviderError::Auth {
-                    reason: AuthErrorKind::Invalid,
-                })
+                Err::<(), ProviderError>(ProviderError::Auth { reason: AuthErrorKind::Invalid })
             }
         })
         .await;
         assert!(matches!(
             res,
-            Err(ProviderError::Auth {
-                reason: AuthErrorKind::Invalid
-            })
+            Err(ProviderError::Auth { reason: AuthErrorKind::Invalid })
         ));
         assert_eq!(pre.len(), 0, "auth errors must not emit retry frames");
-        assert_eq!(*attempts.lock().unwrap(), 1, "must not re-attempt auth failure");
+        assert_eq!(
+            *attempts.lock().unwrap(),
+            1,
+            "must not re-attempt auth failure"
+        );
     }
 }
 

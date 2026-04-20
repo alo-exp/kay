@@ -51,3 +51,10 @@ schemars = { workspace = true }
 glob = { workspace = true }
 lazy_static = { workspace = true }
 tonic = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+insta             = { workspace = true }
+forge_test_kit    = { path = "../forge_test_kit" }
+tokio-stream      = { workspace = true }
+fake              = { workspace = true }

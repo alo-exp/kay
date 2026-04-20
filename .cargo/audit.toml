@@ -1,0 +1,41 @@
+# cargo-audit ignore list for Kay v0.1.0.
+#
+# Every advisory here originates in a TRANSITIVE dep of an imported forge_*
+# sub-crate (Phase 2.5 verbatim parity import from upstream ForgeCode). Kay
+# cannot unilaterally patch these without a parity deviation — addressing
+# them is tracked as a v0.2.0 ship-blocker backlog item.
+#
+# The nightly security audit workflow still fires on these (informational),
+# so we never lose visibility — the main-branch CI just doesn't hard-fail
+# on upstream parity hazards we have not yet triaged.
+#
+# Re-review every advisory here before each release. When any of the root
+# crates (forge_repo, forge_services, forge_tracker, etc.) bumps a dep that
+# drops one of these transitively, remove the corresponding entry.
+
+[advisories]
+ignore = [
+    # gix-date: Non-utf8 String via TimeBuf::as_str. Pulled in via
+    # forge_repo → gix. Low severity; not exploitable in Kay's path.
+    "RUSTSEC-2025-0140",
+
+    # gix-features: SHA-1 collision attacks not detected. Same root as above.
+    # Kay does not perform git object verification on untrusted input in v0.1.
+    "RUSTSEC-2025-0021",
+
+    # rustls-webpki: Name constraint parsing bugs (URI names + wildcards).
+    # Pulled in via rmcp transitive. Kay's TLS path (reqwest + rustls 0.23)
+    # uses webpki-roots directly; this is only reachable through the MCP
+    # client which Phase 3 rewires.
+    "RUSTSEC-2026-0098",
+    "RUSTSEC-2026-0099",
+
+    # Unmaintained warnings (informational in strict mode; listed here so
+    # the audit is fully deterministic across local + CI runs):
+    "RUSTSEC-2025-0141",  # bincode unmaintained
+    "RUSTSEC-2024-0436",  # paste unmaintained
+    "RUSTSEC-2024-0370",  # proc-macro-error unmaintained
+    "RUSTSEC-2024-0320",  # yaml-rust unmaintained
+    "RUSTSEC-2025-0067",  # libyml unsound + unmaintained
+    "RUSTSEC-2025-0068",  # serde_yml unsound + unmaintained
+]

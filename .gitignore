@@ -51,3 +51,4 @@ keystore/
 # GSD / SB local state (safe defaults)
 .planning/local/
 .silver-bullet/
+.claude/

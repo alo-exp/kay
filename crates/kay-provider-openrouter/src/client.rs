@@ -37,23 +37,13 @@ impl UpstreamClient {
             .timeout(std::time::Duration::from_secs(120))
             .build()
             .map_err(ProviderError::Network)?;
-        Ok(Self {
-            client,
-            endpoint,
-            api_key,
-            referer: None,
-            title: None,
-        })
+        Ok(Self { client, endpoint, api_key, referer: None, title: None })
     }
 
     /// Attach optional OpenRouter identity headers (recommended by OpenRouter
     /// docs and the upstream ForgeCode provider). Both are optional — unset
     /// values are simply not sent.
-    pub(crate) fn with_headers(
-        mut self,
-        referer: Option<String>,
-        title: Option<String>,
-    ) -> Self {
+    pub(crate) fn with_headers(mut self, referer: Option<String>, title: Option<String>) -> Self {
         self.referer = referer;
         self.title = title;
         self
@@ -64,10 +54,7 @@ impl UpstreamClient {
     /// translator (or plan 02-10's classifier) maps those to `ProviderError`.
     /// Transport failures that happen BEFORE the stream opens (DNS, TCP,
     /// TLS handshake) surface as `ProviderError::Network`.
-    pub(crate) async fn stream_chat(
-        &self,
-        body: Bytes,
-    ) -> Result<EventSource, ProviderError> {
+    pub(crate) async fn stream_chat(&self, body: Bytes) -> Result<EventSource, ProviderError> {
         let headers = self.build_headers()?;
         let req = self
             .client
@@ -92,10 +79,8 @@ impl UpstreamClient {
     fn build_headers(&self) -> Result<HeaderMap, ProviderError> {
         let mut headers = HeaderMap::new();
         let auth = format!("Bearer {}", self.api_key.as_str());
-        let auth_value =
-            HeaderValue::from_str(&auth).map_err(|_| ProviderError::Auth {
-                reason: AuthErrorKind::Invalid,
-            })?;
+        let auth_value = HeaderValue::from_str(&auth)
+            .map_err(|_| ProviderError::Auth { reason: AuthErrorKind::Invalid })?;
         headers.insert(reqwest::header::AUTHORIZATION, auth_value);
         headers.insert(
             reqwest::header::CONTENT_TYPE,

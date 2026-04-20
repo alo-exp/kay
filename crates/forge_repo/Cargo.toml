@@ -62,3 +62,11 @@ tonic-prost = "0.14.5"
 
 [build-dependencies]
 tonic-prost-build = "0.14.5"
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+insta             = { workspace = true }
+forge_test_kit    = { path = "../forge_test_kit" }
+mockito           = { workspace = true }
+tempfile          = { workspace = true }
+fake              = { workspace = true }

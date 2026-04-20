@@ -57,9 +57,7 @@ pub fn parse_tool_arguments(raw: &str) -> ParseOutcome {
             // Pass 2: forge_json_repair (&str per actual post-2.5 signature).
             match json_repair::<Value>(raw) {
                 Ok(v) => ParseOutcome::Repaired(v),
-                Err(repair_err) => ParseOutcome::Malformed {
-                    error: repair_err.to_string(),
-                },
+                Err(repair_err) => ParseOutcome::Malformed { error: repair_err.to_string() },
             }
         }
     }

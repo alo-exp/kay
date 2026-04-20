@@ -17,3 +17,7 @@ sha2 = { workspace = true }
 hex = { workspace = true }
 infer = { workspace = true }
 thiserror = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+tempfile          = { workspace = true }

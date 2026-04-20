@@ -190,10 +190,12 @@ async fn catastrophic_tool_call_emits_malformed_and_usage_continues() {
     // for that id.
     let malformed: Vec<&AgentEvent> = collected
         .iter()
-        .filter(|e| matches!(
-            e,
-            AgentEvent::ToolCallMalformed { id, .. } if id == "call_catastrophic"
-        ))
+        .filter(|e| {
+            matches!(
+                e,
+                AgentEvent::ToolCallMalformed { id, .. } if id == "call_catastrophic"
+            )
+        })
         .collect();
     assert_eq!(
         malformed.len(),
@@ -203,10 +205,12 @@ async fn catastrophic_tool_call_emits_malformed_and_usage_continues() {
     );
     let completes: Vec<&AgentEvent> = collected
         .iter()
-        .filter(|e| matches!(
-            e,
-            AgentEvent::ToolCallComplete { id, .. } if id == "call_catastrophic"
-        ))
+        .filter(|e| {
+            matches!(
+                e,
+                AgentEvent::ToolCallComplete { id, .. } if id == "call_catastrophic"
+            )
+        })
         .collect();
     assert_eq!(
         completes.len(),

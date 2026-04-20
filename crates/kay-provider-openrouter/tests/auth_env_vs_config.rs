@@ -6,9 +6,7 @@
 
 #![allow(clippy::unwrap_used)]
 
-use kay_provider_openrouter::{
-    AuthErrorKind, ConfigAuthSource, ProviderError, resolve_api_key,
-};
+use kay_provider_openrouter::{AuthErrorKind, ConfigAuthSource, ProviderError, resolve_api_key};
 use std::sync::Mutex;
 
 const ENV: &str = "OPENROUTER_API_KEY";
@@ -26,9 +24,7 @@ fn missing_everywhere_yields_typed_error() {
     }
     let r = resolve_api_key(None);
     match r {
-        Err(ProviderError::Auth {
-            reason: AuthErrorKind::Missing,
-        }) => {}
+        Err(ProviderError::Auth { reason: AuthErrorKind::Missing }) => {}
         other => panic!("expected Auth::Missing, got {other:?}"),
     }
 }
@@ -69,9 +65,7 @@ fn debug_never_leaks_credential_in_error_display() {
     // If an API key were ever accidentally stored in an error variant,
     // formatting that error would expose it. Confirm none of the typed
     // Auth error variants carry credential material.
-    let e = ProviderError::Auth {
-        reason: AuthErrorKind::Missing,
-    };
+    let e = ProviderError::Auth { reason: AuthErrorKind::Missing };
     let s = format!("{e:?}");
     // Should mention the reason, not any credential text.
     assert!(s.contains("Missing"));

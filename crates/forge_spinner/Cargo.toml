@@ -16,3 +16,6 @@ colored = { workspace = true }
 tokio = { workspace = true }
 indicatif = { workspace = true }
 rand = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }

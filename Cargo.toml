@@ -177,6 +177,12 @@ syn = { version = "2", features = ["full"] }
 quote = "1"
 proc-macro2 = "1"
 
+# Dev-dependencies (test-only) used by imported forge_* sub-crates.
+# Declared here so individual crate Cargo.tomls can inherit via workspace.
+pretty_assertions = "1"
+insta = { version = "1", features = ["yaml", "json"] }
+mockito = "1"
+
 # Platform-specific
 windows-sys = { version = "0.61", features = ["Win32_System_Console"] }
 

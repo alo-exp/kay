@@ -51,18 +51,10 @@ pub(crate) fn parse_retry_after(headers: &HeaderMap) -> Option<Duration> {
 ///
 /// Body is preserved verbatim for `Http` surfaces; callers MUST NOT log
 /// it unbounded (see CONTEXT.md threat model).
-pub(crate) fn classify_http_error(
-    status: u16,
-    headers: &HeaderMap,
-    body: String,
-) -> ProviderError {
+pub(crate) fn classify_http_error(status: u16, headers: &HeaderMap, body: String) -> ProviderError {
     match status {
-        401 => ProviderError::Auth {
-            reason: AuthErrorKind::Invalid,
-        },
-        429 => ProviderError::RateLimited {
-            retry_after: parse_retry_after(headers),
-        },
+        401 => ProviderError::Auth { reason: AuthErrorKind::Invalid },
+        429 => ProviderError::RateLimited { retry_after: parse_retry_after(headers) },
         500..=599 => ProviderError::ServerError { status },
         _ => ProviderError::Http { status, body },
     }
@@ -124,9 +116,7 @@ mod unit {
         let e = classify_http_error(401, &HeaderMap::new(), "bad key".into());
         assert!(matches!(
             e,
-            ProviderError::Auth {
-                reason: AuthErrorKind::Invalid
-            }
+            ProviderError::Auth { reason: AuthErrorKind::Invalid }
         ));
     }
 

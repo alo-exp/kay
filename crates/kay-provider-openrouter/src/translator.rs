@@ -131,10 +131,7 @@ struct ToolCallBuilder {
 
 impl ToolCallBuilder {
     fn new() -> Self {
-        Self {
-            name: None,
-            arguments_raw: String::new(),
-        }
+        Self { name: None, arguments_raw: String::new() }
     }
 }
 
@@ -384,9 +381,7 @@ async fn map_upstream_error(err: reqwest_eventsource::Error) -> ProviderError {
     // Transport errors and premature stream-end continue to map to
     // Network / Stream respectively (D-05 / PROV-08).
     match err {
-        reqwest_eventsource::Error::StreamEnded => {
-            ProviderError::Stream("stream ended".into())
-        }
+        reqwest_eventsource::Error::StreamEnded => ProviderError::Stream("stream ended".into()),
         reqwest_eventsource::Error::InvalidStatusCode(status, resp) => {
             let headers = resp.headers().clone();
             let status = status.as_u16();
@@ -421,29 +416,17 @@ mod unit {
     #[test]
     fn resolve_call_id_registers_and_reuses_index() {
         let mut map = HashMap::new();
-        let tc1 = SseToolCallDelta {
-            id: Some("call_abc".into()),
-            index: Some(0),
-            function: None,
-        };
+        let tc1 = SseToolCallDelta { id: Some("call_abc".into()), index: Some(0), function: None };
         assert_eq!(resolve_call_id(&tc1, &mut map), Some("call_abc".into()));
 
-        let tc2 = SseToolCallDelta {
-            id: None,
-            index: Some(0),
-            function: None,
-        };
+        let tc2 = SseToolCallDelta { id: None, index: Some(0), function: None };
         assert_eq!(resolve_call_id(&tc2, &mut map), Some("call_abc".into()));
     }
 
     #[test]
     fn resolve_call_id_returns_none_when_no_mapping() {
         let mut map = HashMap::new();
-        let tc = SseToolCallDelta {
-            id: None,
-            index: Some(99),
-            function: None,
-        };
+        let tc = SseToolCallDelta { id: None, index: Some(99), function: None };
         assert_eq!(resolve_call_id(&tc, &mut map), None);
     }
 
@@ -457,11 +440,7 @@ mod unit {
         map.insert(0u32, "call_zero".to_string());
         map.insert(2u32, "call_two".to_string());
 
-        let tc = SseToolCallDelta {
-            id: Some("call_new".into()),
-            index: None,
-            function: None,
-        };
+        let tc = SseToolCallDelta { id: Some("call_new".into()), index: None, function: None };
         assert_eq!(resolve_call_id(&tc, &mut map), Some("call_new".into()));
 
         // The gap at index 1 was filled — NOT index 2.

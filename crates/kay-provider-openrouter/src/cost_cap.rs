@@ -24,10 +24,7 @@ impl CostCap {
     /// Default uncapped session (D-10). Plan 02-10 T2 wires
     /// `OpenRouterProviderBuilder::max_usd(n)` through `with_cap`.
     pub fn uncapped() -> Self {
-        Self {
-            cap_usd: None,
-            spent_usd: Mutex::new(0.0),
-        }
+        Self { cap_usd: None, spent_usd: Mutex::new(0.0) }
     }
 
     /// Cap a session at `cap_usd` dollars. Returns error for non-positive /
@@ -38,10 +35,7 @@ impl CostCap {
                 "--max-usd must be a positive finite number".into(),
             ));
         }
-        Ok(Self {
-            cap_usd: Some(cap),
-            spent_usd: Mutex::new(0.0),
-        })
+        Ok(Self { cap_usd: Some(cap), spent_usd: Mutex::new(0.0) })
     }
 
     /// Pre-turn gate (D-10). Surface `CostCapExceeded` if already over cap.
@@ -58,10 +52,7 @@ impl CostCap {
         };
         let spent = *self.spent_usd.lock().unwrap_or_else(|e| e.into_inner());
         if spent > cap {
-            Err(ProviderError::CostCapExceeded {
-                cap_usd: cap,
-                spent_usd: spent,
-            })
+            Err(ProviderError::CostCapExceeded { cap_usd: cap, spent_usd: spent })
         } else {
             Ok(())
         }

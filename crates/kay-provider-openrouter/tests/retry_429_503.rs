@@ -72,11 +72,9 @@ async fn rate_limit_429_retries_then_succeeds() {
 
     while let Some(ev) = stream.next().await {
         match ev {
-            Ok(AgentEvent::Retry {
-                attempt,
-                delay_ms,
-                reason,
-            }) => retries.push((attempt, delay_ms, reason)),
+            Ok(AgentEvent::Retry { attempt, delay_ms, reason }) => {
+                retries.push((attempt, delay_ms, reason))
+            }
             Ok(AgentEvent::TextDelta { content }) => text_chunks.push(content),
             Ok(AgentEvent::Usage { .. }) => usage_seen = true,
             Ok(_) => {}
@@ -86,11 +84,7 @@ async fn rate_limit_429_retries_then_succeeds() {
 
     assert_eq!(retries.len(), 1, "expected exactly one Retry frame");
     assert_eq!(retries[0].0, 1, "attempt must be 1");
-    assert_eq!(
-        retries[0].2,
-        RetryReason::RateLimited,
-        "RateLimited reason"
-    );
+    assert_eq!(retries[0].2, RetryReason::RateLimited, "RateLimited reason");
     assert_eq!(
         retries[0].1, 1000,
         "Retry-After: 1 overrides backon → 1000ms"

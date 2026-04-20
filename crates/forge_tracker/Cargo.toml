@@ -32,3 +32,6 @@ tracing-subscriber = { workspace = true }
 anyhow = { workspace = true }
 lazy_static = { workspace = true }
 dirs = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }

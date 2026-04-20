@@ -64,9 +64,7 @@ async fn http_401_classified_as_auth_invalid() {
 
     match provider.chat(base_req()).await {
         Ok(_) => panic!("expected Auth::Invalid"),
-        Err(ProviderError::Auth {
-            reason: AuthErrorKind::Invalid,
-        }) => {}
+        Err(ProviderError::Auth { reason: AuthErrorKind::Invalid }) => {}
         Err(other) => panic!("expected Auth::Invalid, got {other:?}"),
     }
 }
@@ -179,8 +177,8 @@ async fn transport_failure_classified_as_network_error() {
         // Transport errors can also surface as Http/Stream depending on
         // exact failure point; the test intent is that a transport-layer
         // problem never produces a bogus Auth or ServerError.
-        Err(other) => panic!(
-            "expected Network, got {other:?} — transport errors must not be misclassified"
-        ),
+        Err(other) => {
+            panic!("expected Network, got {other:?} — transport errors must not be misclassified")
+        }
     }
 }
