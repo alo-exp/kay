@@ -3,8 +3,10 @@ gsd_state_version: 1.0
 milestone: v0.1.1
 milestone_name: Tool Registry + KIRA Core Tools
 status: complete
-stopped_at: "Phase 3 complete — all 14 /silver flows closed. FLOW 17 ship pending signed-tag push + PR."
-last_updated: "2026-04-21T04:30:00Z"
+stopped_at: "Phase 3 shipped as v0.1.1 (library milestone). PR #4 open. HANDOFF.md prepared. Next: /gsd-discuss-phase 4 (sandbox)."
+last_updated: "2026-04-21T05:00:00Z"
+next_phase: 4
+next_action: "/gsd-discuss-phase 4  (or /silver:feature with Phase 4 intent)"
 last_activity: 2026-04-21 -- Phase 3 CLOSED. All 5 waves shipped + FLOW 11 verify (16/16 PASS) + FLOW 12 review (1H+5M fixed) + FLOW 13 security (PASS, 6 residuals to Phase 4/5 backlog) + FLOW 14 Nyquist (30k-case adversarial marker-forgery proptest + phase3 smoke scripts) + FLOW 16 adversarial quality-gates (9/9 PASS). 174 tests green across kay-tools surface; clippy -D warnings clean; cargo-deny green. 29 DCO-signed commits on phase/03-tool-registry.
 progress:
   total_phases: 17
