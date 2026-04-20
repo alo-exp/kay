@@ -54,6 +54,13 @@ pub enum AgentEvent {
 
     /// A retryable upstream error is being retried after `delay_ms`. Emitted
     /// BEFORE the backoff sleep so UIs can show progress.
+    ///
+    /// `attempt` is the 1-based index of the attempt that JUST FAILED — so
+    /// `attempt == 1` means the first try errored and the wrapper is about
+    /// to sleep `delay_ms` before the second try. This matches `backon`'s
+    /// `max_times` semantics and is what the `retry_emission_unit` tests
+    /// assert. UIs that want to render "retrying attempt N of M" should
+    /// display `attempt + 1` as the upcoming attempt number.
     Retry {
         attempt: u32,
         delay_ms: u64,
