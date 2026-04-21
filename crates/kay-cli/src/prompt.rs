@@ -41,20 +41,20 @@
 //! include ANSI escapes, so any styling here would desync the
 //! diff.
 //!
-//! # Why `#[allow(dead_code)]`
+//! # Dead-code lint history
 //!
-//! T7.6 lands the `KayPrompt` struct + `Prompt` trait impl, but the
-//! reedline REPL that actually calls `render_prompt_left()` et al.
-//! lives in T7.9 (`interactive.rs`). Between T7.6 and T7.9 the
-//! struct, its setters, the nerd-font symbol constants, and the
-//! `get_git_branch` / `humanize_number` helpers have no non-test
-//! callers — `cargo clippy --all-targets -- -D warnings` therefore
-//! fails unless we suppress `dead_code` for this module. The
-//! suppression is module-scoped (not crate-scoped) so new dead code
-//! elsewhere still fires the lint. Remove this attribute in T7.9
-//! once `KayPrompt::new` + the setters are wired up from the REPL.
-
-#![allow(dead_code)]
+//! T7.6 originally required `#![allow(dead_code)]` here because
+//! `KayPrompt` and its render methods had no non-test callers
+//! — the reedline REPL that consumes them lived one task downstream
+//! (T7.9). T7.9 removed the suppression: `interactive::run` now
+//! constructs `KayPrompt::new(cwd, AgentId::new("kay"))` on the TTY
+//! path, calls `.refresh()` between turns, and routes `read_line`
+//! through the `Prompt` trait — which exercises every
+//! `render_prompt_*` method + both `get_git_branch` and
+//! `humanize_number` helpers. The derive_setters-generated `usage`
+//! / `model` / `git_branch` methods are exercised from the test
+//! module. `cargo build -p kay-cli` is clean with `#![deny(
+//! dead_code)]` implied by `cargo clippy -- -D warnings`.
 
 use std::borrow::Cow;
 use std::fmt::Write;

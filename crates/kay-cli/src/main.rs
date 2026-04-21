@@ -30,14 +30,13 @@
 //! `interactive_fallback`. This matches the UX-parity contract (DL-1):
 //! running `kay` alone drops the user into an interactive session.
 
-use std::io::Write;
-
 use clap::Parser;
 
 mod banner;
 mod boot;
 mod eval;
 mod exit;
+mod interactive;
 mod prompt;
 mod run;
 
@@ -154,29 +153,18 @@ fn run_tools(action: ToolsAction) -> anyhow::Result<()> {
 
 /// Interactive-fallback entry point.
 ///
-/// T7.4 wired this to the real `banner::display()` port (Kay ASCII
-/// wordmark, version, command tips). T7.6 added the `prompt::KAY_PROMPT`
-/// constant used below; T7.9 will replace the inline `print!` and
-/// early return with a full reedline REPL loop driven by `KayPrompt`.
-/// Until then we emit the banner, then the prompt literal, then
-/// return — enough for the `interactive_parity_diff` test (T7.11) to
-/// compare against the ForgeCode baseline fixture captured in T7.10.
+/// Thin delegator into [`interactive::run`], which owns the actual
+/// banner + TTY-gated REPL dispatch. Split out of `main` so `main`'s
+/// match arm stays a single function call — the match structure is
+/// load-bearing for the CLI-03 exit-code plumbing (every arm follows
+/// the same `Ok(()) → Success / Err → classify_error` shape).
 ///
-/// Why print the prompt here at all: the RED test asserts the
-/// `kay>` literal appears in stdout on `kay` (no args). Routing
-/// through `prompt::KAY_PROMPT` instead of a bare string literal
-/// keeps T7.9 (reedline REPL) and T7.11 (parity diff) pointing at
-/// the same source-of-truth for the fallback prompt shape.
+/// See `interactive.rs` module docs for:
+///   * Why banner fires on both TTY and non-TTY paths
+///   * Why `reedline::Reedline::create()` is TTY-gated (pipe surface
+///     would break the parity-diff test capture)
+///   * Why Ctrl-C maps to `continue` (not process abort) at the REPL
+///   * Why kay-cli does NOT import forge_main here (DL-3)
 fn interactive_fallback() -> anyhow::Result<()> {
-    // Full interactive-mode tip set (cli_mode=false) — `kay` invoked
-    // with no args maps to the full REPL eventually, so the tips
-    // reflect that destination surface.
-    banner::display(false)?;
-
-    print!("{}", prompt::KAY_PROMPT);
-    // stdout is line-buffered in terminals but fully-buffered when
-    // piped; flush so subprocess-level E2E tests see the prompt
-    // before we return and Drop closes stdout.
-    std::io::stdout().flush().ok();
-    Ok(())
+    interactive::run()
 }
