@@ -48,9 +48,7 @@ use kay_tools::seams::verifier::VerificationOutcome;
 
 #[test]
 fn filter_allows_text_delta() {
-    let ev = AgentEvent::TextDelta {
-        content: "Hello".to_string(),
-    };
+    let ev = AgentEvent::TextDelta { content: "Hello".to_string() };
     assert!(
         event_filter::for_model_context(&ev),
         "TextDelta must be re-injectable (model's own content)"
@@ -109,11 +107,7 @@ fn filter_allows_tool_call_malformed() {
 
 #[test]
 fn filter_allows_usage() {
-    let ev = AgentEvent::Usage {
-        prompt_tokens: 100,
-        completion_tokens: 50,
-        cost_usd: 0.001,
-    };
+    let ev = AgentEvent::Usage { prompt_tokens: 100, completion_tokens: 50, cost_usd: 0.001 };
     assert!(
         event_filter::for_model_context(&ev),
         "Usage must be re-injectable (diagnostic)"
@@ -122,11 +116,7 @@ fn filter_allows_usage() {
 
 #[test]
 fn filter_allows_retry() {
-    let ev = AgentEvent::Retry {
-        attempt: 1,
-        delay_ms: 500,
-        reason: RetryReason::RateLimited,
-    };
+    let ev = AgentEvent::Retry { attempt: 1, delay_ms: 500, reason: RetryReason::RateLimited };
     assert!(
         event_filter::for_model_context(&ev),
         "Retry must be re-injectable (backoff diagnostic)"
@@ -136,10 +126,7 @@ fn filter_allows_retry() {
 #[test]
 fn filter_allows_error() {
     let ev = AgentEvent::Error {
-        error: ProviderError::Http {
-            status: 503,
-            body: "upstream overloaded".to_string(),
-        },
+        error: ProviderError::Http { status: 503, body: "upstream overloaded".to_string() },
     };
     assert!(
         event_filter::for_model_context(&ev),
@@ -164,9 +151,7 @@ fn filter_allows_task_complete() {
     let ev = AgentEvent::TaskComplete {
         call_id: "call_03".to_string(),
         verified: true,
-        outcome: VerificationOutcome::Pass {
-            note: "ok".to_string(),
-        },
+        outcome: VerificationOutcome::Pass { note: "ok".to_string() },
     };
     assert!(
         event_filter::for_model_context(&ev),
@@ -236,9 +221,7 @@ fn filter_allows_paused() {
 
 #[test]
 fn filter_allows_aborted() {
-    let ev = AgentEvent::Aborted {
-        reason: "user_ctrl_c".to_string(),
-    };
+    let ev = AgentEvent::Aborted { reason: "user_ctrl_c".to_string() };
     assert!(
         event_filter::for_model_context(&ev),
         "Aborted must be re-injectable (loop terminator — model won't see next turn)"

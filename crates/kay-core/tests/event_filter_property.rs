@@ -80,13 +80,31 @@ use proptest::prelude::*;
 /// this does not undermine the property.
 #[derive(Debug, Clone)]
 enum ProviderErrorSpec {
-    Http { status: u16, body: String },
-    RateLimited { retry_ms: Option<u64> },
-    ServerError { status: u16 },
-    Auth { reason: AuthErrorKind },
-    ModelNotAllowlisted { requested: String, allowed: Vec<String> },
-    CostCapExceeded { cap_usd: f64, spent_usd: f64 },
-    ToolCallMalformed { id: String, error: String },
+    Http {
+        status: u16,
+        body: String,
+    },
+    RateLimited {
+        retry_ms: Option<u64>,
+    },
+    ServerError {
+        status: u16,
+    },
+    Auth {
+        reason: AuthErrorKind,
+    },
+    ModelNotAllowlisted {
+        requested: String,
+        allowed: Vec<String>,
+    },
+    CostCapExceeded {
+        cap_usd: f64,
+        spent_usd: f64,
+    },
+    ToolCallMalformed {
+        id: String,
+        error: String,
+    },
     Stream(String),
     Canceled,
 }
@@ -95,9 +113,9 @@ impl ProviderErrorSpec {
     fn into_error(self) -> ProviderError {
         match self {
             Self::Http { status, body } => ProviderError::Http { status, body },
-            Self::RateLimited { retry_ms } => ProviderError::RateLimited {
-                retry_after: retry_ms.map(Duration::from_millis),
-            },
+            Self::RateLimited { retry_ms } => {
+                ProviderError::RateLimited { retry_after: retry_ms.map(Duration::from_millis) }
+            }
             Self::ServerError { status } => ProviderError::ServerError { status },
             Self::Auth { reason } => ProviderError::Auth { reason },
             Self::ModelNotAllowlisted { requested, allowed } => {
@@ -106,9 +124,7 @@ impl ProviderErrorSpec {
             Self::CostCapExceeded { cap_usd, spent_usd } => {
                 ProviderError::CostCapExceeded { cap_usd, spent_usd }
             }
-            Self::ToolCallMalformed { id, error } => {
-                ProviderError::ToolCallMalformed { id, error }
-            }
+            Self::ToolCallMalformed { id, error } => ProviderError::ToolCallMalformed { id, error },
             Self::Stream(s) => ProviderError::Stream(s),
             Self::Canceled => ProviderError::Canceled,
         }
@@ -159,39 +175,21 @@ impl EventSpec {
             Self::ToolCallMalformed(id, raw, error) => {
                 AgentEvent::ToolCallMalformed { id, raw, error }
             }
-            Self::Usage(p, c, cost) => AgentEvent::Usage {
-                prompt_tokens: p,
-                completion_tokens: c,
-                cost_usd: cost,
-            },
-            Self::Retry(attempt, delay_ms, reason) => AgentEvent::Retry {
-                attempt,
-                delay_ms,
-                reason,
-            },
-            Self::Error(spec) => AgentEvent::Error {
-                error: spec.into_error(),
-            },
+            Self::Usage(p, c, cost) => {
+                AgentEvent::Usage { prompt_tokens: p, completion_tokens: c, cost_usd: cost }
+            }
+            Self::Retry(attempt, delay_ms, reason) => {
+                AgentEvent::Retry { attempt, delay_ms, reason }
+            }
+            Self::Error(spec) => AgentEvent::Error { error: spec.into_error() },
             Self::ToolOutput(call_id, chunk) => AgentEvent::ToolOutput { call_id, chunk },
-            Self::TaskComplete(call_id, verified, outcome) => AgentEvent::TaskComplete {
-                call_id,
-                verified,
-                outcome,
-            },
+            Self::TaskComplete(call_id, verified, outcome) => {
+                AgentEvent::TaskComplete { call_id, verified, outcome }
+            }
             Self::ImageRead(path, bytes) => AgentEvent::ImageRead { path, bytes },
-            Self::SandboxViolation {
-                call_id,
-                tool_name,
-                resource,
-                policy_rule,
-                os_error,
-            } => AgentEvent::SandboxViolation {
-                call_id,
-                tool_name,
-                resource,
-                policy_rule,
-                os_error,
-            },
+            Self::SandboxViolation { call_id, tool_name, resource, policy_rule, os_error } => {
+                AgentEvent::SandboxViolation { call_id, tool_name, resource, policy_rule, os_error }
+            }
             Self::Paused => AgentEvent::Paused,
             Self::Aborted(reason) => AgentEvent::Aborted { reason },
         }
@@ -226,22 +224,17 @@ fn arb_auth_kind() -> impl Strategy<Value = AuthErrorKind> {
 
 fn arb_provider_error_spec() -> impl Strategy<Value = ProviderErrorSpec> {
     prop_oneof![
-        (any::<u16>(), ".*")
-            .prop_map(|(status, body)| ProviderErrorSpec::Http { status, body }),
+        (any::<u16>(), ".*").prop_map(|(status, body)| ProviderErrorSpec::Http { status, body }),
         proptest::option::of(0u64..=60_000u64)
             .prop_map(|retry_ms| ProviderErrorSpec::RateLimited { retry_ms }),
         (500u16..=599u16).prop_map(|status| ProviderErrorSpec::ServerError { status }),
         arb_auth_kind().prop_map(|reason| ProviderErrorSpec::Auth { reason }),
-        (".*", proptest::collection::vec(".*", 0..=4))
-            .prop_map(|(requested, allowed)| ProviderErrorSpec::ModelNotAllowlisted {
-                requested,
-                allowed,
-            }),
-        (0.0f64..1_000.0, 0.0f64..1_000.0)
-            .prop_map(|(cap_usd, spent_usd)| ProviderErrorSpec::CostCapExceeded {
-                cap_usd,
-                spent_usd,
-            }),
+        (".*", proptest::collection::vec(".*", 0..=4)).prop_map(|(requested, allowed)| {
+            ProviderErrorSpec::ModelNotAllowlisted { requested, allowed }
+        }),
+        (0.0f64..1_000.0, 0.0f64..1_000.0).prop_map(|(cap_usd, spent_usd)| {
+            ProviderErrorSpec::CostCapExceeded { cap_usd, spent_usd }
+        }),
         (".*", ".*").prop_map(|(id, error)| ProviderErrorSpec::ToolCallMalformed { id, error }),
         ".*".prop_map(ProviderErrorSpec::Stream),
         Just(ProviderErrorSpec::Canceled),
@@ -253,10 +246,7 @@ fn arb_tool_output_chunk() -> impl Strategy<Value = ToolOutputChunk> {
         ".*".prop_map(ToolOutputChunk::Stdout),
         ".*".prop_map(ToolOutputChunk::Stderr),
         (proptest::option::of(any::<i32>()), any::<bool>()).prop_map(
-            |(exit_code, marker_detected)| ToolOutputChunk::Closed {
-                exit_code,
-                marker_detected,
-            }
+            |(exit_code, marker_detected)| ToolOutputChunk::Closed { exit_code, marker_detected }
         ),
     ]
 }
@@ -301,24 +291,11 @@ fn arb_event_spec() -> impl Strategy<Value = EventSpec> {
         ),
         (".*", proptest::collection::vec(any::<u8>(), 0..=16))
             .prop_map(|(path, bytes)| EventSpec::ImageRead(path, bytes)),
-        (
-            ".*",
-            ".*",
-            ".*",
-            ".*",
-            proptest::option::of(any::<i32>()),
-        )
-            .prop_map(
-                |(call_id, tool_name, resource, policy_rule, os_error)| {
-                    EventSpec::SandboxViolation {
-                        call_id,
-                        tool_name,
-                        resource,
-                        policy_rule,
-                        os_error,
-                    }
-                }
-            ),
+        (".*", ".*", ".*", ".*", proptest::option::of(any::<i32>()),).prop_map(
+            |(call_id, tool_name, resource, policy_rule, os_error)| {
+                EventSpec::SandboxViolation { call_id, tool_name, resource, policy_rule, os_error }
+            }
+        ),
         Just(EventSpec::Paused),
         ".*".prop_map(EventSpec::Aborted),
     ]
