@@ -96,16 +96,27 @@ use kay_tools::{
     ToolRegistry, VerificationOutcome,
 };
 
-/// Arguments for `kay run`. Every field has a `long` attribute so
-/// they accept both `--prompt` and shorter forms — long-only for
-/// now (no `-p`) to keep the flag namespace open; short aliases can
-/// land in a later wave once the command surface is stable.
+/// Arguments for `kay run`. T7.5 adds `-p` short alias on
+/// `--prompt` and `allow_hyphen_values` so prompts that begin with
+/// `-` (e.g. `-p "-hello"`) don't trip clap's flag parser.
+///
+/// Rationale for where these live: struct-level docs like this one
+/// describe the SHAPE of the argument group; per-field docs below
+/// describe individual flags. User-visible `--help` output renders
+/// only the per-field docs — this header is for rustdoc and code
+/// readers, so mentions of internal sibling-crate names are OK here
+/// (struct docs don't appear in `--help`).
 #[derive(Args, Debug)]
 pub struct RunArgs {
     /// Prompt text to send to the agent on the first turn. In
     /// offline mode, specific `TEST:` sentinels drive deterministic
     /// scenarios for E2E testing — see `tests/cli_e2e.rs`.
-    #[arg(long, value_name = "TEXT")]
+    ///
+    /// `-p` is a short alias for `--prompt`. `allow_hyphen_values`
+    /// lets prompts that start with `-` round-trip without needing
+    /// `--prompt=-foo` quoting gymnastics (e.g. `kay run -p "-hi"`
+    /// works).
+    #[arg(long, short = 'p', value_name = "TEXT", allow_hyphen_values = true)]
     pub prompt: String,
 
     /// Use the in-memory offline provider. Safe in hermetic CI;
