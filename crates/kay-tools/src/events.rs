@@ -124,6 +124,31 @@ pub enum AgentEvent {
         /// `None` = pre-flight userspace check; `Some(errno)` = kernel denial.
         os_error: Option<i32>,
     },
+
+    // -- Phase 5 additive variants (DL-4 — agent-loop control signals) ------
+    /// Emitted when the agent loop pauses (control channel receives
+    /// `ControlMsg::Pause`). The loop buffers downstream events into a
+    /// `VecDeque<AgentEvent>` until `ControlMsg::Resume` arrives, then
+    /// replays them in order. UI consumers render this as a visible
+    /// "paused" state.
+    ///
+    /// Intentionally a unit variant — the reason for pausing is always the
+    /// same (user-initiated). Resume has no explicit event; the replayed
+    /// events implicitly signal resume.
+    Paused,
+    /// Emitted when the agent loop terminates non-recoverably before
+    /// natural turn-end. `reason` is one of the stable tag-strings:
+    ///
+    /// - `"user_ctrl_c"` — Ctrl-C cooperative abort (2s grace period)
+    /// - `"max_turns_exceeded"` — turn budget hit (LOOP-04 safety net)
+    /// - `"verifier_fail"` — `task_complete` returned `verified=false`
+    /// - `"sandbox_violation_propagated"` — Sandbox denial threshold hit
+    ///
+    /// The wire form uses `reason` verbatim (no translation layer) so
+    /// consumers can switch on it exhaustively. New reasons are an
+    /// additive schema change (bump CONTRACT-AgentEvent.md + kay-cli
+    /// `--version` per LOOP-02 drift policy).
+    Aborted { reason: String },
 }
 
 /// A single streamed output frame from a tool. Phase 3 SHELL-03.

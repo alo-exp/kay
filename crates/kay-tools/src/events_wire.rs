@@ -172,6 +172,18 @@ impl<'a> Serialize for AgentEventWire<'a> {
                 m.serialize_entry("os_error", os_error)?;
                 m.end()
             }
+            AgentEvent::Paused => {
+                // Unit variant — `type` alone is the full payload.
+                let mut m = serializer.serialize_map(Some(1))?;
+                m.serialize_entry("type", "paused")?;
+                m.end()
+            }
+            AgentEvent::Aborted { reason } => {
+                let mut m = serializer.serialize_map(Some(2))?;
+                m.serialize_entry("type", "aborted")?;
+                m.serialize_entry("reason", reason)?;
+                m.end()
+            }
         }
     }
 }

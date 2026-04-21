@@ -200,6 +200,59 @@ fn snap_sandbox_violation_preflight() {
 }
 
 #[test]
+fn snap_paused() {
+    // T1.5: Paused is a unit variant — wire form is `{"type":"paused"}`,
+    // no payload. Emitted when ControlMsg::Pause hits the agent loop.
+    // Downstream UI (Phase 9 GUI, Phase 9.5 TUI) renders a paused
+    // indicator; events between Paused and Resume are buffered by the
+    // loop and replayed in order.
+    let ev = AgentEvent::Paused;
+    insta::assert_json_snapshot!(wire_value(&ev));
+}
+
+#[test]
+fn snap_aborted_user_ctrl_c() {
+    // T1.5: Ctrl-C cooperative abort after 2s grace period. Reason tag
+    // is `"user_ctrl_c"` — consumers switch exhaustively on this string.
+    let ev = AgentEvent::Aborted {
+        reason: "user_ctrl_c".to_string(),
+    };
+    insta::assert_json_snapshot!(wire_value(&ev));
+}
+
+#[test]
+fn snap_aborted_max_turns() {
+    // T1.5: Turn-budget safety net (LOOP-04). Prevents unbounded loops
+    // when the model never emits `task_complete`.
+    let ev = AgentEvent::Aborted {
+        reason: "max_turns_exceeded".to_string(),
+    };
+    insta::assert_json_snapshot!(wire_value(&ev));
+}
+
+#[test]
+fn snap_aborted_verifier_fail() {
+    // T1.5: `task_complete` returned `verified: false` and loop policy
+    // says fail-fast rather than continue. Phase 8 may refine this.
+    let ev = AgentEvent::Aborted {
+        reason: "verifier_fail".to_string(),
+    };
+    insta::assert_json_snapshot!(wire_value(&ev));
+}
+
+#[test]
+fn snap_aborted_sandbox_violation_propagated() {
+    // T1.5: SandboxViolation event count crossed the abort threshold.
+    // Related to QG-C4: the loop MUST abort rather than keep re-feeding
+    // the violation to the model (prompt-injection surface). This is
+    // how the carry-forward guardrail terminates a runaway session.
+    let ev = AgentEvent::Aborted {
+        reason: "sandbox_violation_propagated".to_string(),
+    };
+    insta::assert_json_snapshot!(wire_value(&ev));
+}
+
+#[test]
 fn snap_jsonl_line_format() {
     // T1.3/T1.4: Display impl produces a valid JSONL line — single-line
     // JSON object terminated by exactly one `\n` so stream consumers can
