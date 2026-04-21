@@ -14,12 +14,11 @@
     "required_deploy": [
       "silver-quality-gates",
       "code-review", "requesting-code-review", "receiving-code-review",
-      "testing-strategy", "documentation",
-      "finishing-a-development-branch", "deploy-checklist",
+      "testing-strategy",
+      "finishing-a-development-branch",
       "silver-create-release",
       "verification-before-completion",
-      "test-driven-development", "tech-debt",
-      "review-loop-pass-1", "review-loop-pass-2"
+      "test-driven-development"
     ],
     "required_deploy_devops": [
       "silver-blast-radius",

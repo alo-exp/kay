@@ -12,6 +12,7 @@ pub mod contract;
 mod default_set;
 pub mod error;
 pub mod events;
+pub mod events_wire;
 pub mod forge_bridge;
 pub mod markers;
 pub mod quota;
@@ -21,8 +22,9 @@ pub mod schema;
 pub mod seams;
 
 pub use builtins::{
-    ExecuteCommandsTool, FsReadTool, FsSearchTool, FsWriteTool, ImageReadTool, NetFetchTool,
-    TaskCompleteTool,
+    DEFAULT_MAX_IMAGE_BYTES, ExecuteCommandsTool, FsReadTool, FsSearchTool, FsWriteTool,
+    ImageReadTool, InnerAgent, NetFetchTool, NoOpInnerAgent, SageQueryTool, TaskCompleteTool,
+    should_use_pty,
 };
 pub use contract::Tool;
 pub use default_set::default_tool_set;

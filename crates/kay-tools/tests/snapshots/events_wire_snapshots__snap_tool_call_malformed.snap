@@ -1,0 +1,10 @@
+---
+source: crates/kay-tools/tests/events_wire_snapshots.rs
+expression: wire_value(&ev)
+---
+{
+  "error": "expected '}' at position 12",
+  "id": "call_02",
+  "raw": "{broken-json",
+  "type": "tool_call_malformed"
+}

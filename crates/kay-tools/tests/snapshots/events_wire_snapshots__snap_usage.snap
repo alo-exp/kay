@@ -1,0 +1,10 @@
+---
+source: crates/kay-tools/tests/events_wire_snapshots.rs
+expression: wire_value(&ev)
+---
+{
+  "completion_tokens": 256,
+  "cost_usd": 0.0025,
+  "prompt_tokens": 1024,
+  "type": "usage"
+}

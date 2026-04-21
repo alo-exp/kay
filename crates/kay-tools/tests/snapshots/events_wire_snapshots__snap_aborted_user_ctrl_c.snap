@@ -1,0 +1,8 @@
+---
+source: crates/kay-tools/tests/events_wire_snapshots.rs
+expression: wire_value(&ev)
+---
+{
+  "reason": "user_ctrl_c",
+  "type": "aborted"
+}

@@ -1,0 +1,12 @@
+---
+source: crates/kay-tools/tests/events_wire_snapshots.rs
+expression: wire_value(&ev)
+---
+{
+  "call_id": "call_01",
+  "chunk": {
+    "data": "line of output\n",
+    "kind": "stdout"
+  },
+  "type": "tool_output"
+}

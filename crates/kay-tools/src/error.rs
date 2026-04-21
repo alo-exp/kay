@@ -24,11 +24,44 @@ pub enum ToolError {
     #[error("image cap exceeded ({scope:?}, limit={limit})")]
     ImageCapExceeded { scope: CapScope, limit: u32 },
 
+    /// R-2: an `image_read` call was rejected because the file size
+    /// reported by `tokio::fs::metadata` exceeded the tool's
+    /// configured `max_image_bytes`. The check gates the subsequent
+    /// `tokio::fs::read`, so a prompt-injected
+    /// `image_read {"path": "/tmp/20GB.img"}` call cannot allocate
+    /// gigabytes into `Vec<u8>` and OOM-kill the agent. Quota
+    /// reservation is rolled back before this error is returned —
+    /// a failed over-cap call does NOT count toward per-turn or
+    /// per-session image caps (parity with the `Io` / sandbox-denial
+    /// rollback paths already in `ImageReadTool::invoke`).
+    #[error("image at {path:?} is {actual_size} bytes (> {cap} byte cap)")]
+    ImageTooLarge {
+        path: String,
+        actual_size: u64,
+        cap: u64,
+    },
+
     #[error("sandbox denied {tool:?}: {reason}")]
     SandboxDenied { tool: ToolName, reason: String },
 
     #[error("tool not found: {tool:?}")]
     NotFound { tool: ToolName },
+
+    /// `sage_query` was invoked at a nesting depth that would push the
+    /// sub-turn beyond the configured ceiling (Phase 5 LOOP-03 — max 2
+    /// levels of agent recursion). Belt + suspenders: sage's YAML
+    /// `tool_filter` already excludes `sage_query`, but if that
+    /// exclusion ever drifts, this runtime guard catches the recursion
+    /// before the sub-turn spawns.
+    ///
+    /// `depth` is the PARENT context's nesting_depth at the time of
+    /// the rejected invoke. `limit` is the inclusive maximum (parent
+    /// depth must be `< limit`). The sage_query tool rejects when
+    /// `depth >= limit` — i.e. the inner sub-turn would be at depth
+    /// `limit + 1`. Default limit is 2 (configured inside the
+    /// `sage_query` builtin).
+    #[error("sage_query nesting depth {depth} exceeds limit {limit}")]
+    NestingDepthExceeded { depth: u8, limit: u8 },
 
     #[error(transparent)]
     Io(#[from] std::io::Error),

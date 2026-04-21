@@ -1,0 +1,10 @@
+---
+source: crates/kay-tools/tests/events_wire_snapshots.rs
+expression: wire_value(&ev)
+---
+{
+  "attempt": 2,
+  "delay_ms": 1500,
+  "reason": "rate_limited",
+  "type": "retry"
+}

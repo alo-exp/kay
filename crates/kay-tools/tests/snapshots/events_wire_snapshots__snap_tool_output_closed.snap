@@ -1,0 +1,13 @@
+---
+source: crates/kay-tools/tests/events_wire_snapshots.rs
+expression: wire_value(&ev)
+---
+{
+  "call_id": "call_01",
+  "chunk": {
+    "exit_code": 0,
+    "kind": "closed",
+    "marker_detected": true
+  },
+  "type": "tool_output"
+}

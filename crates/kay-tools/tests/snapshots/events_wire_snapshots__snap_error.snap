@@ -1,0 +1,9 @@
+---
+source: crates/kay-tools/tests/events_wire_snapshots.rs
+expression: wire_value(&ev)
+---
+{
+  "kind": "http",
+  "message": "HTTP 503: upstream overloaded",
+  "type": "error"
+}

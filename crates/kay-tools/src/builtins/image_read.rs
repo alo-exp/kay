@@ -38,6 +38,15 @@ use crate::events::AgentEvent;
 use crate::runtime::context::ToolCallContext;
 use crate::schema::{TruncationHints, harden_tool_schema};
 
+/// Default `max_image_bytes` cap applied by `ImageReadTool::new`:
+/// 20 MiB. Rationale (R-2): a prompt-injected
+/// `image_read {"path": "/tmp/20GB.img"}` call must NOT cause the
+/// agent to allocate gigabytes into `Vec<u8>`. 20 MiB comfortably
+/// covers legitimate UI screenshots / assets while keeping the
+/// allocation bounded. Callers that need a different ceiling use
+/// `ImageReadTool::with_size_cap`.
+pub const DEFAULT_MAX_IMAGE_BYTES: u64 = 20 * 1024 * 1024;
+
 /// Input schema for `image_read`. Kay defines its own input struct
 /// because ForgeCode's `ToolCatalog` does not expose an image-read
 /// variant — the tool is Kay-specific (KIRA trio, IMG-01).
@@ -53,10 +62,25 @@ pub struct ImageReadTool {
     description: String,
     input_schema: Value,
     quota: Arc<crate::quota::ImageQuota>,
+    /// Maximum file size (bytes, inclusive) that `invoke` will read.
+    /// Enforced BEFORE `tokio::fs::read` via a `tokio::fs::metadata`
+    /// length check — R-2 refuses pre-read to keep an over-cap call
+    /// from allocating the file into memory.
+    max_image_bytes: u64,
 }
 
 impl ImageReadTool {
+    /// Construct with the default 20 MiB cap
+    /// (`DEFAULT_MAX_IMAGE_BYTES`).
     pub fn new(quota: Arc<crate::quota::ImageQuota>) -> Self {
+        Self::with_size_cap(quota, DEFAULT_MAX_IMAGE_BYTES)
+    }
+
+    /// Construct with an explicit `max_image_bytes` cap. The cap is
+    /// INCLUSIVE — a file whose size is exactly `max_image_bytes`
+    /// succeeds; `size > max_image_bytes` rejects with
+    /// `ToolError::ImageTooLarge`.
+    pub fn with_size_cap(quota: Arc<crate::quota::ImageQuota>, max_image_bytes: u64) -> Self {
         let name = ToolName::new("image_read");
         let description = "Read an image file from disk (JPEG/PNG/WebP/GIF) and return a \
             base64 data URI. Subject to per-turn and per-session image caps."
@@ -71,7 +95,18 @@ impl ImageReadTool {
                 ),
             },
         );
-        Self { name, description, input_schema: schema, quota }
+        Self {
+            name,
+            description,
+            input_schema: schema,
+            quota,
+            max_image_bytes,
+        }
+    }
+
+    /// Configured maximum image file size (bytes, inclusive).
+    pub fn max_image_bytes(&self) -> u64 {
+        self.max_image_bytes
     }
 }
 
@@ -143,6 +178,34 @@ impl Tool for ImageReadTool {
             return Err(ToolError::SandboxDenied {
                 tool: self.name.clone(),
                 reason: denial.reason,
+            });
+        }
+
+        // R-2: METADATA-FIRST size gate. Call `tokio::fs::metadata`
+        // BEFORE `tokio::fs::read` so a 20 GiB pathological payload
+        // never hits `Vec<u8>`. The cap is INCLUSIVE: `len <= cap`
+        // succeeds, `len > cap` rejects with `ImageTooLarge` and
+        // rolls the quota reservation back — parity with the `Io`
+        // and `SandboxDenied` arms so a failed call never counts
+        // toward per-turn / per-session image caps. This is the
+        // observable guarantee the R-2 regression suite locks:
+        // over-cap calls must NOT emit `AgentEvent::ImageRead`
+        // (raw bytes are never read), because the event is emitted
+        // below from `bytes` which this gate has proven we never
+        // allocate.
+        let meta = match tokio::fs::metadata(&path_buf).await {
+            Ok(m) => m,
+            Err(e) => {
+                self.quota.release();
+                return Err(ToolError::Io(e));
+            }
+        };
+        if meta.len() > self.max_image_bytes {
+            self.quota.release();
+            return Err(ToolError::ImageTooLarge {
+                path: input.path.clone(),
+                actual_size: meta.len(),
+                cap: self.max_image_bytes,
             });
         }
 

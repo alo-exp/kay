@@ -1,0 +1,5 @@
+---
+source: crates/kay-tools/tests/events_wire_snapshots.rs
+expression: line
+---
+{"type":"text_delta","content":"one\ntwo"}

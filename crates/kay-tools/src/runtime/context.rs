@@ -68,6 +68,24 @@ pub struct ToolCallContext {
     pub cancel_token: CancellationToken,
     pub sandbox: Arc<dyn Sandbox>,
     pub verifier: Arc<dyn TaskVerifier>,
+    /// Agent-loop nesting depth. 0 for top-level turns; incremented by
+    /// one for each recursive sub-turn spawned via `sage_query`. The
+    /// `sage_query` tool reads this field at invocation time and
+    /// rejects with [`crate::error::ToolError::NestingDepthExceeded`]
+    /// when the parent depth is ≥ 2 (i.e. the sub-turn would be at
+    /// depth 3 — beyond the Phase 5 LOOP-03 runaway-sub-query ceiling).
+    ///
+    /// A `u8` is sufficient (max legal value is 2; anything above is
+    /// rejected before it can be built) and keeps the context cache-
+    /// line-friendly. `u16`+ would waste space without ever being
+    /// used.
+    ///
+    /// Threading the counter through the context — rather than
+    /// making it a hidden global — means a future wave can display
+    /// it to the user ("🪆 sub-query @ depth 2/2") and the test
+    /// seam (`RecordingAgent` in `tests/sage_query.rs`) can snapshot
+    /// it directly without reaching into crate internals.
+    pub nesting_depth: u8,
 }
 
 impl ToolCallContext {
@@ -75,8 +93,15 @@ impl ToolCallContext {
     /// Wave 4 `default_tool_set` callers) cannot use struct-literal syntax
     /// because of `#[non_exhaustive]`; this constructor is the canonical
     /// entry point. Plan 03-04 Wave 3 introduced this as a Rule-3 scaffold
-    /// augmentation (no field additions, only an accessor for the existing
-    /// shape).
+    /// augmentation.
+    ///
+    /// Phase 5 Wave 5 T5.2 added the 7th parameter `nesting_depth: u8`.
+    /// Top-level callers (CLI, test harnesses) pass `0`; `sage_query`'s
+    /// internal inner-ctx builder passes `parent.nesting_depth + 1`.
+    /// Making the param required — rather than defaulting to 0 via a
+    /// builder pattern — is deliberate: forgetting to thread the depth
+    /// on a new sub-tool would silently defeat the LOOP-03 guard, so
+    /// the compiler surfaces the omission at every call site.
     pub fn new(
         services: Arc<dyn ServicesHandle>,
         stream_sink: Arc<dyn Fn(AgentEvent) + Send + Sync>,
@@ -84,6 +109,7 @@ impl ToolCallContext {
         cancel_token: CancellationToken,
         sandbox: Arc<dyn Sandbox>,
         verifier: Arc<dyn TaskVerifier>,
+        nesting_depth: u8,
     ) -> Self {
         Self {
             services,
@@ -92,10 +118,12 @@ impl ToolCallContext {
             cancel_token,
             sandbox,
             verifier,
+            nesting_depth,
         }
     }
 
-    /// Minimal context for unit tests. Uses no-op impls for all seams.
+    /// Minimal context for unit tests. Uses no-op impls for all seams
+    /// and `nesting_depth = 0` (top-level turn).
     #[cfg(test)]
     pub fn for_test() -> Self {
         use crate::seams::sandbox::NoOpSandbox;
@@ -125,6 +153,7 @@ impl ToolCallContext {
             CancellationToken::new(),
             Arc::new(NoOpSandbox),
             Arc::new(NoOpVerifier),
+            0,
         )
     }
 }

@@ -1,0 +1,5 @@
+---
+source: crates/kay-tools/tests/tool_error_display_snapshots.rs
+expression: err.to_string()
+---
+image at "/tmp/evil-20gb.img" is 2097152 bytes (> 1048576 byte cap)

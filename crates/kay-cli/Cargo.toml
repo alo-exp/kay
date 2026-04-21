@@ -7,9 +7,96 @@ rust-version.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "Kay headless CLI for benchmark + CI use"
+description = "Kay headless CLI — `kay run --prompt` + interactive fallback (Phase 5)"
+
+# Kay's canonical binary. `kay` is the entry point consumed by:
+#   - Phase 5:  headless execute → compose → stream → tool → verify → turn-end
+#   - Phase 9:  kay-tauri (desktop UI) — reads the structured-event JSONL stream
+#   - Phase 9.5: kay-tui (terminal UI) — same JSONL contract (CLI-05)
+# See .planning/phases/05-agent-loop/05-PLAN.md Wave 7 for the task breakdown
+# and .planning/phases/05-agent-loop/05-DEPENDENCIES.md §3.3 for this dep list.
+[[bin]]
+name = "kay"
+path = "src/main.rs"
 
 [dependencies]
-clap = { workspace = true }
-anyhow = { workspace = true }
+# Kay core + tools (intra-workspace)
+kay-core = { path = "../kay-core" }
 kay-tools = { path = "../kay-tools" }
+
+# Async runtime + streams
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+tokio-util = { workspace = true }
+futures = { workspace = true }
+async-trait = { workspace = true }
+
+# forge_domain provides the tool-I/O types (FSRead/FSWrite/NetFetch/ToolOutput)
+# used by kay-cli's inline NullServices stub for ToolCallContext. T7.3 offline
+# scenarios never actually dispatch tools, but the trait signature forces these
+# imports. DL-3 brand-name guard: "forge" is allowed in internal crate names;
+# the banned surface is USER-VISIBLE --help text.
+forge_domain = { path = "../forge_domain" }
+
+# ProviderError is the channel element type (`mpsc::Sender<Result<AgentEvent,
+# ProviderError>>`) the agent loop consumes, matching kay-core's signature.
+# Offline scenarios never produce errors, but the channel type needs it.
+kay-provider-errors = { path = "../kay-provider-errors" }
+
+# Serialization (JSONL event stream + YAML persona loader)
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_yml = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# CLI argument parsing
+clap = { workspace = true }
+
+# Banner rendering (T7.4): `colored` paints the labels/values cyan +
+# dimmed; `console` measures visible text width so ANSI sequences in
+# DisplayBox content don't skew the box width. Both are workspace
+# deps carried forward from forge_main (no Kay-specific fork needed).
+colored = { workspace = true }
+console = { workspace = true }
+
+# Interactive prompt (T7.6 skeleton, T7.9 REPL): `reedline` is the
+# same line-editor forge_main uses; `nu-ansi-term` colors segments in
+# the multi-line starship-style prompt; `convert_case` uppercases the
+# active agent name; `derive_setters` generates the fluent setters
+# `KayPrompt` exposes (usage/model/git_branch/…); `gix` resolves the
+# current git branch for the left-prompt segment. All workspace deps
+# carried forward from `forge_main` — no Kay-specific version pins.
+#
+# T7.6 commits the struct + `Prompt` impl; the actual reedline REPL
+# wiring that consumes them lands in T7.9.
+reedline = { workspace = true }
+nu-ansi-term = { workspace = true }
+convert_case = { workspace = true }
+derive_setters = { workspace = true }
+gix = { workspace = true }
+
+# forge_api gives `KayPrompt` access to the canonical `AgentId` /
+# `ModelId` / `Usage` / `TokenCount` types so the prompt rendering
+# can show agent name + token counts + model + cost. Re-exporting
+# these through kay-core would be cleaner (Phase 10 residual), but
+# depending on forge_api directly here avoids coupling the prompt
+# port to that rename. DL-3 brand-name guard note: `forge_api` is an
+# internal crate name (not user-visible); the banned surface is
+# user-visible --help / prompt text, which KayPrompt already
+# brand-cleans (`kay or muse` wording in tests).
+forge_api = { path = "../forge_api" }
+
+[dev-dependencies]
+# Subprocess E2E harness for `kay` binary (Wave 7 T7.1: 9 E2E cases)
+assert_cmd = { workspace = true }
+predicates = { workspace = true }
+tempfile = { workspace = true }
+insta = { workspace = true }
+pretty_assertions = { workspace = true }

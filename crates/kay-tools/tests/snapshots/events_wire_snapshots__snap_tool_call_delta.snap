@@ -1,0 +1,9 @@
+---
+source: crates/kay-tools/tests/events_wire_snapshots.rs
+expression: wire_value(&ev)
+---
+{
+  "arguments_delta": "{\"cmd\":\"ls\"}",
+  "id": "call_01",
+  "type": "tool_call_delta"
+}
