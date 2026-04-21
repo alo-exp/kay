@@ -38,6 +38,15 @@ use crate::events::AgentEvent;
 use crate::runtime::context::ToolCallContext;
 use crate::schema::{TruncationHints, harden_tool_schema};
 
+/// Default `max_image_bytes` cap applied by `ImageReadTool::new`:
+/// 20 MiB. Rationale (R-2): a prompt-injected
+/// `image_read {"path": "/tmp/20GB.img"}` call must NOT cause the
+/// agent to allocate gigabytes into `Vec<u8>`. 20 MiB comfortably
+/// covers legitimate UI screenshots / assets while keeping the
+/// allocation bounded. Callers that need a different ceiling use
+/// `ImageReadTool::with_size_cap`.
+pub const DEFAULT_MAX_IMAGE_BYTES: u64 = 20 * 1024 * 1024;
+
 /// Input schema for `image_read`. Kay defines its own input struct
 /// because ForgeCode's `ToolCatalog` does not expose an image-read
 /// variant — the tool is Kay-specific (KIRA trio, IMG-01).
@@ -53,10 +62,28 @@ pub struct ImageReadTool {
     description: String,
     input_schema: Value,
     quota: Arc<crate::quota::ImageQuota>,
+    /// Maximum file size (bytes, inclusive) that `invoke` will read.
+    /// Enforced BEFORE `tokio::fs::read` via a `tokio::fs::metadata`
+    /// length check — R-2 refuses pre-read to keep an over-cap call
+    /// from allocating the file into memory.
+    max_image_bytes: u64,
 }
 
 impl ImageReadTool {
+    /// Construct with the default 20 MiB cap
+    /// (`DEFAULT_MAX_IMAGE_BYTES`).
     pub fn new(quota: Arc<crate::quota::ImageQuota>) -> Self {
+        Self::with_size_cap(quota, DEFAULT_MAX_IMAGE_BYTES)
+    }
+
+    /// Construct with an explicit `max_image_bytes` cap. The cap is
+    /// INCLUSIVE — a file whose size is exactly `max_image_bytes`
+    /// succeeds; `size > max_image_bytes` rejects with
+    /// `ToolError::ImageTooLarge`.
+    pub fn with_size_cap(
+        quota: Arc<crate::quota::ImageQuota>,
+        max_image_bytes: u64,
+    ) -> Self {
         let name = ToolName::new("image_read");
         let description = "Read an image file from disk (JPEG/PNG/WebP/GIF) and return a \
             base64 data URI. Subject to per-turn and per-session image caps."
@@ -71,7 +98,12 @@ impl ImageReadTool {
                 ),
             },
         );
-        Self { name, description, input_schema: schema, quota }
+        Self { name, description, input_schema: schema, quota, max_image_bytes }
+    }
+
+    /// Configured maximum image file size (bytes, inclusive).
+    pub fn max_image_bytes(&self) -> u64 {
+        self.max_image_bytes
     }
 }
 

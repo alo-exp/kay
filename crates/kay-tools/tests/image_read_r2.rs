@@ -80,7 +80,7 @@ async fn image_read_under_cap_succeeds() {
         .invoke(json!({ "path": p.clone() }), &ctx, "call-under")
         .await
         .expect("under-cap read must succeed");
-    let s: String = out.into();
+    let s = out.as_str().unwrap_or("");
     assert!(
         s.starts_with("data:image/png;base64,"),
         "expected a base64 data URI, got: {s}"
