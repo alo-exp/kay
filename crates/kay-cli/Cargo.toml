@@ -27,7 +27,21 @@ kay-tools = { path = "../kay-tools" }
 # Async runtime + streams
 tokio = { workspace = true }
 tokio-stream = { workspace = true }
+tokio-util = { workspace = true }
 futures = { workspace = true }
+async-trait = { workspace = true }
+
+# forge_domain provides the tool-I/O types (FSRead/FSWrite/NetFetch/ToolOutput)
+# used by kay-cli's inline NullServices stub for ToolCallContext. T7.3 offline
+# scenarios never actually dispatch tools, but the trait signature forces these
+# imports. DL-3 brand-name guard: "forge" is allowed in internal crate names;
+# the banned surface is USER-VISIBLE --help text.
+forge_domain = { path = "../forge_domain" }
+
+# ProviderError is the channel element type (`mpsc::Sender<Result<AgentEvent,
+# ProviderError>>`) the agent loop consumes, matching kay-core's signature.
+# Offline scenarios never produce errors, but the channel type needs it.
+kay-provider-errors = { path = "../kay-provider-errors" }
 
 # Serialization (JSONL event stream + YAML persona loader)
 serde = { workspace = true }
