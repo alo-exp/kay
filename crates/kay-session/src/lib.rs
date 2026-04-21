@@ -6,7 +6,9 @@
 pub mod config;
 pub mod error;
 pub mod store;
+pub mod transcript;
 
 pub use config::kay_home;
 pub use error::SessionError;
 pub use store::SessionStore;
+pub use transcript::TranscriptWriter;
