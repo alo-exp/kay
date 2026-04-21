@@ -27,3 +27,8 @@ pub mod event_filter;
 // `tokio::select!` agent loop. See `control.rs` module doc for the full
 // rationale; tests live in `tests/control.rs`.
 pub mod control;
+
+// LOOP-03 persona loader — YAML serde struct + post-parse validators
+// for `forge` / `sage` / `muse` agent profiles. See `persona.rs` module
+// doc; tests live in `tests/persona.rs`.
+pub mod persona;
