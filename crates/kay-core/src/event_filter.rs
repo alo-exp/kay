@@ -16,10 +16,21 @@
 //!   `coverage-event-filter` job enforces 100%-line + 100%-branch).
 //! - **Tested variant-by-variant.** See
 //!   `crates/kay-core/tests/event_filter.rs` (T2.1) for a test per
-//!   `AgentEvent` variant locking the allow/deny decision.
-//! - **Proptest-guarded.** `tests/event_filter_property.rs` (T2.3)
-//!   runs 10k random `AgentEvent` sequences and asserts that no
-//!   `SandboxViolation` ever leaks.
+//!   `AgentEvent` variant locking the allow/deny decision — 15 cases
+//!   total (13 allow + 2 deny, the latter are the two
+//!   `SandboxViolation` shapes `os_error=Some(errno)` kernel-denial
+//!   vs. `os_error=None` pre-flight).
+//! - **Proptest-proven.** `tests/event_filter_property.rs` (T2.3 + T2.4)
+//!   runs 10,000 random sequences of up to 20 `AgentEvent`s each
+//!   (~100k filter calls per run) and asserts the bi-conditional
+//!   invariant `for_model_context(&ev) == !matches!(ev, SandboxViolation { .. })`
+//!   for every event. The property holds by construction — the
+//!   filter's implementation (`!matches!(event, …)`) is literally the
+//!   definition of the property — so the proptest is a regression
+//!   tripwire rather than a discovery harness. Any future refactor
+//!   that accidentally introduces field-dependent allow/deny behavior
+//!   (e.g., "allow `SandboxViolation` when `os_error=None`") fails
+//!   loudly within 10k cases.
 //!
 //! ## Policy choice: deny-explicit, allow-default
 //!
