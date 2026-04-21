@@ -247,6 +247,9 @@ Every v1 requirement maps to exactly one phase. Populated by the gsd-roadmapper 
 | LOOP-06 | Phase 5 | Pending |
 | CLI-01 | Phase 5 | Pending |
 | CLI-03 | Phase 5 | Pending |
+| CLI-04 | Phase 5 | Pending |
+| CLI-05 | Phase 5 | Pending |
+| CLI-07 | Phase 5 | Pending |
 | SESS-01 | Phase 6 | Pending |
 | SESS-02 | Phase 6 | Pending |
 | SESS-03 | Phase 6 | Pending |
