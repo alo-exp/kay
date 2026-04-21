@@ -243,3 +243,124 @@ model: {good}
             .unwrap_or_else(|e| panic!("allowlisted model {good} should pass; got {e}"));
     }
 }
+
+// -----------------------------------------------------------------------------
+// T3.4 RED — Persona::load(name) resolves bundled personas via include_str!
+// -----------------------------------------------------------------------------
+//
+// T3.3 committed three bundled YAMLs in `crates/kay-core/personas/`.
+// `Persona::load(name)` is the lookup entry point the Wave 4 loop and
+// the kay-cli binary use at startup — it pulls the bundled YAML from
+// the binary (via `include_str!` at compile time) and runs
+// `from_yaml_str` on it.
+//
+// Four tests:
+//
+// 1. `load_forge_from_bundled` — `Persona::load("forge")` returns a
+//    parsed `Persona` whose `.name == "forge"` and whose fields
+//    match the expected forge profile (write access in tool_filter,
+//    launch-allowlisted model). Spot-checks enough fields to prove
+//    the right YAML was resolved, not e.g. sage's.
+//
+// 2. `load_sage_from_bundled` — same shape for sage, plus a
+//    negative assertion that `tool_filter` does NOT contain
+//    `fs_write` or `execute_commands` (sage is read-only).
+//
+// 3. `load_muse_from_bundled` — same shape for muse, plus a
+//    negative assertion that `tool_filter` does NOT contain
+//    `net_fetch` (muse plans in-repo; external browsing is sage's
+//    job).
+//
+// 4. `load_unknown_name_errors` — `Persona::load("ghost")` returns
+//    `PersonaError::UnknownPersona("ghost")` — not a YAML parse
+//    error, not an Io error. Pattern-matching on this variant is
+//    how kay-cli distinguishes "persona not bundled" (offer suggestion)
+//    from "YAML broken" (surface error to user as-is).
+//
+// Expected RED: `Persona::load` does not exist yet (method missing),
+// AND `PersonaError::UnknownPersona` does not exist yet (variant
+// missing) — both compile-error in T3.4 RED, both added in T3.5 GREEN.
+
+#[test]
+fn load_forge_from_bundled() {
+    let persona = Persona::load("forge").expect("bundled forge.yaml should load");
+    assert_eq!(persona.name, "forge", "name field in forge.yaml must be 'forge'");
+    assert!(
+        persona.tool_filter.iter().any(|t| t == "fs_write"),
+        "forge must include fs_write in tool_filter (role: write)"
+    );
+    assert!(
+        persona.tool_filter.iter().any(|t| t == "execute_commands"),
+        "forge must include execute_commands in tool_filter"
+    );
+    assert!(
+        LAUNCH_ALLOWLIST.contains(&persona.model.as_str()),
+        "forge model must be in the launch allowlist; got {}",
+        persona.model
+    );
+}
+
+#[test]
+fn load_sage_from_bundled() {
+    let persona = Persona::load("sage").expect("bundled sage.yaml should load");
+    assert_eq!(persona.name, "sage");
+    // Sage is read-only — closes REQ LOOP-04 precondition and the
+    // read-only research-agent contract (PROJECT.md line 30).
+    assert!(
+        !persona.tool_filter.iter().any(|t| t == "fs_write"),
+        "sage must NOT include fs_write (read-only research agent)"
+    );
+    assert!(
+        !persona.tool_filter.iter().any(|t| t == "execute_commands"),
+        "sage must NOT include execute_commands (read-only research agent)"
+    );
+    assert!(
+        LAUNCH_ALLOWLIST.contains(&persona.model.as_str()),
+        "sage model must be in the launch allowlist; got {}",
+        persona.model
+    );
+}
+
+#[test]
+fn load_muse_from_bundled() {
+    let persona = Persona::load("muse").expect("bundled muse.yaml should load");
+    assert_eq!(persona.name, "muse");
+    // Muse is a planning agent — tighter than sage, should not
+    // browse external content (that is sage's job).
+    assert!(
+        !persona.tool_filter.iter().any(|t| t == "fs_write"),
+        "muse must NOT include fs_write (planning agent, not writer)"
+    );
+    assert!(
+        !persona.tool_filter.iter().any(|t| t == "execute_commands"),
+        "muse must NOT include execute_commands"
+    );
+    assert!(
+        !persona.tool_filter.iter().any(|t| t == "net_fetch"),
+        "muse must NOT include net_fetch (external browsing is sage's scope)"
+    );
+    assert!(
+        LAUNCH_ALLOWLIST.contains(&persona.model.as_str()),
+        "muse model must be in the launch allowlist; got {}",
+        persona.model
+    );
+}
+
+#[test]
+fn load_unknown_name_errors() {
+    let err = Persona::load("ghost").expect_err("unknown persona name must error");
+
+    // Specific variant matters: kay-cli distinguishes unknown-persona
+    // (offer suggestion) from yaml-parse (surface as-is).
+    assert!(
+        matches!(err, PersonaError::UnknownPersona(ref n) if n == "ghost"),
+        "expected PersonaError::UnknownPersona(\"ghost\"); got {err:?}"
+    );
+
+    // Display string carries the rejected name for end-user feedback.
+    let msg = format!("{err}");
+    assert!(
+        msg.contains("ghost"),
+        "expected error message to name the unknown persona; got: {err}"
+    );
+}
