@@ -2,7 +2,7 @@
 
 use kay_session::SessionStore;
 use kay_session::fork::fork_session;
-use kay_session::index::{create_session, list_sessions};
+use kay_session::index::create_session;
 use kay_tools::AgentEvent;
 use kay_tools::events_wire::AgentEventWire;
 use tempfile::TempDir;

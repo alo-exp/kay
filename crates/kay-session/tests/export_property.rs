@@ -27,7 +27,7 @@ proptest! {
         // First export
         let export1 = dir.path().join("export1");
         export_session(&store, &id, &export1).unwrap();
-        let first_transcript = std::fs::read(&export1.join("transcript.jsonl")).unwrap();
+        let first_transcript = std::fs::read(export1.join("transcript.jsonl")).unwrap();
 
         // Import → export second time
         let imported = import_session(&store, &export1).unwrap();
@@ -36,7 +36,7 @@ proptest! {
 
         let export2 = dir.path().join("export2");
         export_session(&store, &imported_id, &export2).unwrap();
-        let second_transcript = std::fs::read(&export2.join("transcript.jsonl")).unwrap();
+        let second_transcript = std::fs::read(export2.join("transcript.jsonl")).unwrap();
 
         prop_assert_eq!(
             first_transcript, second_transcript,

@@ -3,12 +3,6 @@
 use kay_session::SessionStore;
 use tempfile::TempDir;
 
-fn open_store() -> (TempDir, SessionStore) {
-    let dir = TempDir::new().unwrap();
-    let store = SessionStore::open(dir.path()).unwrap();
-    (dir, store)
-}
-
 #[test]
 fn open_creates_db() {
     let dir = TempDir::new().unwrap();
