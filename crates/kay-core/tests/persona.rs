@@ -328,6 +328,92 @@ fn load_sage_from_bundled() {
     );
 }
 
+// -----------------------------------------------------------------
+// T5.6 REGRESSION — sage YAML tool_filter must NOT contain sage_query
+// -----------------------------------------------------------------
+//
+// Belt + suspenders for LOOP-03's recursion guard.
+//
+// Two layers protect against a runaway "sage → sage_query → sage →
+// sage_query → …" chain:
+//
+//   (a) RUNTIME — `SageQueryTool::invoke` rejects any call where
+//       `ctx.nesting_depth >= MAX_NESTING_DEPTH` (= 2). Locked by
+//       `crates/kay-tools/tests/sage_query.rs::sage_query_rejects_depth_gte_2`.
+//
+//   (b) CONFIG — sage's bundled persona YAML
+//       (`crates/kay-core/personas/sage.yaml`) deliberately OMITS
+//       `sage_query` from its `tool_filter`, so the model never even
+//       sees sage_query as an available tool when it is running as
+//       sage. Locked by THIS test.
+//
+// Each guard catches a different class of failure:
+//
+//   - If layer (a) drifts (e.g. someone loosens the depth limit or
+//     a future refactor accidentally clones the parent ctx without
+//     bumping depth), layer (b) still prevents recursion because
+//     the model literally can't emit a sage_query call.
+//   - If layer (b) drifts (e.g. a well-meaning edit "restores"
+//     sage_query to sage.yaml thinking it's missing by mistake),
+//     layer (a) still rejects the call at depth 2, but layer (b)
+//     is much cheaper — it prevents the wasted round-trip through
+//     OpenRouter that would otherwise happen before the runtime
+//     guard trips.
+//
+// This test fails FAST with a pointed message, so if a future YAML
+// edit breaks the invariant, the regression is obvious in CI before
+// it can reach a release tag. The explicit name
+// (`sage_tool_filter_excludes_sage_query_regression`) is chosen so
+// the failure line in CI is self-documenting.
+
+#[test]
+fn sage_tool_filter_excludes_sage_query_regression() {
+    let persona = Persona::load("sage").expect("bundled sage.yaml should load");
+
+    // Primary invariant: `sage_query` is NOT in sage's tool_filter.
+    // A future edit that "restores" sage_query to sage.yaml breaks
+    // this and fails CI immediately — exactly the intent.
+    let has_sage_query = persona.tool_filter.iter().any(|t| t == "sage_query");
+    assert!(
+        !has_sage_query,
+        "LOOP-03 config-layer guard regressed: sage.yaml lists `sage_query` \
+         in its tool_filter, which lets sage recursively spawn more sage \
+         turns. Remove `sage_query` from `tool_filter:` in \
+         `crates/kay-core/personas/sage.yaml`. Full tool_filter was: {:?}",
+        persona.tool_filter,
+    );
+
+    // Secondary sanity: sage MUST still have useful tools. A vacuous
+    // tool_filter would technically satisfy the primary invariant,
+    // but also make sage useless. If a future edit strips sage's
+    // tool_filter to `[]`, surfacing that here (even as a secondary
+    // check) saves a confused "why doesn't sage respond?" debug
+    // session.
+    assert!(
+        !persona.tool_filter.is_empty(),
+        "sage persona should have at least one tool registered — \
+         got an empty tool_filter, which would make sage unable to \
+         do any research at all. Check `crates/kay-core/personas/sage.yaml`."
+    );
+
+    // Tertiary sanity: forge / muse DO have sage_query (since they
+    // delegate to sage). This assertion lives in this same test
+    // rather than a separate one because it makes the delegation
+    // topology a single readable unit: the two personas that CALL
+    // sage have the tool; the one that IS sage does not. Splitting
+    // across tests would fragment the topology.
+    for caller in ["forge", "muse"] {
+        let p = Persona::load(caller)
+            .unwrap_or_else(|e| panic!("bundled {caller}.yaml must load; got {e:?}"));
+        assert!(
+            p.tool_filter.iter().any(|t| t == "sage_query"),
+            "{caller}.yaml must list `sage_query` in its tool_filter so \
+             the {caller} agent can delegate to sage. Got tool_filter: {:?}",
+            p.tool_filter,
+        );
+    }
+}
+
 #[test]
 fn load_muse_from_bundled() {
     let persona = Persona::load("muse").expect("bundled muse.yaml should load");
