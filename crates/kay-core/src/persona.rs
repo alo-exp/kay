@@ -65,6 +65,8 @@
 //! T3.7 insta snapshots) extend this module. T3.1 (tests) and T3.2
 //! (this file) lock only the schema contract + post-parse validators.
 
+use std::path::Path;
+
 use forge_domain::ToolName;
 use kay_tools::ToolRegistry;
 use serde::Deserialize;
@@ -194,6 +196,46 @@ impl Persona {
         };
         Self::from_yaml_str(yaml)
     }
+
+    /// Load a persona from an external YAML file on disk.
+    ///
+    /// Extension point for Phase 11+ power users who want to drop a
+    /// custom persona YAML into e.g. `~/.config/kay/personas/<name>.yaml`
+    /// without recompiling `kay-core`. The bundled loader
+    /// ([`Persona::load`]) handles the opinionated default triplet
+    /// (forge / sage / muse); `from_path` handles everything else.
+    ///
+    /// Schema strictness is identical to the bundled loader — the same
+    /// `#[serde(deny_unknown_fields)]` + required-field gates apply.
+    /// An external YAML cannot grant itself laxer parsing than a
+    /// bundled one.
+    ///
+    /// # Errors
+    ///
+    /// - [`PersonaError::Io`] — the path could not be read (missing
+    ///   file, permission denied, not a regular file, etc.). Carries
+    ///   the underlying `std::io::Error` for caller inspection.
+    /// - [`PersonaError::Yaml`] — the file was read but did not parse
+    ///   as a valid `Persona` (missing required field, unknown field,
+    ///   malformed YAML, wrong types, etc.).
+    ///
+    /// Isolating I/O failures from parse failures lets the CLI
+    /// differentiate "file not found — check the path" from "file is
+    /// malformed — check the schema" when surfacing errors to users.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use kay_core::persona::Persona;
+    /// use std::path::Path;
+    ///
+    /// let custom = Persona::from_path(Path::new("/etc/kay/custom.yaml"))
+    ///     .expect("custom persona must load");
+    /// ```
+    pub fn from_path<P: AsRef<Path>>(path: P) -> Result<Self, PersonaError> {
+        let yaml = std::fs::read_to_string(path.as_ref()).map_err(PersonaError::Io)?;
+        Self::from_yaml_str(&yaml)
+    }
 }
 
 /// Error surface for persona loading and post-parse validation.
@@ -226,4 +268,12 @@ pub enum PersonaError {
     /// sage, or muse").
     #[error("persona '{0}' is not bundled (expected one of: forge, sage, muse)")]
     UnknownPersona(String),
+
+    /// `Persona::from_path(p)` failed to read the file at `p`
+    /// (missing file, permission denied, not a regular file, etc.).
+    /// Held separately from `Yaml` so the CLI can distinguish
+    /// "file not found — check the path" from "file is malformed —
+    /// check the schema" when surfacing errors.
+    #[error("persona I/O error: {0}")]
+    Io(std::io::Error),
 }

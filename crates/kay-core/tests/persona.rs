@@ -367,3 +367,125 @@ fn load_unknown_name_errors() {
         "expected error message to name the unknown persona; got: {err}"
     );
 }
+
+// -----------------------------------------------------------------
+// T3.6 RED — external YAML loader (`Persona::from_path`)
+// -----------------------------------------------------------------
+//
+// The bundled loader (`Persona::load`) resolves three hard-coded
+// names at compile time. That is right for Phase 5 where Kay ships
+// one opinionated triplet (forge / sage / muse), but leaves a hole
+// for Phase 11+ where power users will want to drop a custom
+// persona YAML into `~/.config/kay/personas/<name>.yaml` without
+// recompiling.
+//
+// `Persona::from_path(p)` is the extension point that closes that
+// hole. It takes any path-convertible value, reads the file, and
+// runs the same YAML→schema pipeline as `from_yaml_str`. The three
+// tests below lock the three error branches:
+//
+// 1. **`load_external_yaml_via_tempfile`** — happy path. Write a
+//    schema-valid YAML to a `NamedTempFile` (auto-cleaned on drop),
+//    call `from_path`, assert the parsed `Persona` matches.
+//
+// 2. **`load_external_yaml_rejects_bad_schema`** — a YAML missing
+//    the required `model` field returns `PersonaError::Yaml`. This
+//    mirrors `persona_rejects_missing_required_field` but through
+//    the path loader — the whole point is that external files get
+//    the *same* strictness as bundled ones.
+//
+// 3. **`load_external_yaml_missing_path_errors`** — calling
+//    `from_path` on a path that does not exist returns
+//    `PersonaError::Io`. The new variant isolates I/O failures from
+//    parse failures so the CLI can differentiate "file not found"
+//    ("check the path") from "file is malformed" ("check the
+//    schema") when surfacing errors to the user.
+//
+// ## Expected RED state (T3.6)
+//
+// Compilation fails on two symbols that do not yet exist:
+// - `Persona::from_path` (missing method)
+// - `PersonaError::Io` (missing variant)
+//
+// T3.6 GREEN adds both to `crates/kay-core/src/persona.rs`.
+
+#[test]
+fn load_external_yaml_via_tempfile() {
+    use std::io::Write;
+    use tempfile::NamedTempFile;
+
+    // Schema-valid custom persona — not one of the bundled three.
+    // The whole point of `from_path` is that the YAML can carry a
+    // `name` field that `Persona::load` would reject.
+    let yaml = r#"
+name: custom
+system_prompt: "A user-authored persona loaded via from_path."
+tool_filter:
+  - fs_read
+  - task_complete
+model: anthropic/claude-sonnet-4.6
+"#;
+
+    let mut file = NamedTempFile::new().expect("create named tempfile");
+    file.write_all(yaml.as_bytes())
+        .expect("write yaml bytes to tempfile");
+    let path = file.path().to_path_buf();
+
+    let persona =
+        Persona::from_path(&path).expect("from_path must succeed on schema-valid external YAML");
+
+    assert_eq!(persona.name, "custom", "external name must round-trip");
+    assert_eq!(
+        persona.tool_filter,
+        vec!["fs_read".to_string(), "task_complete".to_string()],
+        "external tool_filter must round-trip in YAML order"
+    );
+    assert_eq!(
+        persona.model, "anthropic/claude-sonnet-4.6",
+        "external model field must round-trip"
+    );
+}
+
+#[test]
+fn load_external_yaml_rejects_bad_schema() {
+    use std::io::Write;
+    use tempfile::NamedTempFile;
+
+    // Missing required `model` field — same violation as the
+    // bundled-schema test, but through the external loader path.
+    let yaml = r#"
+name: broken
+system_prompt: "this persona YAML forgot its model field"
+tool_filter:
+  - fs_read
+"#;
+
+    let mut file = NamedTempFile::new().expect("create named tempfile");
+    file.write_all(yaml.as_bytes())
+        .expect("write yaml bytes to tempfile");
+    let path = file.path().to_path_buf();
+
+    let err =
+        Persona::from_path(&path).expect_err("from_path must reject schema-invalid external YAML");
+
+    assert!(
+        matches!(err, PersonaError::Yaml(_)),
+        "expected PersonaError::Yaml from missing required `model` field; got: {err:?}"
+    );
+}
+
+#[test]
+fn load_external_yaml_missing_path_errors() {
+    // Deliberately nonexistent path under /tmp (not a tempfile — a
+    // tempfile would auto-create the file). The probe string makes
+    // accidental collisions astronomically unlikely.
+    let path =
+        std::path::PathBuf::from("/tmp/kay-persona-from-path-nonexistent-8f2e1c9d-probe.yaml");
+
+    let err = Persona::from_path(&path).expect_err("from_path must error on missing file");
+
+    assert!(
+        matches!(err, PersonaError::Io(_)),
+        "expected PersonaError::Io from missing path; got: {err:?}"
+    );
+}
