@@ -176,6 +176,36 @@ impl<'a> Serialize for AgentEventWire<'a> {
     }
 }
 
+/// JSONL line form: one compact JSON object terminated by a single `\n`.
+///
+/// This is the single point where `AgentEvent` → wire bytes. `kay-cli`,
+/// Tauri GUI (Phase 9), and TUI (Phase 9.5) read these bytes directly off
+/// the stream. Newline framing lets consumers delimit events with a
+/// `BufRead::read_line` loop — no full JSON streaming parser required.
+///
+/// Invariants locked by `tests/events_wire_snapshots.rs::snap_jsonl_line_format`:
+///
+/// 1. Output ends with exactly one `\n` (never zero, never two)
+/// 2. The JSON payload is a single physical line — any newline inside
+///    string fields is escaped as `\n` by `serde_json`, so the outer
+///    line stays delimiter-safe even if the user prompt contains `\n`.
+/// 3. Byte-for-byte deterministic — snapshot equality enforces this.
+///
+/// Errors: `serde_json` serialization of `AgentEventWire` is infallible for
+/// all current variants (no `Serialize` impls that return `Err`), but the
+/// trait signature forces us to handle the `Result`. A genuine failure
+/// here would indicate a programmer error (e.g. a newly added variant
+/// whose custom impl returns `Err`), so we surface it as `fmt::Error` —
+/// the `format!` / `writeln!` macros will propagate, and the bug will
+/// surface immediately in tests rather than silently emitting half an
+/// event.
+impl<'a> std::fmt::Display for AgentEventWire<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let json = serde_json::to_string(self).map_err(|_| std::fmt::Error)?;
+        writeln!(f, "{json}")
+    }
+}
+
 /// Stable wire tag for `RetryReason` — snake_case per schema convention.
 fn retry_reason_tag(reason: RetryReason) -> &'static str {
     match reason {
