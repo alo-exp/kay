@@ -385,15 +385,19 @@ async fn run_async(
                             tracing::warn!("resume failed: {e}; starting fresh session");
                             let cwd = std::env::current_dir().unwrap_or_default();
                             kay_session::index::create_session(
-                                &store, &session_title, "forge", "", &cwd,
-                            ).ok()
+                                &store,
+                                &session_title,
+                                "forge",
+                                "",
+                                &cwd,
+                            )
+                            .ok()
                         }
                     }
                 } else {
                     let cwd = std::env::current_dir().unwrap_or_default();
-                    kay_session::index::create_session(
-                        &store, &session_title, "forge", "", &cwd,
-                    ).ok()
+                    kay_session::index::create_session(&store, &session_title, "forge", "", &cwd)
+                        .ok()
                 }
             }
             Err(e) => {
@@ -436,7 +440,9 @@ async fn run_async(
             }
         }
         if let Some(session_id) = failed_session_id {
-            return Err(anyhow::anyhow!("transcript deleted during session {session_id}"));
+            return Err(anyhow::anyhow!(
+                "transcript deleted during session {session_id}"
+            ));
         }
     }
 

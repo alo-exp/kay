@@ -1,10 +1,10 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
+use kay_session::SessionStore;
 use kay_session::export::{export_session, import_session, replay};
 use kay_session::index::{create_session, list_sessions};
-use kay_session::SessionStore;
-use kay_tools::events_wire::AgentEventWire;
 use kay_tools::AgentEvent;
+use kay_tools::events_wire::AgentEventWire;
 use tempfile::TempDir;
 
 fn make_store() -> (TempDir, SessionStore) {
@@ -33,8 +33,14 @@ fn export_creates_transcript_and_manifest() {
     let out_dir = dir.path().join("export_out");
     export_session(&store, &id, &out_dir).unwrap();
 
-    assert!(out_dir.join("transcript.jsonl").exists(), "transcript.jsonl must exist");
-    assert!(out_dir.join("manifest.json").exists(), "manifest.json must exist");
+    assert!(
+        out_dir.join("transcript.jsonl").exists(),
+        "transcript.jsonl must exist"
+    );
+    assert!(
+        out_dir.join("manifest.json").exists(),
+        "manifest.json must exist"
+    );
 }
 
 #[test]
@@ -50,7 +56,10 @@ fn manifest_has_required_fields() {
     let manifest: kay_session::export::ExportManifest =
         serde_json::from_str(&manifest_str).unwrap();
     assert_eq!(manifest.session_id, id);
-    assert_eq!(manifest.schema_version, 1, "schema_version must be 1 in Phase 6");
+    assert_eq!(
+        manifest.schema_version, 1,
+        "schema_version must be 1 in Phase 6"
+    );
     assert_eq!(manifest.turn_count, 2);
     assert!(!manifest.model.is_empty());
 }
@@ -64,11 +73,16 @@ fn export_does_not_include_snapshots() {
     let out_dir = dir.path().join("export_out");
     export_session(&store, &id, &out_dir).unwrap();
 
-    let entries: Vec<_> = std::fs::read_dir(&out_dir).unwrap()
+    let entries: Vec<_> = std::fs::read_dir(&out_dir)
+        .unwrap()
         .filter_map(|e| e.ok())
         .map(|e| e.file_name())
         .collect();
-    assert_eq!(entries.len(), 2, "export must contain only transcript.jsonl + manifest.json");
+    assert_eq!(
+        entries.len(),
+        2,
+        "export must contain only transcript.jsonl + manifest.json"
+    );
 }
 
 #[test]
@@ -96,7 +110,10 @@ fn import_new_uuid_not_original() {
     export_session(&store, &original_id, &out_dir).unwrap();
 
     let imported = import_session(&store, &out_dir).unwrap();
-    assert_ne!(imported.id, original_id, "imported session must have a new UUID");
+    assert_ne!(
+        imported.id, original_id,
+        "imported session must have a new UUID"
+    );
 }
 
 #[test]
@@ -105,13 +122,18 @@ fn import_transcript_matches_original() {
     let cwd = dir.path().to_path_buf();
     let id = populate_session(&store, &cwd, 5);
 
-    let original_path: String = store.conn.query_row(
-        "SELECT jsonl_path FROM sessions WHERE id = ?1",
-        rusqlite::params![id.to_string()],
-        |r| r.get(0),
-    ).unwrap();
-    let original_lines = std::fs::read_to_string(&original_path).unwrap()
-        .lines().count();
+    let original_path: String = store
+        .conn
+        .query_row(
+            "SELECT jsonl_path FROM sessions WHERE id = ?1",
+            rusqlite::params![id.to_string()],
+            |r| r.get(0),
+        )
+        .unwrap();
+    let original_lines = std::fs::read_to_string(&original_path)
+        .unwrap()
+        .lines()
+        .count();
 
     let out_dir = dir.path().join("export_out");
     export_session(&store, &id, &out_dir).unwrap();
@@ -119,7 +141,10 @@ fn import_transcript_matches_original() {
     let imported = import_session(&store, &out_dir).unwrap();
     let imported_contents = std::fs::read_to_string(&imported.jsonl_path).unwrap();
     let imported_lines = imported_contents.lines().count();
-    assert_eq!(imported_lines, original_lines, "imported transcript must have same line count");
+    assert_eq!(
+        imported_lines, original_lines,
+        "imported transcript must have same line count"
+    );
 }
 
 #[test]
@@ -159,10 +184,13 @@ fn replay_preserves_event_order() {
     let output = String::from_utf8(buf).unwrap();
     let lines: Vec<&str> = output.lines().collect();
 
-    let contents: Vec<String> = lines.iter().map(|l| {
-        let v: serde_json::Value = serde_json::from_str(l).unwrap();
-        v["content"].as_str().unwrap_or("").to_string()
-    }).collect();
+    let contents: Vec<String> = lines
+        .iter()
+        .map(|l| {
+            let v: serde_json::Value = serde_json::from_str(l).unwrap();
+            v["content"].as_str().unwrap_or("").to_string()
+        })
+        .collect();
     assert_eq!(contents, vec!["ordered-0", "ordered-1", "ordered-2"]);
 }
 

@@ -1,8 +1,8 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use kay_session::transcript::{TranscriptWriter, truncate_to_last_newline};
-use kay_tools::events_wire::AgentEventWire;
 use kay_tools::AgentEvent;
+use kay_tools::events_wire::AgentEventWire;
 use tempfile::TempDir;
 
 fn make_wire_event() -> AgentEvent {
@@ -20,7 +20,10 @@ fn append_writes_valid_json_newline() {
     writer.append_event(&wire).unwrap();
 
     let contents = std::fs::read_to_string(&path).unwrap();
-    assert!(contents.ends_with('\n'), "line must end with exactly one newline");
+    assert!(
+        contents.ends_with('\n'),
+        "line must end with exactly one newline"
+    );
     let trimmed = contents.trim_end_matches('\n');
     assert!(!trimmed.contains('\n'), "must be single-line JSON");
     let parsed: serde_json::Value = serde_json::from_str(trimmed).unwrap();
@@ -41,7 +44,10 @@ fn append_round_trip() {
     let contents = std::fs::read_to_string(&path).unwrap();
     let line = contents.trim_end_matches('\n');
     let parsed: serde_json::Value = serde_json::from_str(line).unwrap();
-    assert!(parsed.get("type").is_some(), "wire schema must have 'type' field");
+    assert!(
+        parsed.get("type").is_some(),
+        "wire schema must have 'type' field"
+    );
 }
 
 #[test]
@@ -52,8 +58,12 @@ fn last_line_truncation() {
     {
         use std::io::Write;
         let mut f = std::fs::OpenOptions::new()
-            .create(true).append(true).open(&path).unwrap();
-        f.write_all(b"{\"type\":\"text_delta\",\"content\":\"complete\"}\n").unwrap();
+            .create(true)
+            .append(true)
+            .open(&path)
+            .unwrap();
+        f.write_all(b"{\"type\":\"text_delta\",\"content\":\"complete\"}\n")
+            .unwrap();
         f.write_all(b"{\"type\":\"text_delta\",\"content\":\"partial-no-newline\"}")
             .unwrap();
     }
@@ -62,7 +72,10 @@ fn last_line_truncation() {
     assert_eq!(writer.line_count(), 1, "only the complete line survives");
 
     let contents = std::fs::read_to_string(&path).unwrap();
-    assert!(!contents.contains("partial-no-newline"), "partial line must be removed");
+    assert!(
+        !contents.contains("partial-no-newline"),
+        "partial line must be removed"
+    );
 }
 
 #[test]
@@ -89,7 +102,11 @@ fn line_count_matches_turn_count() {
         writer.append_event(&wire).unwrap();
     }
 
-    assert_eq!(writer.line_count(), n as u64, "line_count must match append call count");
+    assert_eq!(
+        writer.line_count(),
+        n as u64,
+        "line_count must match append call count"
+    );
 
     let contents = std::fs::read_to_string(&path).unwrap();
     let actual_lines = contents.lines().count();

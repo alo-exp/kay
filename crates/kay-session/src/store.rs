@@ -1,6 +1,6 @@
-use std::path::{Path, PathBuf};
-use rusqlite::Connection;
 use crate::error::SessionError;
+use rusqlite::Connection;
+use std::path::{Path, PathBuf};
 
 /// Session store backed by SQLite (sessions.db) and a sessions directory.
 ///
@@ -29,19 +29,18 @@ impl SessionStore {
         let db_path = root.join("sessions.db");
         let conn = Connection::open(&db_path)?;
 
-        conn.execute_batch("
+        conn.execute_batch(
+            "
             PRAGMA journal_mode = WAL;
             PRAGMA synchronous = NORMAL;
             PRAGMA busy_timeout = 30000;
             PRAGMA foreign_keys = ON;
-        ")?;
+        ",
+        )?;
 
         Self::init_schema(&conn)?;
 
-        Ok(Self {
-            conn,
-            sessions_dir: root.to_path_buf(),
-        })
+        Ok(Self { conn, sessions_dir: root.to_path_buf() })
     }
 
     fn init_schema(conn: &Connection) -> Result<(), SessionError> {
@@ -79,20 +78,14 @@ impl SessionStore {
             CREATE INDEX IF NOT EXISTS snapshots_session_turn ON snapshots(session_id, turn DESC);
         ")?;
 
-        let count: i64 = conn.query_row(
-            "SELECT COUNT(*) FROM schema_version",
-            [],
-            |row| row.get(0),
-        )?;
+        let count: i64 =
+            conn.query_row("SELECT COUNT(*) FROM schema_version", [], |row| row.get(0))?;
 
         if count == 0 {
             conn.execute("INSERT INTO schema_version VALUES (1)", [])?;
         } else {
-            let version: i64 = conn.query_row(
-                "SELECT version FROM schema_version",
-                [],
-                |row| row.get(0),
-            )?;
+            let version: i64 =
+                conn.query_row("SELECT version FROM schema_version", [], |row| row.get(0))?;
             if version != 1 {
                 return Err(SessionError::SchemaVersionMismatch {
                     found: version as u32,

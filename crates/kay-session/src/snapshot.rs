@@ -1,8 +1,8 @@
-use std::path::{Path, PathBuf};
-use sha2::{Digest, Sha256};
-use uuid::Uuid;
 use crate::error::SessionError;
 use crate::store::SessionStore;
+use sha2::{Digest, Sha256};
+use std::path::{Path, PathBuf};
+use uuid::Uuid;
 
 /// Per-session snapshot configuration.
 #[derive(Debug, Clone)]
@@ -43,9 +43,9 @@ pub fn record_snapshot(
             session_cwd: cwd_canonical,
         });
     }
-    let rel_path = canonical
-        .strip_prefix(&cwd_canonical)
-        .map_err(|_| std::io::Error::other("path not within session cwd after starts_with check"))?;
+    let rel_path = canonical.strip_prefix(&cwd_canonical).map_err(|_| {
+        std::io::Error::other("path not within session cwd after starts_with check")
+    })?;
 
     // Destination path: session_dir/snapshots/<turn>/<rel_path>
     let snap_dir = store
@@ -88,7 +88,11 @@ pub fn record_snapshot(
         )?;
         let rows: Vec<(i64, String, i64)> = stmt
             .query_map(rusqlite::params![session_id.to_string()], |r| {
-                Ok((r.get::<_, i64>(0)?, r.get::<_, String>(1)?, r.get::<_, i64>(2)?))
+                Ok((
+                    r.get::<_, i64>(0)?,
+                    r.get::<_, String>(1)?,
+                    r.get::<_, i64>(2)?,
+                ))
             })?
             .filter_map(|r| r.ok())
             .collect();
@@ -145,10 +149,7 @@ pub fn list_rewind_paths(
 /// For each distinct original_path in the snapshots table, selects the
 /// snapshot with MAX(turn) and copies it back to the original location.
 /// Returns Err(NoSnapshotsAvailable) if no snapshots exist for the session.
-pub fn rewind(
-    store: &SessionStore,
-    session_id: &Uuid,
-) -> Result<Vec<PathBuf>, SessionError> {
+pub fn rewind(store: &SessionStore, session_id: &Uuid) -> Result<Vec<PathBuf>, SessionError> {
     // Check if any snapshots exist
     let count: i64 = store.conn.query_row(
         "SELECT COUNT(*) FROM snapshots WHERE session_id = ?1",
@@ -157,9 +158,7 @@ pub fn rewind(
     )?;
 
     if count == 0 {
-        return Err(SessionError::NoSnapshotsAvailable {
-            session_id: session_id.to_string(),
-        });
+        return Err(SessionError::NoSnapshotsAvailable { session_id: session_id.to_string() });
     }
 
     // For each distinct original_path, get the latest snapshot_path

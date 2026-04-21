@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use kay_session::index::create_session;
-use kay_session::snapshot::{record_snapshot, rewind, SessConfig};
+use kay_session::snapshot::{SessConfig, record_snapshot, rewind};
 use kay_session::{SessionError, SessionStore};
 use tempfile::TempDir;
 
@@ -22,14 +22,26 @@ fn record_snapshot_writes_file() {
     std::fs::write(&original_path, b"original content").unwrap();
 
     let config = SessConfig::default();
-    record_snapshot(&store, &id, &cwd, 1, &original_path, b"snapshot content", &config).unwrap();
+    record_snapshot(
+        &store,
+        &id,
+        &cwd,
+        1,
+        &original_path,
+        b"snapshot content",
+        &config,
+    )
+    .unwrap();
 
     let snap_rows: Vec<String> = {
-        let mut stmt = store.conn.prepare(
-            "SELECT snapshot_path FROM snapshots WHERE session_id = ?1"
-        ).unwrap();
+        let mut stmt = store
+            .conn
+            .prepare("SELECT snapshot_path FROM snapshots WHERE session_id = ?1")
+            .unwrap();
         stmt.query_map(rusqlite::params![id.to_string()], |r| r.get(0))
-            .unwrap().filter_map(|r| r.ok()).collect()
+            .unwrap()
+            .filter_map(|r| r.ok())
+            .collect()
     };
     assert_eq!(snap_rows.len(), 1, "one snapshot row must exist");
     let snap_path = std::path::PathBuf::from(&snap_rows[0]);
@@ -50,13 +62,25 @@ fn snapshot_path_preserves_subdirectory() {
     std::fs::write(&original_path, b"fn main() {}").unwrap();
 
     let config = SessConfig::default();
-    record_snapshot(&store, &id, &cwd, 1, &original_path, b"fn main() {}", &config).unwrap();
+    record_snapshot(
+        &store,
+        &id,
+        &cwd,
+        1,
+        &original_path,
+        b"fn main() {}",
+        &config,
+    )
+    .unwrap();
 
-    let snap_path: String = store.conn.query_row(
-        "SELECT snapshot_path FROM snapshots WHERE session_id = ?1",
-        rusqlite::params![id.to_string()],
-        |r| r.get(0),
-    ).unwrap();
+    let snap_path: String = store
+        .conn
+        .query_row(
+            "SELECT snapshot_path FROM snapshots WHERE session_id = ?1",
+            rusqlite::params![id.to_string()],
+            |r| r.get(0),
+        )
+        .unwrap();
     assert!(
         snap_path.contains("src") && snap_path.ends_with("main.rs"),
         "snapshot path must preserve subdirectory: {snap_path}"
@@ -79,12 +103,18 @@ fn snapshot_byte_cap_no_eviction_below_cap() {
         record_snapshot(&store, &id, &cwd, i as u64, &original, &content, &config).unwrap();
     }
 
-    let count: i64 = store.conn.query_row(
-        "SELECT COUNT(*) FROM snapshots WHERE session_id = ?1",
-        rusqlite::params![id.to_string()],
-        |r| r.get(0),
-    ).unwrap();
-    assert_eq!(count, 10, "no eviction should occur below 100 MiB cap (10 MiB written)");
+    let count: i64 = store
+        .conn
+        .query_row(
+            "SELECT COUNT(*) FROM snapshots WHERE session_id = ?1",
+            rusqlite::params![id.to_string()],
+            |r| r.get(0),
+        )
+        .unwrap();
+    assert_eq!(
+        count, 10,
+        "no eviction should occur below 100 MiB cap (10 MiB written)"
+    );
 }
 
 #[test]
@@ -103,11 +133,14 @@ fn snapshot_byte_cap_triggers_lru_eviction() {
         record_snapshot(&store, &id, &cwd, i as u64, &original, &content, &config).unwrap();
     }
 
-    let total_bytes: i64 = store.conn.query_row(
-        "SELECT COALESCE(SUM(byte_size), 0) FROM snapshots WHERE session_id = ?1",
-        rusqlite::params![id.to_string()],
-        |r| r.get(0),
-    ).unwrap();
+    let total_bytes: i64 = store
+        .conn
+        .query_row(
+            "SELECT COALESCE(SUM(byte_size), 0) FROM snapshots WHERE session_id = ?1",
+            rusqlite::params![id.to_string()],
+            |r| r.get(0),
+        )
+        .unwrap();
     assert!(
         total_bytes <= 5_242_880,
         "total snapshot bytes must be <= cap after eviction: {total_bytes}"
@@ -131,12 +164,18 @@ fn snapshot_hash_matches_original() {
     let config = SessConfig::default();
     record_snapshot(&store, &id, &cwd, 1, &original, content, &config).unwrap();
 
-    let stored_hash: String = store.conn.query_row(
-        "SELECT sha256 FROM snapshots WHERE session_id = ?1",
-        rusqlite::params![id.to_string()],
-        |r| r.get(0),
-    ).unwrap();
-    assert_eq!(stored_hash, expected_hash, "stored sha256 must match computed hash");
+    let stored_hash: String = store
+        .conn
+        .query_row(
+            "SELECT sha256 FROM snapshots WHERE session_id = ?1",
+            rusqlite::params![id.to_string()],
+            |r| r.get(0),
+        )
+        .unwrap();
+    assert_eq!(
+        stored_hash, expected_hash,
+        "stored sha256 must match computed hash"
+    );
 }
 
 #[test]
@@ -158,7 +197,10 @@ fn rewind_restores_most_recent_snapshot() {
     std::fs::write(&original, b"corrupted").unwrap();
 
     let restored = rewind(&store, &id).unwrap();
-    assert!(!restored.is_empty(), "rewind must restore at least one file");
+    assert!(
+        !restored.is_empty(),
+        "rewind must restore at least one file"
+    );
     assert_eq!(
         std::fs::read(&original).unwrap(),
         b"turn2 content",
@@ -176,12 +218,16 @@ fn rewind_no_snapshot_returns_err() {
     let result = rewind(&store, &id);
     assert!(
         matches!(result, Err(SessionError::NoSnapshotsAvailable { .. })),
-        "expected NoSnapshotsAvailable, got: {:?}", result
+        "expected NoSnapshotsAvailable, got: {:?}",
+        result
     );
 }
 
 #[test]
 fn snapshot_cap_default_is_100mib() {
     let config = SessConfig::default();
-    assert_eq!(config.snapshot_max_bytes, 104_857_600, "default cap must be 100 MiB");
+    assert_eq!(
+        config.snapshot_max_bytes, 104_857_600,
+        "default cap must be 100 MiB"
+    );
 }

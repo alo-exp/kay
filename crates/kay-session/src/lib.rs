@@ -16,8 +16,8 @@ pub use config::kay_home;
 pub use error::SessionError;
 pub use export::{ExportManifest, export_session, import_session, replay};
 pub use index::{
-    Session, SessionSummary, SessionStatus,
-    create_session, list_sessions, close_session, resume_session, mark_session_lost,
+    Session, SessionStatus, SessionSummary, close_session, create_session, list_sessions,
+    mark_session_lost, resume_session,
 };
 pub use snapshot::{SessConfig, list_rewind_paths};
 pub use store::SessionStore;

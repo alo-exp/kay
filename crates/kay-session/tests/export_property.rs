@@ -1,10 +1,10 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
+use kay_session::SessionStore;
 use kay_session::export::{export_session, import_session};
 use kay_session::index::create_session;
-use kay_session::SessionStore;
-use kay_tools::events_wire::AgentEventWire;
 use kay_tools::AgentEvent;
+use kay_tools::events_wire::AgentEventWire;
 use proptest::prelude::*;
 use tempfile::TempDir;
 

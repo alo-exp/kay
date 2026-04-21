@@ -34,23 +34,30 @@ fn open_sets_wal_mode() {
 
 #[test]
 fn open_schema_version_mismatch() {
-    use rusqlite::Connection;
     use kay_session::error::SessionError;
+    use rusqlite::Connection;
 
     let dir = TempDir::new().unwrap();
     let db_path = dir.path().join("sessions.db");
 
     let conn = Connection::open(&db_path).unwrap();
-    conn.execute_batch("
+    conn.execute_batch(
+        "
         CREATE TABLE schema_version (version INTEGER NOT NULL);
         INSERT INTO schema_version VALUES (99);
-    ").unwrap();
+    ",
+    )
+    .unwrap();
     drop(conn);
 
     let result = SessionStore::open(dir.path());
     assert!(
-        matches!(result, Err(SessionError::SchemaVersionMismatch { found: 99, expected: 1 })),
-        "expected SchemaVersionMismatch, got: {:?}", result
+        matches!(
+            result,
+            Err(SessionError::SchemaVersionMismatch { found: 99, expected: 1 })
+        ),
+        "expected SchemaVersionMismatch, got: {:?}",
+        result
     );
 }
 
@@ -70,8 +77,18 @@ fn sessions_table_columns() {
         .collect();
 
     let expected = [
-        "id", "title", "persona", "model", "status", "parent_id",
-        "start_time", "end_time", "turn_count", "cost_usd", "jsonl_path", "cwd",
+        "id",
+        "title",
+        "persona",
+        "model",
+        "status",
+        "parent_id",
+        "start_time",
+        "end_time",
+        "turn_count",
+        "cost_usd",
+        "jsonl_path",
+        "cwd",
     ];
     for col in &expected {
         assert!(columns.iter().any(|c| c == col), "missing column: {col}");

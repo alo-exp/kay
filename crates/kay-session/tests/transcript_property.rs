@@ -1,8 +1,8 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use kay_session::transcript::TranscriptWriter;
-use kay_tools::events_wire::AgentEventWire;
 use kay_tools::AgentEvent;
+use kay_tools::events_wire::AgentEventWire;
 use proptest::prelude::*;
 use tempfile::TempDir;
 

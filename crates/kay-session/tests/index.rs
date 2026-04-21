@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use kay_session::index::{create_session, close_session, list_sessions, SessionStatus};
 use kay_session::SessionStore;
+use kay_session::index::{SessionStatus, close_session, create_session, list_sessions};
 use tempfile::TempDir;
 
 fn make_store() -> (TempDir, SessionStore) {
@@ -81,8 +81,12 @@ fn resume_unknown_id_returns_err() {
     let unknown = uuid::Uuid::new_v4();
     let result = kay_session::index::resume_session(&store, &unknown);
     assert!(
-        matches!(result, Err(kay_session::SessionError::SessionNotFound { .. })),
-        "expected SessionNotFound, got: {:?}", result
+        matches!(
+            result,
+            Err(kay_session::SessionError::SessionNotFound { .. })
+        ),
+        "expected SessionNotFound, got: {:?}",
+        result
     );
 }
 
@@ -106,17 +110,26 @@ fn parent_id_fk_set_null_on_delete() {
         ],
     ).unwrap();
 
-    store.conn.execute(
-        "DELETE FROM sessions WHERE id = ?1",
-        rusqlite::params![parent_id.to_string()],
-    ).unwrap();
+    store
+        .conn
+        .execute(
+            "DELETE FROM sessions WHERE id = ?1",
+            rusqlite::params![parent_id.to_string()],
+        )
+        .unwrap();
 
-    let null_count: i64 = store.conn.query_row(
-        "SELECT COUNT(*) FROM sessions WHERE parent_id IS NULL",
-        [],
-        |row| row.get(0),
-    ).unwrap();
-    assert_eq!(null_count, 1, "child parent_id must be NULL after parent deletion");
+    let null_count: i64 = store
+        .conn
+        .query_row(
+            "SELECT COUNT(*) FROM sessions WHERE parent_id IS NULL",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap();
+    assert_eq!(
+        null_count, 1,
+        "child parent_id must be NULL after parent deletion"
+    );
 }
 
 #[test]

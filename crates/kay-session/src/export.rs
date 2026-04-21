@@ -1,10 +1,10 @@
-use std::io::Write;
-use std::path::{Path, PathBuf};
-use chrono::{DateTime, Utc};
-use uuid::Uuid;
 use crate::error::SessionError;
 use crate::index::Session;
 use crate::store::SessionStore;
+use chrono::{DateTime, Utc};
+use std::io::Write;
+use std::path::{Path, PathBuf};
+use uuid::Uuid;
 
 /// Manifest written alongside transcript.jsonl on export.
 ///
@@ -30,8 +30,9 @@ pub fn export_session(
     session_id: &Uuid,
     output_dir: &Path,
 ) -> Result<(), SessionError> {
-    let (jsonl_path, model, persona, start_time_str): (String, String, String, String) =
-        store.conn.query_row(
+    let (jsonl_path, model, persona, start_time_str): (String, String, String, String) = store
+        .conn
+        .query_row(
             "SELECT jsonl_path, model, persona, start_time FROM sessions WHERE id = ?1",
             rusqlite::params![session_id.to_string()],
             |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)),
@@ -45,7 +46,8 @@ pub fn export_session(
         use std::io::BufRead;
         let file = std::fs::File::open(&jsonl_path)?;
         let reader = std::io::BufReader::new(file);
-        reader.lines()
+        reader
+            .lines()
             .map_while(|l| l.ok())
             .filter(|l| !l.trim().is_empty())
             .count() as i64
@@ -79,10 +81,7 @@ pub fn export_session(
 /// Creates a new session with a fresh UUID (not the original session ID).
 /// Copies the transcript JSONL to the new session directory before opening
 /// the writer, avoiding overwrite-while-open races.
-pub fn import_session(
-    store: &SessionStore,
-    bundle_dir: &Path,
-) -> Result<Session, SessionError> {
+pub fn import_session(store: &SessionStore, bundle_dir: &Path) -> Result<Session, SessionError> {
     let manifest_bytes = std::fs::read(bundle_dir.join("manifest.json"))?;
     let manifest: ExportManifest = serde_json::from_slice(&manifest_bytes)?;
 

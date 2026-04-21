@@ -1,9 +1,9 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use kay_session::index::{create_session, resume_session, SessionStatus};
 use kay_session::SessionStore;
-use kay_tools::events_wire::AgentEventWire;
+use kay_session::index::{SessionStatus, create_session, resume_session};
 use kay_tools::AgentEvent;
+use kay_tools::events_wire::AgentEventWire;
 use tempfile::TempDir;
 
 fn make_store() -> (TempDir, SessionStore) {
@@ -27,7 +27,10 @@ fn resume_restores_turn_count() {
     drop(session);
 
     let resumed = resume_session(&store, &id).unwrap();
-    assert_eq!(resumed.turn_count, 7, "resumed session must have turn_count = 7");
+    assert_eq!(
+        resumed.turn_count, 7,
+        "resumed session must have turn_count = 7"
+    );
 }
 
 #[test]
@@ -55,7 +58,10 @@ fn resume_appends_after_existing_events() {
 
     let contents = std::fs::read_to_string(&path).unwrap();
     let line_count = contents.lines().count();
-    assert_eq!(line_count, 10, "must have 10 lines total after resume + 3 appends");
+    assert_eq!(
+        line_count, 10,
+        "must have 10 lines total after resume + 3 appends"
+    );
 }
 
 #[test]
@@ -69,14 +75,22 @@ fn resume_partial_write_recovery() {
 
     {
         use std::io::Write;
-        let mut f = std::fs::OpenOptions::new().append(true).open(&path).unwrap();
-        f.write_all(b"{\"type\":\"text_delta\",\"content\":\"line1\"}\n").unwrap();
-        f.write_all(b"{\"type\":\"text_delta\",\"content\":\"line2\"}\n").unwrap();
+        let mut f = std::fs::OpenOptions::new()
+            .append(true)
+            .open(&path)
+            .unwrap();
+        f.write_all(b"{\"type\":\"text_delta\",\"content\":\"line1\"}\n")
+            .unwrap();
+        f.write_all(b"{\"type\":\"text_delta\",\"content\":\"line2\"}\n")
+            .unwrap();
         f.write_all(b"{\"type\":\"text_").unwrap();
     }
 
     let resumed = resume_session(&store, &id).unwrap();
-    assert_eq!(resumed.turn_count, 2, "partial line must be truncated; turn_count = 2");
+    assert_eq!(
+        resumed.turn_count, 2,
+        "partial line must be truncated; turn_count = 2"
+    );
 }
 
 #[test]
@@ -94,8 +108,10 @@ fn resume_emits_session_resumed_synthetic_event() {
     resumed.append_event(&wire).unwrap();
 
     let contents = std::fs::read_to_string(&path).unwrap();
-    assert!(contents.contains("SESSION_RESUMED_SYNTHETIC"),
-        "resumed session must accept new events");
+    assert!(
+        contents.contains("SESSION_RESUMED_SYNTHETIC"),
+        "resumed session must accept new events"
+    );
 }
 
 #[test]
@@ -109,10 +125,13 @@ fn resume_updates_status_to_active() {
 
     let _resumed = resume_session(&store, &id).unwrap();
 
-    let status: String = store.conn.query_row(
-        "SELECT status FROM sessions WHERE id = ?1",
-        rusqlite::params![id.to_string()],
-        |row| row.get(0),
-    ).unwrap();
+    let status: String = store
+        .conn
+        .query_row(
+            "SELECT status FROM sessions WHERE id = ?1",
+            rusqlite::params![id.to_string()],
+            |row| row.get(0),
+        )
+        .unwrap();
     assert_eq!(status, "active", "resume must set status = 'active'");
 }

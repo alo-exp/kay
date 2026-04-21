@@ -1,8 +1,8 @@
+use crate::error::SessionError;
+use kay_tools::events_wire::AgentEventWire;
 use std::fs::{File, OpenOptions};
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use kay_tools::events_wire::AgentEventWire;
-use crate::error::SessionError;
 
 /// Append-only JSONL transcript writer for a single session.
 ///
@@ -24,10 +24,7 @@ impl TranscriptWriter {
     /// Open or create a transcript file in append mode.
     /// Used when creating a new session (zero initial lines).
     pub fn open(path: &Path, session_id: &str) -> Result<Self, SessionError> {
-        let file = OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(path)?;
+        let file = OpenOptions::new().create(true).append(true).open(path)?;
         Ok(Self {
             file,
             path: path.to_path_buf(),
@@ -48,10 +45,7 @@ impl TranscriptWriter {
             0
         };
 
-        let file = OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(path)?;
+        let file = OpenOptions::new().create(true).append(true).open(path)?;
 
         Ok(Self {
             file,

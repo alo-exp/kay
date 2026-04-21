@@ -3,11 +3,11 @@
 //! All handlers are synchronous. Session store I/O is synchronous (no tokio dep
 //! in kay-session); only the drain loop (run.rs) is async.
 
+use anyhow::Result;
 use clap::Args;
 use std::io::IsTerminal;
 use std::path::PathBuf;
 use uuid::Uuid;
-use anyhow::Result;
 
 // ─── Argument types ──────────────────────────────────────────────────────
 

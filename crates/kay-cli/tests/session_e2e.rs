@@ -34,10 +34,7 @@ fn session_list_table_format() {
         .assert(); // may succeed or fail — session creation is best-effort in offline mode
 
     // Validate that session list exits 0 regardless of session count
-    with_home(&dir)
-        .args(["session", "list"])
-        .assert()
-        .success();
+    with_home(&dir).args(["session", "list"]).assert().success();
 }
 
 #[test]
@@ -58,10 +55,10 @@ fn session_list_json_format() {
 
 #[test]
 fn session_export_creates_files() {
-    use kay_session::index::create_session;
     use kay_session::SessionStore;
-    use kay_tools::events_wire::AgentEventWire;
+    use kay_session::index::create_session;
     use kay_tools::AgentEvent;
+    use kay_tools::events_wire::AgentEventWire;
 
     let dir = TempDir::new().unwrap();
     let sessions_dir = dir.path().join("sessions");
@@ -76,8 +73,11 @@ fn session_export_creates_files() {
     let out_dir = dir.path().join("export_out");
     with_home(&dir)
         .args([
-            "session", "export", &id.to_string(),
-            "--output", out_dir.to_str().unwrap(),
+            "session",
+            "export",
+            &id.to_string(),
+            "--output",
+            out_dir.to_str().unwrap(),
         ])
         .assert()
         .success();
@@ -88,10 +88,10 @@ fn session_export_creates_files() {
 
 #[test]
 fn session_import_round_trip() {
-    use kay_session::index::create_session;
     use kay_session::SessionStore;
-    use kay_tools::events_wire::AgentEventWire;
+    use kay_session::index::create_session;
     use kay_tools::AgentEvent;
+    use kay_tools::events_wire::AgentEventWire;
 
     let dir = TempDir::new().unwrap();
     let sessions_dir = dir.path().join("sessions");
@@ -105,28 +105,42 @@ fn session_import_round_trip() {
 
     let out_dir = dir.path().join("exp");
     with_home(&dir)
-        .args(["session", "export", &id.to_string(), "--output", out_dir.to_str().unwrap()])
-        .assert().success();
+        .args([
+            "session",
+            "export",
+            &id.to_string(),
+            "--output",
+            out_dir.to_str().unwrap(),
+        ])
+        .assert()
+        .success();
 
     with_home(&dir)
         .args(["session", "import", out_dir.to_str().unwrap()])
-        .assert().success();
+        .assert()
+        .success();
 
     let output = with_home(&dir)
         .args(["session", "list", "--format", "json"])
-        .assert().success()
-        .get_output().stdout.clone();
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
     let stdout = String::from_utf8(output).unwrap();
     let sessions: serde_json::Value = serde_json::from_str(stdout.trim()).unwrap();
-    assert!(sessions.as_array().unwrap().len() >= 2, "original + imported must both appear");
+    assert!(
+        sessions.as_array().unwrap().len() >= 2,
+        "original + imported must both appear"
+    );
 }
 
 #[test]
 fn session_replay_emits_jsonl() {
-    use kay_session::index::create_session;
     use kay_session::SessionStore;
-    use kay_tools::events_wire::AgentEventWire;
+    use kay_session::index::create_session;
     use kay_tools::AgentEvent;
+    use kay_tools::events_wire::AgentEventWire;
 
     let dir = TempDir::new().unwrap();
     let sessions_dir = dir.path().join("sessions");
@@ -142,13 +156,23 @@ fn session_replay_emits_jsonl() {
 
     let out_dir = dir.path().join("replay_exp");
     with_home(&dir)
-        .args(["session", "export", &id.to_string(), "--output", out_dir.to_str().unwrap()])
-        .assert().success();
+        .args([
+            "session",
+            "export",
+            &id.to_string(),
+            "--output",
+            out_dir.to_str().unwrap(),
+        ])
+        .assert()
+        .success();
 
     let output = with_home(&dir)
         .args(["session", "replay", out_dir.to_str().unwrap()])
-        .assert().success()
-        .get_output().stdout.clone();
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
     let stdout = String::from_utf8(output).unwrap();
     assert_eq!(stdout.lines().count(), 3, "replay must emit 3 JSONL lines");
 }
@@ -156,16 +180,13 @@ fn session_replay_emits_jsonl() {
 #[test]
 fn rewind_no_snapshot_exit_1() {
     let dir = TempDir::new().unwrap();
-    with_home(&dir)
-        .args(["rewind"])
-        .assert()
-        .failure();
+    with_home(&dir).args(["rewind"]).assert().failure();
 }
 
 #[test]
 fn session_fork_creates_child() {
-    use kay_session::index::create_session;
     use kay_session::SessionStore;
+    use kay_session::index::create_session;
 
     let dir = TempDir::new().unwrap();
     let sessions_dir = dir.path().join("sessions");
@@ -182,8 +203,11 @@ fn session_fork_creates_child() {
 
     let output = with_home(&dir)
         .args(["session", "list", "--format", "json"])
-        .assert().success()
-        .get_output().stdout.clone();
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
     let stdout = String::from_utf8(output).unwrap();
     let sessions: serde_json::Value = serde_json::from_str(stdout.trim()).unwrap();
     assert_eq!(sessions.as_array().unwrap().len(), 2);
@@ -191,8 +215,8 @@ fn session_fork_creates_child() {
 
 #[test]
 fn resume_flag_on_run() {
-    use kay_session::index::create_session;
     use kay_session::SessionStore;
+    use kay_session::index::create_session;
 
     let dir = TempDir::new().unwrap();
     let sessions_dir = dir.path().join("sessions");
@@ -203,16 +227,23 @@ fn resume_flag_on_run() {
     drop(store);
 
     with_home(&dir)
-        .args(["run", "--prompt", "TEST:done", "--offline", "--resume", &id.to_string()])
+        .args([
+            "run",
+            "--prompt",
+            "TEST:done",
+            "--offline",
+            "--resume",
+            &id.to_string(),
+        ])
         .assert()
         .success();
 }
 
 #[test]
 fn rewind_dry_run_no_write() {
-    use kay_session::index::create_session;
-    use kay_session::snapshot::{record_snapshot, SessConfig};
     use kay_session::SessionStore;
+    use kay_session::index::create_session;
+    use kay_session::snapshot::{SessConfig, record_snapshot};
 
     let dir = TempDir::new().unwrap();
     let sessions_dir = dir.path().join("sessions");

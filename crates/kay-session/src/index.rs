@@ -1,9 +1,9 @@
-use std::path::PathBuf;
-use chrono::{DateTime, Utc};
-use uuid::Uuid;
 use crate::error::SessionError;
 use crate::store::SessionStore;
 use crate::transcript::TranscriptWriter;
+use chrono::{DateTime, Utc};
+use std::path::PathBuf;
+use uuid::Uuid;
 
 /// Status of a session row in the sessions table.
 #[derive(Debug, Clone, PartialEq)]
@@ -128,23 +128,12 @@ pub fn list_sessions(
     for row in rows {
         let (id_str, title, status, start_time_str, turn_count, cost_usd) = row?;
         let id = Uuid::parse_str(&id_str).map_err(|e| {
-            rusqlite::Error::FromSqlConversionFailure(
-                0,
-                rusqlite::types::Type::Text,
-                Box::new(e),
-            )
+            rusqlite::Error::FromSqlConversionFailure(0, rusqlite::types::Type::Text, Box::new(e))
         })?;
         let start_time = DateTime::parse_from_rfc3339(&start_time_str)
             .map(|dt| dt.with_timezone(&Utc))
             .unwrap_or_else(|_| Utc::now());
-        summaries.push(SessionSummary {
-            id,
-            title,
-            status,
-            start_time,
-            turn_count,
-            cost_usd,
-        });
+        summaries.push(SessionSummary { id, title, status, start_time, turn_count, cost_usd });
     }
 
     Ok(summaries)
@@ -169,10 +158,7 @@ pub fn close_session(
 /// Reads jsonl_path and cwd from the DB, flips status to 'active', then calls
 /// `TranscriptWriter::resume` which applies last-line crash recovery. The
 /// returned `turn_count` comes from the actual file (not the stale DB value).
-pub fn resume_session(
-    store: &SessionStore,
-    id: &Uuid,
-) -> Result<Session, SessionError> {
+pub fn resume_session(store: &SessionStore, id: &Uuid) -> Result<Session, SessionError> {
     let row = store.conn.query_row(
         "SELECT jsonl_path, cwd FROM sessions WHERE id = ?1",
         rusqlite::params![id.to_string()],
