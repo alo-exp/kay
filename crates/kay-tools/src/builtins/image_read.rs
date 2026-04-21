@@ -178,6 +178,34 @@ impl Tool for ImageReadTool {
             });
         }
 
+        // R-2: METADATA-FIRST size gate. Call `tokio::fs::metadata`
+        // BEFORE `tokio::fs::read` so a 20 GiB pathological payload
+        // never hits `Vec<u8>`. The cap is INCLUSIVE: `len <= cap`
+        // succeeds, `len > cap` rejects with `ImageTooLarge` and
+        // rolls the quota reservation back — parity with the `Io`
+        // and `SandboxDenied` arms so a failed call never counts
+        // toward per-turn / per-session image caps. This is the
+        // observable guarantee the R-2 regression suite locks:
+        // over-cap calls must NOT emit `AgentEvent::ImageRead`
+        // (raw bytes are never read), because the event is emitted
+        // below from `bytes` which this gate has proven we never
+        // allocate.
+        let meta = match tokio::fs::metadata(&path_buf).await {
+            Ok(m) => m,
+            Err(e) => {
+                self.quota.release();
+                return Err(ToolError::Io(e));
+            }
+        };
+        if meta.len() > self.max_image_bytes {
+            self.quota.release();
+            return Err(ToolError::ImageTooLarge {
+                path: input.path.clone(),
+                actual_size: meta.len(),
+                cap: self.max_image_bytes,
+            });
+        }
+
         // M-02: release the quota slot if the FS read fails — otherwise a
         // prompt supplying 20 non-existent paths drains the per-session
         // cap without reading a byte (low-effort DoS against IMG-01).

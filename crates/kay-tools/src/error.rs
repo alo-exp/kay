@@ -24,6 +24,19 @@ pub enum ToolError {
     #[error("image cap exceeded ({scope:?}, limit={limit})")]
     ImageCapExceeded { scope: CapScope, limit: u32 },
 
+    /// R-2: an `image_read` call was rejected because the file size
+    /// reported by `tokio::fs::metadata` exceeded the tool's
+    /// configured `max_image_bytes`. The check gates the subsequent
+    /// `tokio::fs::read`, so a prompt-injected
+    /// `image_read {"path": "/tmp/20GB.img"}` call cannot allocate
+    /// gigabytes into `Vec<u8>` and OOM-kill the agent. Quota
+    /// reservation is rolled back before this error is returned —
+    /// a failed over-cap call does NOT count toward per-turn or
+    /// per-session image caps (parity with the `Io` / sandbox-denial
+    /// rollback paths already in `ImageReadTool::invoke`).
+    #[error("image at {path:?} is {actual_size} bytes (> {cap} byte cap)")]
+    ImageTooLarge { path: String, actual_size: u64, cap: u64 },
+
     #[error("sandbox denied {tool:?}: {reason}")]
     SandboxDenied { tool: ToolName, reason: String },
 
