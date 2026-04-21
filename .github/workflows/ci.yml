@@ -234,6 +234,116 @@ jobs:
             exit 1
           fi
 
+  coverage-event-filter:
+    # QG-C4 SHIP BLOCK — kay-core::event_filter is the single choke-point
+    # that prevents AgentEvent::SandboxViolation from being re-injected into
+    # the model's message history (the prompt-injection surface carried
+    # forward from Phase 4 sandbox enforcement). This job asserts that the
+    # filter's decision logic is 100% exercised by the test suite; any
+    # uncovered line or region means there is a code path in the filter
+    # that no test has locked down — i.e., a regression surface with no
+    # guard. A new AgentEvent variant that the author forgets to classify
+    # in tests/event_filter.rs will fail this gate.
+    #
+    # On stable rustc (1.95 in this project), cargo-llvm-cov's `--branch`
+    # flag is unstable (nightly-only). We substitute LLVM's `regions`
+    # metric, which is the stable-rustc analog for branch/decision
+    # coverage: regions count per match arm, per short-circuit operand,
+    # per early return. For `!matches!(event, SandboxViolation { .. })`
+    # this yields 4 regions (function entry + macro true arm + macro
+    # wildcard arm + return expression), all of which must be covered.
+    #
+    # Spec: .planning/phases/05-agent-loop/05-PLAN.md §3 Wave 2 T2.5
+    # Spec: .planning/phases/04-sandbox/04-QUALITY-GATES.md §QG-C4
+    name: Coverage — event_filter (QG-C4, 100% line + 100% region)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: dtolnay/rust-toolchain@e081816240890017053eacbb1bdf337761dc5582  # 1.95
+        with:
+          components: llvm-tools-preview
+      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae  # v2
+      # protoc is pulled in transitively via kay-core → forge_services →
+      # forge_repo → prost-build. Match the `test` job's pinning.
+      - uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b  # v3.0.0
+        with:
+          version: "27.x"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      # Use the release channel of cargo-llvm-cov via taiki-e/install-action.
+      # Pin to a specific SHA so supply-chain attacks on the action cannot
+      # inject arbitrary code into the coverage run (coverage jobs run with
+      # the workspace GITHUB_TOKEN — treat as sensitive).
+      - uses: taiki-e/install-action@d0f23220b09a75c6db730f13bb37c4f8144b4382  # v2.75.9
+        with:
+          tool: cargo-llvm-cov
+      - name: Collect kay-core coverage (JSON)
+        run: |
+          cargo llvm-cov \
+            --package kay-core \
+            --tests \
+            --json \
+            --output-path coverage.json
+      - name: Enforce 100% line + 100% region on event_filter.rs
+        run: |
+          python3 <<'PY'
+          import json, pathlib, sys
+
+          data = json.loads(pathlib.Path("coverage.json").read_text())
+
+          target_suffix = "crates/kay-core/src/event_filter.rs"
+          target = None
+          for export in data.get("data", []):
+              for entry in export.get("files", []):
+                  name = entry.get("filename", "")
+                  if name.endswith(target_suffix):
+                      target = entry
+                      break
+              if target is not None:
+                  break
+
+          if target is None:
+              print(
+                  f"::error::QG-C4 GATE BROKEN: {target_suffix} not found in "
+                  f"cargo-llvm-cov JSON. The filter source may have moved "
+                  f"without updating this CI job — check PLAN §T2.5."
+              )
+              sys.exit(1)
+
+          summary = target["summary"]
+          line_pct = summary["lines"]["percent"]
+          region_pct = summary["regions"]["percent"]
+          line_count = summary["lines"]["count"]
+          region_count = summary["regions"]["count"]
+
+          print(
+              f"event_filter.rs coverage: "
+              f"lines {summary['lines']['covered']}/{line_count} = {line_pct:.2f}%, "
+              f"regions {summary['regions']['covered']}/{region_count} = {region_pct:.2f}%"
+          )
+
+          failed = False
+          if line_pct < 100.0:
+              print(
+                  f"::error::QG-C4 VIOLATION: event_filter.rs line coverage "
+                  f"{line_pct:.2f}% < 100% — a filter code path is no longer "
+                  f"exercised by the test suite. Extend tests/event_filter.rs."
+              )
+              failed = True
+          if region_pct < 100.0:
+              print(
+                  f"::error::QG-C4 VIOLATION: event_filter.rs region coverage "
+                  f"{region_pct:.2f}% < 100% — a filter branch/decision is no "
+                  f"longer exercised. Likely a new AgentEvent variant was added "
+                  f"without a matching test in tests/event_filter.rs, OR a "
+                  f"short-circuit operand was introduced. Extend the test file."
+              )
+              failed = True
+
+          if failed:
+              sys.exit(1)
+          print("QG-C4: event_filter is 100%-line + 100%-region covered. ✓")
+          PY
+
   parity-gate:
     name: Parity gate (EVAL-01) — scaffolded, not run in P1
     runs-on: ubuntu-latest
