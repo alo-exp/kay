@@ -178,10 +178,15 @@ fn exit_code_2_on_sandbox_violation() {
         String::from_utf8_lossy(&output.stderr)
     );
     let stdout = String::from_utf8_lossy(&output.stdout);
+    // Wire schema (AgentEventWire) serializes the variant as the
+    // snake_case tag `"sandbox_violation"` — the insta snapshots in
+    // `kay-tools::events_wire` lock this form. The test asserts
+    // against the wire surface (what Phase 9 GUI / 9.5 TUI frontends
+    // see), not the Rust enum name.
     assert!(
-        stdout.contains("SandboxViolation"),
+        stdout.contains("\"type\":\"sandbox_violation\""),
         "QG-C4: SandboxViolation event must surface on stdout JSONL; \
-         not found. stdout: {}",
+         tag `\"type\":\"sandbox_violation\"` not found. stdout: {}",
         stdout
     );
 }

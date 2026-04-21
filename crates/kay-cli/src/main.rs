@@ -10,21 +10,25 @@
 //!   * `kay` — no subcommand → interactive fallback mode (T7.9).
 //!     Emits banner + `kay>` prompt and enters reedline loop.
 //!
-//! # T7.2 scope (this commit)
+//! # T7.7 scope (this commit)
 //!
-//! Lands clap argument parsing for the `run` subcommand + a stub
-//! interactive-fallback path that prints a placeholder banner + prompt
-//! before exiting. T7.3 wires `run` to `kay_core::run_turn`; T7.4 ports
-//! the real banner; T7.9 populates `interactive_fallback` with the full
-//! reedline REPL.
+//! `main` no longer returns `anyhow::Result<()>`. Instead each
+//! subcommand dispatches into a helper that returns `Result<ExitCode,
+//! anyhow::Error>`, and `main` translates both arms through
+//! [`exit::classify_error`] and [`std::process::exit`]. This replaces
+//! Rust's stdlib default `Termination` (which collapses every
+//! `Err(_)` onto exit 1) with the CLI-03 classifier that emits 0, 1,
+//! 2, 3, or 130 depending on what kind of error escaped. See
+//! `src/exit.rs` for the full contract table.
 //!
-//! Why `command: Option<Command>`? clap requires distinguishing
-//! "no subcommand provided" from "subcommand missing" — the `Option`
-//! wrapper plus the absence of `#[command(arg_required_else_help)]`
-//! means plain `kay` with no args is a valid invocation that falls
-//! through to `interactive_fallback`. This matches ForgeCode's UX
-//! parity contract (DL-1): running `forge` / `kay` alone drops the
-//! user into an interactive session.
+//! # Why `command: Option<Command>`?
+//!
+//! clap requires distinguishing "no subcommand provided" from
+//! "subcommand missing" — the `Option` wrapper plus the absence of
+//! `#[command(arg_required_else_help)]` means plain `kay` with no
+//! args is a valid invocation that falls through to
+//! `interactive_fallback`. This matches the UX-parity contract (DL-1):
+//! running `kay` alone drops the user into an interactive session.
 
 use std::io::Write;
 
@@ -33,8 +37,11 @@ use clap::Parser;
 mod banner;
 mod boot;
 mod eval;
+mod exit;
 mod prompt;
 mod run;
+
+use exit::{ExitCode, classify_error};
 
 #[derive(Parser)]
 #[command(
@@ -71,23 +78,77 @@ enum ToolsAction {
     List,
 }
 
-fn main() -> anyhow::Result<()> {
+/// Entry point.
+///
+/// Returns `()` (not `anyhow::Result<()>`) so that stdlib's default
+/// `Termination` impl never gets the chance to collapse every error
+/// onto exit 1. Instead each subcommand returns a `Result<ExitCode,
+/// anyhow::Error>` that we translate through two paths:
+///
+///   * `Ok(code)` → use `code` directly (covers the
+///     `ExitCode::SandboxViolation` (2) and `ExitCode::Success` (0)
+///     cases originating from `run::execute`).
+///   * `Err(e)`   → print the diagnostic to stderr (`{:?}` renders
+///     the full anyhow context chain — helpful for debugging config
+///     errors) and call [`classify_error`] for the code.
+///
+/// The final `std::process::exit(code)` is the ONLY exit path out of
+/// `main` — there is no implicit return.
+///
+/// See `src/exit.rs` for the CLI-03 contract table.
+fn main() {
     let cli = Cli::parse();
-    match cli.command {
-        Some(Command::Run(args)) => run::execute(args),
-        Some(Command::Eval { target }) => eval::run(target),
-        Some(Command::Tools { action }) => match action {
-            ToolsAction::List => {
-                let reg = boot::install_tool_registry(None)?;
-                let mut defs = reg.tool_definitions();
-                defs.sort_by(|a, b| a.name.as_str().cmp(b.name.as_str()));
-                for def in defs {
-                    println!("{}\t{}", def.name.as_str(), def.description);
-                }
-                Ok(())
+    let code = match cli.command {
+        Some(Command::Run(args)) => match run::execute(args) {
+            Ok(code) => code,
+            Err(e) => {
+                eprintln!("Error: {e:?}");
+                classify_error(&e)
             }
         },
-        None => interactive_fallback(),
+        Some(Command::Eval { target }) => match eval::run(target) {
+            Ok(()) => ExitCode::Success,
+            Err(e) => {
+                eprintln!("Error: {e:?}");
+                classify_error(&e)
+            }
+        },
+        Some(Command::Tools { action }) => match run_tools(action) {
+            Ok(()) => ExitCode::Success,
+            Err(e) => {
+                eprintln!("Error: {e:?}");
+                classify_error(&e)
+            }
+        },
+        None => match interactive_fallback() {
+            Ok(()) => ExitCode::Success,
+            Err(e) => {
+                eprintln!("Error: {e:?}");
+                classify_error(&e)
+            }
+        },
+    };
+    // `u8 as i32` is the standard widening for `process::exit`'s
+    // signature — all ExitCode discriminants fit in u8 by type (the
+    // `#[repr(u8)]` on the enum makes that compile-time-enforced).
+    std::process::exit(code.as_u8() as i32);
+}
+
+/// `kay tools <action>` dispatch. Pulled out of `main` so the exit-
+/// code plumbing above can treat it like the other subcommands (a
+/// function returning `anyhow::Result<()>`) instead of inlining the
+/// match arms.
+fn run_tools(action: ToolsAction) -> anyhow::Result<()> {
+    match action {
+        ToolsAction::List => {
+            let reg = boot::install_tool_registry(None)?;
+            let mut defs = reg.tool_definitions();
+            defs.sort_by(|a, b| a.name.as_str().cmp(b.name.as_str()));
+            for def in defs {
+                println!("{}\t{}", def.name.as_str(), def.description);
+            }
+            Ok(())
+        }
     }
 }
 

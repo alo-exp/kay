@@ -7,11 +7,11 @@
 //!   1. **Parse CLI args.** The `RunArgs` clap derive landed in T7.2;
 //!      its shape is unchanged here.
 //!   2. **Short-circuit `--max-turns 0`.** `anyhow::bail!` returns
-//!      `Err(…)`; Rust's default `Termination` for `anyhow::Result<()>`
-//!      maps that to exit 1, which is exactly what T7.1's
-//!      `exit_code_1_on_max_turns` expects. T7.7 will wrap `execute`
-//!      in the 0/1/2/3/130 classifier; until then this implicit
-//!      mapping is the simplest thing that satisfies the RED test.
+//!      `Err(…)`; T7.7's classifier in `main.rs` routes the generic
+//!      anyhow error to `ExitCode::RuntimeError` (exit 1), which is
+//!      what `exit_code_1_on_max_turns` asserts. No special-case
+//!      code path needed — the fall-through branch of
+//!      `classify_error` covers this.
 //!   3. **Load the persona.** Bundled `"forge"` by default; an
 //!      external YAML path via `--persona PATH`. The error surface
 //!      is [`kay_core::persona::PersonaError`] which is `thiserror`
@@ -50,11 +50,11 @@
 //!
 //! # What this file does NOT do yet (future waves)
 //!
-//! * **Exit-code mapping (T7.7).** Sandbox violations → 2, config
-//!   errors → 3, SIGINT → 130. Today those all map through the
-//!   default `anyhow` Termination as either exit 0 (no error) or
-//!   exit 1 (generic error). That's intentional — T7.3's charter is
-//!   persona + runtime + JSONL; T7.7's charter is the classifier.
+//! * **Exit-code mapping (T7.7 — DONE).** Historical note:
+//!   `run::execute` now returns `anyhow::Result<ExitCode>`; `main.rs`
+//!   routes both the `Ok` arm (Success / SandboxViolation) and the
+//!   `Err` arm (classify_error → RuntimeError / ConfigError) to
+//!   `std::process::exit`. See `src/exit.rs` for the contract table.
 //! * **SIGINT handler (T7.8).** `install_ctrl_c_handler` is not
 //!   wired in T7.3. The control channel exists but no message ever
 //!   arrives on it during a T7.3 offline run. The
@@ -95,6 +95,8 @@ use kay_tools::{
     AgentEvent, ImageQuota, NoOpSandbox, NoOpVerifier, ServicesHandle, ToolCallContext,
     ToolRegistry, VerificationOutcome,
 };
+
+use crate::exit::ExitCode;
 
 /// Arguments for `kay run`. T7.5 adds `-p` short alias on
 /// `--prompt` and `allow_hyphen_values` so prompts that begin with
@@ -149,12 +151,29 @@ pub struct RunArgs {
 
 /// Entry-point dispatched from `main.rs` on the `Run` subcommand.
 ///
-/// Stays synchronous so `main` can remain `fn main() -> anyhow::
-/// Result<()>` and startup cost for other subcommands (`eval`,
-/// `tools`) doesn't include a tokio runtime build. The runtime is
-/// built lazily inside this function — scoped to `run_async` — and
+/// Stays synchronous so `main` can stay free of a tokio runtime for
+/// the `eval` / `tools` / `interactive_fallback` paths; the runtime
+/// is built lazily inside this function, scoped to `run_async`, and
 /// dropped when `run_async` returns.
-pub fn execute(args: RunArgs) -> anyhow::Result<()> {
+///
+/// # T7.7 return-shape change
+///
+/// Signature moved from `anyhow::Result<()>` to
+/// `anyhow::Result<ExitCode>`. The `Ok` arm now carries one of:
+///
+///   * [`ExitCode::Success`] — a `TaskComplete { verified:true, Pass }`
+///     event was observed and the loop closed cleanly.
+///   * [`ExitCode::SandboxViolation`] — at least one
+///     `AgentEvent::SandboxViolation` frame flowed through the drain
+///     loop. The JSONL stream already contains the event (QG-C4
+///     stdout surface); the exit code is the shell-level surface.
+///
+/// The `Err` arm is unchanged: `anyhow::Error` carrying whatever
+/// originated in the loop / provider / persona loader. `main.rs`
+/// hands it to [`crate::exit::classify_error`] which returns
+/// `ConfigError` for persona-layer errors and `RuntimeError` for
+/// everything else (max-turns bail, broken pipe, provider failure).
+pub fn execute(args: RunArgs) -> anyhow::Result<ExitCode> {
     // Short-circuit the `--max-turns 0` boundary BEFORE the runtime
     // or persona loader run. Rationale:
     //
@@ -163,10 +182,9 @@ pub fn execute(args: RunArgs) -> anyhow::Result<()> {
     //     work.
     //   * The test `exit_code_1_on_max_turns` only observes the
     //     exit code; stdout is not asserted. `anyhow::bail!` returns
-    //     Err which the default `Termination` impl for
-    //     `anyhow::Result<()>` maps to exit 1 — exactly the code
-    //     the test expects. T7.7 will replace this implicit mapping
-    //     with the explicit 0/1/2/3/130 classifier.
+    //     Err which T7.7's `classify_error` maps to
+    //     `ExitCode::RuntimeError` (exit 1) — the default fall-
+    //     through bucket for anything that isn't a PersonaError.
     //
     // If `max_turns` is ever set to 0 by a real user (not the test),
     // this message is what they see on stderr — terse but truthful.
@@ -176,7 +194,10 @@ pub fn execute(args: RunArgs) -> anyhow::Result<()> {
 
     // Load the persona synchronously so a bad `--persona` path fails
     // before we pay for the runtime. `PersonaError` is `thiserror`
-    // so `?` converts to `anyhow::Error` automatically.
+    // so `?` converts to `anyhow::Error` automatically. The
+    // classifier in T7.7 walks the chain looking for `PersonaError`
+    // and maps it to `ExitCode::ConfigError` (3) — distinct from
+    // the generic RuntimeError (1) the max-turns bail above triggers.
     let persona = match args.persona.as_deref() {
         Some(path) => Persona::from_path(path)?,
         None => Persona::load("forge")?,
@@ -199,7 +220,16 @@ pub fn execute(args: RunArgs) -> anyhow::Result<()> {
 ///
 /// Split out so `execute` stays sync and the runtime lifetime is
 /// explicit (dropped when this returns, not when `main` returns).
-async fn run_async(prompt: String, persona: Persona) -> anyhow::Result<()> {
+///
+/// # T7.7 return-shape
+///
+/// Returns `Ok(ExitCode::SandboxViolation)` when at least one
+/// `AgentEvent::SandboxViolation` frame crossed the event channel
+/// during this turn — the JSONL stream surface has already told the
+/// user; this propagates the signal to the shell. Otherwise returns
+/// `Ok(ExitCode::Success)`. `Err` is preserved as-is for the
+/// classifier in `main.rs`.
+async fn run_async(prompt: String, persona: Persona) -> anyhow::Result<ExitCode> {
     // ── Channel topology ────────────────────────────────────────
     //
     // Four channels per `05-BRAINSTORM.md` §Engineering-Lens, but
@@ -274,16 +304,27 @@ async fn run_async(prompt: String, persona: Persona) -> anyhow::Result<()> {
     // events but no other code in this process writes to stdout
     // during a turn, so the lock is uncontended. Locking once
     // avoids per-event lock acquisition cost.
+    //
+    // `sandbox_violation_seen` is sticky: any single frame bumps
+    // it to true for the lifetime of the turn, and the outer return
+    // translates that into `ExitCode::SandboxViolation` (2). We do
+    // NOT short-circuit on first observation — the loop still needs
+    // to drain to its natural close so subsequent events reach the
+    // user (e.g., a `TaskComplete` that describes the failure mode).
     let mut stdout = std::io::stdout().lock();
+    let mut sandbox_violation_seen = false;
     while let Some(ev) = event_rx.recv().await {
+        if matches!(ev, AgentEvent::SandboxViolation { .. }) {
+            sandbox_violation_seen = true;
+        }
         write!(stdout, "{}", AgentEventWire::from(&ev))?;
         // `.ok()`: a broken-pipe error here (e.g., `kay run ... |
         // head -n 1` closes its end after one line) should not be
         // fatal — the loop will naturally observe the next write
         // failing via the `?` above, or the event channel dropping
-        // when run_turn exits. Until T7.7 refines broken-pipe
-        // handling across the whole CLI, best-effort flush is
-        // sufficient.
+        // when run_turn exits. Best-effort flush is sufficient;
+        // broken-pipe still routes to `ExitCode::RuntimeError` via
+        // the `?` on `write!` above if the write itself fails.
         stdout.flush().ok();
     }
 
@@ -294,7 +335,16 @@ async fn run_async(prompt: String, persona: Persona) -> anyhow::Result<()> {
     // derives on the source types.
     handle.await??;
 
-    Ok(())
+    // Final classification: sandbox trumps success. If the loop
+    // finished cleanly (Ok) AND we observed a sandbox violation,
+    // exit 2. Otherwise exit 0. Note this is the HAPPY-PATH arm —
+    // Err from `?` above is classified in `main.rs` via
+    // `exit::classify_error`.
+    if sandbox_violation_seen {
+        Ok(ExitCode::SandboxViolation)
+    } else {
+        Ok(ExitCode::Success)
+    }
 }
 
 /// Offline provider task — emits canned `AgentEvent` sequences keyed
