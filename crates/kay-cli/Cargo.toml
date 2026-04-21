@@ -23,6 +23,9 @@ path = "src/main.rs"
 # Kay core + tools (intra-workspace)
 kay-core = { path = "../kay-core" }
 kay-tools = { path = "../kay-tools" }
+# Session persistence (Phase 6: SESS-01..05 + CLI-02)
+kay-session = { path = "../kay-session" }
+uuid = { workspace = true }
 
 # Async runtime + streams
 tokio = { workspace = true }

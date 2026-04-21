@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.3.0
 milestone_name: Agent Loop + Canonical CLI
 status: in_progress
-stopped_at: "Phase 5 complete — PR #8 open (https://github.com/alo-exp/kay/pull/8), branch phase/05-agent-loop, HEAD=247cb30, all 8 CI checks green. Stale PR #4 (Phase 3) still open — close without merging (code already on main via PR #5 squash). Ready for Phase 6."
-last_updated: "2026-04-22T00:00:00Z"
-next_phase: 6
-next_action: "1. Close stale PR #4 (gh pr close 4 -R alo-exp/kay -c 'Phase 3 code already on main via Phase 4 squash-merge PR #5. Closing stale PR.'); 2. Merge PR #8 (gh pr merge 8 -R alo-exp/kay --squash --delete-branch); 3. /silver:feature Phase 6: Session Store + Transcript"
-last_activity: "2026-04-22 -- Phase 5 SHIPPED. 81 DCO-signed commits on phase/05-agent-loop. Full /silver:feature 19-flow canonical pipeline executed. PR #8 open against main with 8/8 CI green (Lint/fmt/clippy/deny/audit PASS, 3-OS test matrix PASS, QG-C4 coverage CI PASS, DCO PASS). 236 tests green / 0 failed / 1 ignored. 11 REQs closed: LOOP-01..06 + CLI-01/03/04/05/07. 2 residuals closed: R-1 (PTY tokenizer [\\s;|&]) + R-2 (image_read max_bytes cap). 13 phase artifacts committed in .planning/phases/05-agent-loop/. Silver Bullet 9/9 required_deploy skills recorded in ~/.claude/.silver-bullet/state. Key Phase 5 decisions: DL-1..DL-7 + E-1..E-4 locked in 05-CONTEXT.md. QG-C4 enforced via event_filter.rs (100% line+region CI gate). Stale PR #4 (Phase 3) still open — DCO+Lint CI failures on old commit; code is already on main via Phase 4 squash PR #5. Next session: close #4, merge #8, start Phase 6."
+stopped_at: "Phase 6 complete — PR #12 open (https://github.com/alo-exp/kay/pull/12), branch phase/06-session-store, 91 tests green, clippy -D warnings clean. Ready for Phase 7."
+last_updated: "2026-04-22T10:00:00Z"
+next_phase: 7
+next_action: "/silver:feature Phase 7: Context Engine (CTX-01..04)"
+last_activity: "2026-04-22 -- Phase 6 SHIPPED. kay-session crate + kay-cli session/rewind subcommands. 7 TDD waves, 91 tests green, clippy -D warnings clean. PR #12 open against main. 6 REQs closed: SESS-01..05 + CLI-02. Key decisions: rusqlite 0.38 bundled, DL-1..DL-9 locked (06-CONTEXT.md), E-2 event-tap passive write-only, QG-C4 event_filter.rs byte-identical. Full /silver:feature 17-flow pipeline executed. Security: 8-threat model all mitigated. Nyquist: 50 tests / 23 public APIs. Quality gates: 9/9 adversarial PASS. Episodic memory recorded."
 progress:
   total_phases: 17
-  completed_phases: 4
+  completed_phases: 6
   total_plans: 26
   completed_plans: 26
   percent: 100

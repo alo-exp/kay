@@ -171,7 +171,16 @@ Plans:
   3. A user can `kay session export <session-id>` and receive a self-contained JSONL bundle suitable for TB 2.0 submission and bug-report reproduction.
   4. After an `edit_file` tool call, a pre-edit snapshot exists under `~/.kay/snapshots/<session>/<turn>/<path>` and `kay rewind` restores it.
   5. `kay session import`/`kay session replay` round-trips a previously exported session and reproduces its transcript events.
-**Plans**: TBD
+**Plans**: 7 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — W-1: SessionStore::open + SQLite schema v1 + kay_home() (SESS-01, SESS-03)
+- [ ] 06-02-PLAN.md — W-2: Session::append_event + JSONL write + last-line crash recovery (SESS-01, SESS-03)
+- [ ] 06-03-PLAN.md — W-3: SQLite CRUD: create_session, list_sessions, close_session, resume_session (SESS-01, SESS-03, SESS-04)
+- [ ] 06-04-PLAN.md — W-4: record_snapshot + byte cap + LRU eviction + path traversal guard (SESS-02)
+- [ ] 06-05-PLAN.md — W-5: fork_session + parent_id FK + ON DELETE SET NULL (SESS-04)
+- [ ] 06-06-PLAN.md — W-6: export_session + import_session + replay + trybuild canaries (SESS-05, CLI-02)
+- [ ] 06-07-PLAN.md — W-7: kay session * CLI + kay rewind + event-tap fan-out (SESS-01..05, CLI-02)
 **UI hint**: no
 
 ### Phase 7: Context Engine
@@ -342,3 +351,4 @@ Plans:
 *Last backlog update: 2026-04-20 — added 999.2 + 999.3 from Phase 2 quality-gates advisory*
 *Phase 2.5 plans authored: 2026-04-20 — 4 plans created (02.5-01 through 02.5-04)*
 *Phase 3 plans authored: 2026-04-20 — 5 plans created (03-01 through 03-05)*
+

@@ -39,6 +39,7 @@ mod exit;
 mod interactive;
 mod prompt;
 mod run;
+mod session;
 
 use exit::{ExitCode, classify_error};
 
@@ -67,6 +68,13 @@ enum Command {
         #[command(subcommand)]
         action: ToolsAction,
     },
+    /// Manage sessions (list, fork, export, import, replay).
+    Session {
+        #[command(subcommand)]
+        action: session::SessionAction,
+    },
+    /// Rewind to the most recent pre-edit snapshot.
+    Rewind(session::RewindArgs),
 }
 
 #[derive(clap::Subcommand)]
@@ -113,6 +121,20 @@ fn main() {
             }
         },
         Some(Command::Tools { action }) => match run_tools(action) {
+            Ok(()) => ExitCode::Success,
+            Err(e) => {
+                eprintln!("Error: {e:?}");
+                classify_error(&e)
+            }
+        },
+        Some(Command::Session { action }) => match session::dispatch(action) {
+            Ok(()) => ExitCode::Success,
+            Err(e) => {
+                eprintln!("Error: {e:?}");
+                classify_error(&e)
+            }
+        },
+        Some(Command::Rewind(args)) => match session::rewind_cmd(args) {
             Ok(()) => ExitCode::Success,
             Err(e) => {
                 eprintln!("Error: {e:?}");
