@@ -1,0 +1,13 @@
+---
+source: crates/kay-tools/tests/events_wire_snapshots.rs
+expression: wire_value(&ev)
+---
+{
+  "call_id": "call_03",
+  "outcome": {
+    "reason": "Multi-perspective verification wired in Phase 8 (VERIFY-01..04)",
+    "status": "pending"
+  },
+  "type": "task_complete",
+  "verified": false
+}

@@ -1,0 +1,10 @@
+---
+source: crates/kay-tools/tests/events_wire_snapshots.rs
+expression: wire_value(&ev)
+---
+{
+  "encoding": "base64",
+  "path": "/tmp/screenshot.png",
+  "size_bytes": 8,
+  "type": "image_read"
+}

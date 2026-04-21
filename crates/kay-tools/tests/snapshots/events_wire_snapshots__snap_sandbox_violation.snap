@@ -1,0 +1,12 @@
+---
+source: crates/kay-tools/tests/events_wire_snapshots.rs
+expression: wire_value(&ev)
+---
+{
+  "call_id": "call_04",
+  "os_error": 13,
+  "policy_rule": "write-outside-project-root",
+  "resource": "/etc/passwd",
+  "tool_name": "fs_write",
+  "type": "sandbox_violation"
+}

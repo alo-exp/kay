@@ -12,6 +12,7 @@ pub mod contract;
 mod default_set;
 pub mod error;
 pub mod events;
+pub mod events_wire;
 pub mod forge_bridge;
 pub mod markers;
 pub mod quota;

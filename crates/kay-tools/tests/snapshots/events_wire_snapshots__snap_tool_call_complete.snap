@@ -1,0 +1,13 @@
+---
+source: crates/kay-tools/tests/events_wire_snapshots.rs
+expression: wire_value(&ev)
+---
+{
+  "arguments": {
+    "cmd": "ls -la",
+    "cwd": "/tmp"
+  },
+  "id": "call_01",
+  "name": "execute_commands",
+  "type": "tool_call_complete"
+}

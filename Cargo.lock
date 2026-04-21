@@ -4412,12 +4412,25 @@ dependencies = [
 name = "kay-core"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "forge_api",
  "forge_config",
  "forge_domain",
  "forge_json_repair",
  "forge_repo",
  "forge_services",
+ "futures",
+ "insta",
+ "kay-tools",
+ "pretty_assertions",
+ "proptest",
+ "serde",
+ "serde_yml",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-util",
+ "tracing",
 ]
 
 [[package]]
@@ -4525,6 +4538,7 @@ dependencies = [
  "forge_services",
  "futures",
  "hex",
+ "insta",
  "kay-provider-errors",
  "nix 0.29.0",
  "portable-pty",

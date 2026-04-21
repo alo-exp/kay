@@ -1,0 +1,12 @@
+---
+source: crates/kay-tools/tests/events_wire_snapshots.rs
+expression: wire_value(&ev)
+---
+{
+  "call_id": "call_01",
+  "chunk": {
+    "data": "warning: unused variable\n",
+    "kind": "stderr"
+  },
+  "type": "tool_output"
+}

@@ -1,0 +1,12 @@
+---
+source: crates/kay-tools/tests/events_wire_snapshots.rs
+expression: wire_value(&ev)
+---
+{
+  "call_id": "call_05",
+  "os_error": null,
+  "policy_rule": "net-not-allowlisted",
+  "resource": "http://not-allowlisted.example.com",
+  "tool_name": "net_fetch",
+  "type": "sandbox_violation"
+}
