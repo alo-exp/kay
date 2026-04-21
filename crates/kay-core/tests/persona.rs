@@ -489,3 +489,46 @@ fn load_external_yaml_missing_path_errors() {
         "expected PersonaError::Io from missing path; got: {err:?}"
     );
 }
+
+// -----------------------------------------------------------------
+// T3.7 SNAPSHOTS — lock bundled persona deserialized form
+// -----------------------------------------------------------------
+//
+// The three YAMLs under `crates/kay-core/personas/` are the canonical
+// forge / sage / muse profiles. Their exact contents are a product
+// surface — a silent change to any of `system_prompt`, `tool_filter`,
+// or `model` would shift Kay's behavior without a visible diff in a
+// tests-only PR.
+//
+// These three `insta` snapshots make the deserialized form a
+// first-class contract: any edit to `forge.yaml` (or sage.yaml, or
+// muse.yaml) fails one of these tests until a human reviewer runs
+// `cargo insta review` and accepts the change. That turns persona
+// evolution into an explicit, auditable step rather than a silent
+// drift.
+//
+// The snapshots use `assert_debug_snapshot!` rather than
+// `assert_yaml_snapshot!` so that:
+//   (a) we do not need to derive Serialize on Persona (it only needs
+//       to deserialize in production), and
+//   (b) the multi-line `system_prompt` still shows explicit `\n`
+//       escapes, making any prompt drift textually visible in the
+//       snapshot diff rather than folded into YAML block style.
+
+#[test]
+fn snap_forge_persona_deserialized() {
+    let forge = Persona::load("forge").expect("bundled forge.yaml should load");
+    insta::assert_debug_snapshot!("forge_persona_deserialized", forge);
+}
+
+#[test]
+fn snap_sage_persona_deserialized() {
+    let sage = Persona::load("sage").expect("bundled sage.yaml should load");
+    insta::assert_debug_snapshot!("sage_persona_deserialized", sage);
+}
+
+#[test]
+fn snap_muse_persona_deserialized() {
+    let muse = Persona::load("muse").expect("bundled muse.yaml should load");
+    insta::assert_debug_snapshot!("muse_persona_deserialized", muse);
+}
