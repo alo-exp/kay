@@ -4437,6 +4437,8 @@ dependencies = [
  "assert_cmd",
  "async-trait",
  "clap",
+ "colored 2.2.0",
+ "console 0.15.11",
  "forge_domain",
  "futures",
  "insta",

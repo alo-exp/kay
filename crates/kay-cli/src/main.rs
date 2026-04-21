@@ -30,6 +30,7 @@ use std::io::Write;
 
 use clap::Parser;
 
+mod banner;
 mod boot;
 mod eval;
 mod run;
@@ -89,22 +90,26 @@ fn main() -> anyhow::Result<()> {
     }
 }
 
-/// T7.2 stub for the interactive-fallback path.
+/// Interactive-fallback entry point.
 ///
-/// Emits a placeholder banner line + `kay>` prompt to stdout, then
-/// returns `Ok(())`. The `interactive_parity_diff` test in T7.1 will
-/// fail against this stub (banner text doesn't match fixtures) —
-/// deliberate until T7.4 ports the real banner and T7.9 installs the
-/// reedline REPL.
+/// T7.4 wires this to the real `banner::display()` port (Kay ASCII
+/// wordmark, version, command tips). T7.6 will port the `kay>` prompt
+/// into its own module; T7.9 replaces the inline `print!` and early
+/// return with a full reedline REPL loop. Until then we emit the
+/// banner, then a single prompt, then return — enough for the
+/// `interactive_parity_diff` test (T7.11) to compare against the
+/// ForgeCode baseline fixture captured in T7.10.
 ///
-/// Why print the prompt AT ALL in the stub: the RED test asserts
-/// `kay>` appears in stdout; having the prompt here keeps T7.6 +
-/// T7.9 independent (they can swap in reedline integration without
-/// this function needing a concurrent update).
+/// Why print the prompt here at all: the RED test asserts `kay>`
+/// appears in stdout on `kay` (no args). Keeping the prompt in this
+/// function lets T7.6 and T7.9 migrate incrementally without the
+/// parity test flickering between runs.
 fn interactive_fallback() -> anyhow::Result<()> {
-    // Placeholder banner. T7.4 replaces with `banner::emit()` port
-    // from forge_main.
-    println!("Kay — open-source terminal coding agent");
+    // Full interactive-mode tip set (cli_mode=false) — `kay` invoked
+    // with no args maps to the full REPL eventually, so the tips
+    // reflect that destination surface.
+    banner::display(false)?;
+
     print!("kay> ");
     // stdout is line-buffered in terminals but fully-buffered when
     // piped; flush so subprocess-level E2E tests see the prompt

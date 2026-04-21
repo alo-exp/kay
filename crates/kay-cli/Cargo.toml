@@ -59,6 +59,13 @@ anyhow = { workspace = true }
 # CLI argument parsing
 clap = { workspace = true }
 
+# Banner rendering (T7.4): `colored` paints the labels/values cyan +
+# dimmed; `console` measures visible text width so ANSI sequences in
+# DisplayBox content don't skew the box width. Both are workspace
+# deps carried forward from forge_main (no Kay-specific fork needed).
+colored = { workspace = true }
+console = { workspace = true }
+
 [dev-dependencies]
 # Subprocess E2E harness for `kay` binary (Wave 7 T7.1: 9 E2E cases)
 assert_cmd = { workspace = true }
