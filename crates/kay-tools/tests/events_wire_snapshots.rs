@@ -198,3 +198,43 @@ fn snap_sandbox_violation_preflight() {
     };
     insta::assert_json_snapshot!(wire_value(&ev));
 }
+
+#[test]
+fn snap_jsonl_line_format() {
+    // T1.3/T1.4: Display impl produces a valid JSONL line — single-line
+    // JSON object terminated by exactly one `\n` so stream consumers can
+    // delimit events by newline without needing a full JSON streaming
+    // parser. Golden format lock — schema-breaking changes must bump
+    // CONTRACT-AgentEvent.md + kay-cli --version.
+    let ev = AgentEvent::TextDelta {
+        content: "one\ntwo".to_string(),
+    };
+    let line = format!("{}", AgentEventWire::from(&ev));
+
+    // Must end with exactly one newline
+    assert!(
+        line.ends_with('\n'),
+        "Display output must terminate with '\\n': {line:?}"
+    );
+    assert!(
+        !line.ends_with("\n\n"),
+        "Display output must not double-terminate: {line:?}"
+    );
+
+    // Embedded newline in `content` must be escaped as `\n` in the JSON
+    // (not a literal newline), so the outer line remains single-line.
+    let trimmed = line.trim_end_matches('\n');
+    assert!(
+        !trimmed.contains('\n'),
+        "JSON payload must be single-line (embedded newlines must be \\n-escaped): {trimmed:?}"
+    );
+
+    // Payload must parse back as valid JSON with expected schema.
+    let parsed: serde_json::Value =
+        serde_json::from_str(trimmed).expect("Display output must be valid JSON");
+    assert_eq!(parsed["type"], "text_delta");
+    assert_eq!(parsed["content"], "one\ntwo");
+
+    // Full snapshot lock — this is the exact wire bytes consumers see.
+    insta::assert_snapshot!(line);
+}
