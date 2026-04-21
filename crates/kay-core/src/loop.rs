@@ -50,13 +50,18 @@
 //!
 //! ## Not yet handled (tracked in PLAN.md Wave 4 later tasks)
 //!
-//! - **Tool dispatch** (T4.3/T4.4). A `ToolCallComplete` event flows
-//!   through today; the dispatcher invocation comes in T4.4.
-//! - **Verify gate** (T4.5/T4.6). `task_complete` is not currently
-//!   gated on verifier result.
 //! - **Control semantics** (T4.9/T4.10). `Pause` buffer-and-replay
 //!   and `Abort` 2s grace are stubbed — T4.2 only reserves the
 //!   select-arm seat.
+//!
+//! ## Completed in prior tasks
+//!
+//! - **Tool dispatch** (T4.3/T4.4). `ToolCallComplete` flows through
+//!   `dispatch()` with the configured registry + tool context.
+//! - **Verify gate** (T4.5/T4.6). `TaskComplete { verified: true,
+//!   outcome: VerificationOutcome::Pass, .. }` short-circuits the
+//!   loop; any other outcome (Pending, Fail, inconsistent flags) is
+//!   treated as "continue".
 
 use std::sync::Arc;
 
@@ -67,7 +72,7 @@ use crate::control::ControlMsg;
 use crate::persona::Persona;
 use kay_provider_errors::ProviderError;
 use kay_tools::runtime::dispatcher::dispatch;
-use kay_tools::{AgentEvent, ToolCallContext, ToolRegistry};
+use kay_tools::{AgentEvent, ToolCallContext, ToolRegistry, VerificationOutcome};
 
 /// Input bundle for [`run_turn`]. Constructed by callers via
 /// struct-literal so later tasks (T4.5+) can add fields — the
@@ -188,6 +193,34 @@ pub async fn run_turn(mut args: RunTurnArgs) -> Result<(), LoopError> {
                             _ => None,
                         };
 
+                        // LOOP-05 verify gate (T4.6 GREEN). A
+                        // `TaskComplete` event with BOTH `verified: true`
+                        // AND `outcome: Pass { .. }` is the turn-
+                        // terminating signal: the verifier has confirmed
+                        // the agent's reported success, so the loop must
+                        // exit rather than keep draining `model_rx`. Any
+                        // other combination (`Pending`, `Fail`, or the
+                        // inconsistent `verified: false + Pass` / `true
+                        // + Pending`) is treated as "continue" — Phase 8
+                        // may add retry/branch behavior on `Fail`, but
+                        // the minimum-correct T4.6 semantics are "only
+                        // Pass terminates". Requiring the boolean AND
+                        // the outcome to agree closes the door on a
+                        // buggy tool mis-setting one but not the other.
+                        //
+                        // Captured BEFORE `send(ev)` moves the event
+                        // (same reason as `tool_call` above). The
+                        // `matches!` expression is allocation-free; it
+                        // compiles down to a tag discriminant compare.
+                        let terminates_turn = matches!(
+                            &ev,
+                            AgentEvent::TaskComplete {
+                                verified: true,
+                                outcome: VerificationOutcome::Pass { .. },
+                                ..
+                            }
+                        );
+
                         // Forward first, dispatch second. Order matters:
                         // the UI expects `ToolCallComplete` to appear in
                         // the event stream BEFORE any `ToolOutput` the
@@ -195,6 +228,13 @@ pub async fn run_turn(mut args: RunTurnArgs) -> Result<(), LoopError> {
                         // the order would surface "a tool produced
                         // output" before "the model called the tool",
                         // which is nonsense to render in a transcript.
+                        //
+                        // Forwarding also runs BEFORE the verify-gate
+                        // short-circuit: the terminating `TaskComplete`
+                        // event MUST reach the sink so the UI can render
+                        // the final verdict before the stream closes.
+                        // Exiting without forwarding would drop the
+                        // signal the whole turn exists to produce.
                         if args.event_tx.send(ev).await.is_err() {
                             // Consumer hung up — no point executing the
                             // tool if no one will see its output.
@@ -206,11 +246,10 @@ pub async fn run_turn(mut args: RunTurnArgs) -> Result<(), LoopError> {
                         // value (`Result<ToolOutput, ToolError>`) —
                         // the tool emits its streamed output via
                         // `ctx.stream_sink` during `invoke`, which is
-                        // the surface the loop cares about. T4.5 /
-                        // T4.6 will introduce error-to-event mapping
-                        // (e.g. `ToolError::NotFound` → a surfaced
-                        // error event) once the verifier lands; a
-                        // silent drop here is the MINIMUM-correct
+                        // the surface the loop cares about. Error→
+                        // event mapping (e.g. `ToolError::NotFound` →
+                        // a surfaced error event) is a Wave-4-later
+                        // task; a silent drop here is the minimum
                         // T4.3-green semantics.
                         if let Some((id, name, arguments)) = tool_call {
                             let _ = dispatch(
@@ -221,6 +260,20 @@ pub async fn run_turn(mut args: RunTurnArgs) -> Result<(), LoopError> {
                                 &id,
                             )
                             .await;
+                        }
+
+                        // Verify gate closes the turn. Placed AFTER
+                        // forward+dispatch so a verified `TaskComplete`
+                        // that somehow carried a `call_id` referencing
+                        // a tool still lets that tool run (degenerate
+                        // case — the event is emitted by `task_complete`
+                        // itself which has no side-effect dispatch
+                        // target on the registry — but the ordering is
+                        // what makes the loop's behavior composable:
+                        // "always forward + dispatch, then decide
+                        // whether to continue".
+                        if terminates_turn {
+                            return Ok(());
                         }
                     }
                     Some(Err(_provider_err)) => {
