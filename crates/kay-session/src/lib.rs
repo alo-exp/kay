@@ -5,6 +5,7 @@
 
 pub mod config;
 pub mod error;
+pub mod fork;
 pub mod index;
 pub mod snapshot;
 pub mod store;
