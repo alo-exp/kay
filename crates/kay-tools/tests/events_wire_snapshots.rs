@@ -38,9 +38,7 @@ fn wire_value(event: &AgentEvent) -> Value {
 
 #[test]
 fn snap_text_delta() {
-    let ev = AgentEvent::TextDelta {
-        content: "Hello, world!".to_string(),
-    };
+    let ev = AgentEvent::TextDelta { content: "Hello, world!".to_string() };
     insta::assert_json_snapshot!(wire_value(&ev));
 }
 
@@ -94,11 +92,7 @@ fn snap_usage() {
 
 #[test]
 fn snap_retry() {
-    let ev = AgentEvent::Retry {
-        attempt: 2,
-        delay_ms: 1500,
-        reason: RetryReason::RateLimited,
-    };
+    let ev = AgentEvent::Retry { attempt: 2, delay_ms: 1500, reason: RetryReason::RateLimited };
     insta::assert_json_snapshot!(wire_value(&ev));
 }
 
@@ -109,10 +103,7 @@ fn snap_error() {
     // (non-deterministic line/col) variants. Wire form MUST NOT leak internal
     // source-error details that could vary by version.
     let ev = AgentEvent::Error {
-        error: ProviderError::Http {
-            status: 503,
-            body: "upstream overloaded".to_string(),
-        },
+        error: ProviderError::Http { status: 503, body: "upstream overloaded".to_string() },
     };
     insta::assert_json_snapshot!(wire_value(&ev));
 }
@@ -139,10 +130,7 @@ fn snap_tool_output_stderr() {
 fn snap_tool_output_closed() {
     let ev = AgentEvent::ToolOutput {
         call_id: "call_01".to_string(),
-        chunk: ToolOutputChunk::Closed {
-            exit_code: Some(0),
-            marker_detected: true,
-        },
+        chunk: ToolOutputChunk::Closed { exit_code: Some(0), marker_detected: true },
     };
     insta::assert_json_snapshot!(wire_value(&ev));
 }
@@ -214,9 +202,7 @@ fn snap_paused() {
 fn snap_aborted_user_ctrl_c() {
     // T1.5: Ctrl-C cooperative abort after 2s grace period. Reason tag
     // is `"user_ctrl_c"` — consumers switch exhaustively on this string.
-    let ev = AgentEvent::Aborted {
-        reason: "user_ctrl_c".to_string(),
-    };
+    let ev = AgentEvent::Aborted { reason: "user_ctrl_c".to_string() };
     insta::assert_json_snapshot!(wire_value(&ev));
 }
 
@@ -224,9 +210,7 @@ fn snap_aborted_user_ctrl_c() {
 fn snap_aborted_max_turns() {
     // T1.5: Turn-budget safety net (LOOP-04). Prevents unbounded loops
     // when the model never emits `task_complete`.
-    let ev = AgentEvent::Aborted {
-        reason: "max_turns_exceeded".to_string(),
-    };
+    let ev = AgentEvent::Aborted { reason: "max_turns_exceeded".to_string() };
     insta::assert_json_snapshot!(wire_value(&ev));
 }
 
@@ -234,9 +218,7 @@ fn snap_aborted_max_turns() {
 fn snap_aborted_verifier_fail() {
     // T1.5: `task_complete` returned `verified: false` and loop policy
     // says fail-fast rather than continue. Phase 8 may refine this.
-    let ev = AgentEvent::Aborted {
-        reason: "verifier_fail".to_string(),
-    };
+    let ev = AgentEvent::Aborted { reason: "verifier_fail".to_string() };
     insta::assert_json_snapshot!(wire_value(&ev));
 }
 
@@ -246,9 +228,7 @@ fn snap_aborted_sandbox_violation_propagated() {
     // Related to QG-C4: the loop MUST abort rather than keep re-feeding
     // the violation to the model (prompt-injection surface). This is
     // how the carry-forward guardrail terminates a runaway session.
-    let ev = AgentEvent::Aborted {
-        reason: "sandbox_violation_propagated".to_string(),
-    };
+    let ev = AgentEvent::Aborted { reason: "sandbox_violation_propagated".to_string() };
     insta::assert_json_snapshot!(wire_value(&ev));
 }
 
@@ -259,9 +239,7 @@ fn snap_jsonl_line_format() {
     // delimit events by newline without needing a full JSON streaming
     // parser. Golden format lock — schema-breaking changes must bump
     // CONTRACT-AgentEvent.md + kay-cli --version.
-    let ev = AgentEvent::TextDelta {
-        content: "one\ntwo".to_string(),
-    };
+    let ev = AgentEvent::TextDelta { content: "one\ntwo".to_string() };
     let line = format!("{}", AgentEventWire::from(&ev));
 
     // Must end with exactly one newline

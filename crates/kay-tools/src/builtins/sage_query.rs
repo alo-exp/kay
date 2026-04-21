@@ -255,11 +255,7 @@ pub struct NoOpInnerAgent;
 
 #[async_trait]
 impl InnerAgent for NoOpInnerAgent {
-    async fn run(
-        &self,
-        _prompt: String,
-        _ctx: ToolCallContext,
-    ) -> Result<ToolOutput, ToolError> {
+    async fn run(&self, _prompt: String, _ctx: ToolCallContext) -> Result<ToolOutput, ToolError> {
         Err(ToolError::ExecutionFailed {
             tool: ToolName::new("sage_query"),
             source: anyhow::anyhow!(
@@ -281,11 +277,7 @@ mod tests {
     struct DummyAgent;
     #[async_trait]
     impl InnerAgent for DummyAgent {
-        async fn run(
-            &self,
-            _: String,
-            _: ToolCallContext,
-        ) -> Result<ToolOutput, ToolError> {
+        async fn run(&self, _: String, _: ToolCallContext) -> Result<ToolOutput, ToolError> {
             Ok(ToolOutput::text("unused"))
         }
     }

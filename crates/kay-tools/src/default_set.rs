@@ -93,11 +93,7 @@ mod tests {
     #[test]
     fn default_set_names_match_reference() {
         let q = Arc::new(ImageQuota::new(2, 20));
-        let reg = default_tool_set(
-            PathBuf::from("/tmp"),
-            q,
-            Arc::new(NoOpInnerAgent),
-        );
+        let reg = default_tool_set(PathBuf::from("/tmp"), q, Arc::new(NoOpInnerAgent));
 
         let expected = [
             "execute_commands",

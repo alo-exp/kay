@@ -118,14 +118,8 @@ fn qg_c4_every_agent_event_variant_has_an_explicit_filter_decision() {
     // consistent diagnostics.
     let examples: Vec<AgentEvent> = vec![
         AgentEvent::TextDelta { content: "hi".to_string() },
-        AgentEvent::ToolCallStart {
-            id: "c1".to_string(),
-            name: "fs_read".to_string(),
-        },
-        AgentEvent::ToolCallDelta {
-            id: "c1".to_string(),
-            arguments_delta: "{".to_string(),
-        },
+        AgentEvent::ToolCallStart { id: "c1".to_string(), name: "fs_read".to_string() },
+        AgentEvent::ToolCallDelta { id: "c1".to_string(), arguments_delta: "{".to_string() },
         AgentEvent::ToolCallComplete {
             id: "c1".to_string(),
             name: "fs_read".to_string(),

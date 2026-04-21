@@ -278,7 +278,10 @@ async fn tool_call_during_pause_is_buffered_no_dispatch_no_output() {
     );
 
     // ── Phase 2: Pause ─────────────────────────────────────────
-    ctl_tx.send(ControlMsg::Pause).await.expect("Pause accepted");
+    ctl_tx
+        .send(ControlMsg::Pause)
+        .await
+        .expect("Pause accepted");
     let ev = tokio::time::timeout(Duration::from_millis(500), event_rx.recv())
         .await
         .expect("Pause must cause Paused event within 500ms")
@@ -342,7 +345,10 @@ async fn tool_call_during_pause_is_buffered_no_dispatch_no_output() {
     // the surrounding test suite uses and a clean Abort emits an
     // Aborted event we can drain, which keeps the final assertion
     // channel-deterministic.
-    ctl_tx.send(ControlMsg::Abort).await.expect("Abort accepted");
+    ctl_tx
+        .send(ControlMsg::Abort)
+        .await
+        .expect("Abort accepted");
 
     // Drain any remaining events (Paused + maybe Aborted if the
     // abort arm raced the buffered frame) — they go to the sink
@@ -360,9 +366,7 @@ async fn tool_call_during_pause_is_buffered_no_dispatch_no_output() {
     // that NO ToolOutput ever emitted. See GAP-D.2 for the
     // Resume-replay path.
     let mut residual = Vec::new();
-    while let Ok(ev) =
-        tokio::time::timeout(Duration::from_millis(50), event_rx.recv()).await
-    {
+    while let Ok(ev) = tokio::time::timeout(Duration::from_millis(50), event_rx.recv()).await {
         if let Some(ev) = ev {
             residual.push(ev);
         } else {
@@ -411,7 +415,10 @@ async fn tool_call_resume_replay_does_not_re_run_dispatch() {
     // Skip the pre-pause sanity frame (GAP-D.1 covers that). Get
     // straight into the pause state so the ToolCallComplete lands
     // deterministically on the buffered path.
-    ctl_tx.send(ControlMsg::Pause).await.expect("Pause accepted");
+    ctl_tx
+        .send(ControlMsg::Pause)
+        .await
+        .expect("Pause accepted");
     let paused_ev = tokio::time::timeout(Duration::from_millis(500), event_rx.recv())
         .await
         .expect("Pause must cause Paused event")
@@ -502,7 +509,10 @@ async fn tool_call_resume_replay_does_not_re_run_dispatch() {
     );
 
     // ── Phase 5: close the loop cleanly and drain residuals ────
-    ctl_tx.send(ControlMsg::Abort).await.expect("Abort accepted");
+    ctl_tx
+        .send(ControlMsg::Abort)
+        .await
+        .expect("Abort accepted");
     let _join = tokio::time::timeout(Duration::from_millis(500), handle)
         .await
         .expect("run_turn must exit within 500ms of Abort")
@@ -513,9 +523,7 @@ async fn tool_call_resume_replay_does_not_re_run_dispatch() {
     // alongside the dispatch_count check. Drain everything the
     // channel still holds, then inspect.
     let mut residual = Vec::new();
-    while let Ok(ev) =
-        tokio::time::timeout(Duration::from_millis(50), event_rx.recv()).await
-    {
+    while let Ok(ev) = tokio::time::timeout(Duration::from_millis(50), event_rx.recv()).await {
         if let Some(ev) = ev {
             residual.push(ev);
         } else {

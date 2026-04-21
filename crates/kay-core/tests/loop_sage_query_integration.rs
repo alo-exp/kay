@@ -142,11 +142,7 @@ struct RecordingAgent {
 
 #[async_trait]
 impl InnerAgent for RecordingAgent {
-    async fn run(
-        &self,
-        prompt: String,
-        ctx: ToolCallContext,
-    ) -> Result<ToolOutput, ToolError> {
+    async fn run(&self, prompt: String, ctx: ToolCallContext) -> Result<ToolOutput, ToolError> {
         // Record BEFORE emitting: if a future wiring bug makes the
         // sink panic, we still have the recorded state to diagnose
         // what the tool DID deliver to the inner agent.
@@ -201,11 +197,7 @@ async fn forge_calls_sage_via_sage_query_end_to_end() {
     // test pass.
     let project_root = PathBuf::from("/tmp/phase5-wave5-t5.4-e2e");
     let quota = Arc::new(ImageQuota::new(u32::MAX, u32::MAX));
-    let registry = Arc::new(default_tool_set(
-        project_root,
-        quota.clone(),
-        inner_agent,
-    ));
+    let registry = Arc::new(default_tool_set(project_root, quota.clone(), inner_agent));
 
     // ── ToolCallContext (top-level turn: nesting_depth = 0) ─────────
     //

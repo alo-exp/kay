@@ -38,8 +38,8 @@
 //! `AgentEvent` variant names use `PascalCase` (matching Rust convention).
 
 use kay_provider_errors::{ProviderError, RetryReason};
-use serde::{Serialize, Serializer};
 use serde::ser::SerializeMap;
+use serde::{Serialize, Serializer};
 
 use crate::events::{AgentEvent, ToolOutputChunk};
 use crate::seams::verifier::VerificationOutcome;
@@ -97,11 +97,7 @@ impl<'a> Serialize for AgentEventWire<'a> {
                 m.serialize_entry("error", error)?;
                 m.end()
             }
-            AgentEvent::Usage {
-                prompt_tokens,
-                completion_tokens,
-                cost_usd,
-            } => {
+            AgentEvent::Usage { prompt_tokens, completion_tokens, cost_usd } => {
                 let mut m = serializer.serialize_map(Some(4))?;
                 m.serialize_entry("type", "usage")?;
                 m.serialize_entry("prompt_tokens", prompt_tokens)?;
@@ -109,11 +105,7 @@ impl<'a> Serialize for AgentEventWire<'a> {
                 m.serialize_entry("cost_usd", cost_usd)?;
                 m.end()
             }
-            AgentEvent::Retry {
-                attempt,
-                delay_ms,
-                reason,
-            } => {
+            AgentEvent::Retry { attempt, delay_ms, reason } => {
                 let mut m = serializer.serialize_map(Some(4))?;
                 m.serialize_entry("type", "retry")?;
                 m.serialize_entry("attempt", attempt)?;
@@ -135,11 +127,7 @@ impl<'a> Serialize for AgentEventWire<'a> {
                 m.serialize_entry("chunk", &ToolOutputChunkWire(chunk))?;
                 m.end()
             }
-            AgentEvent::TaskComplete {
-                call_id,
-                verified,
-                outcome,
-            } => {
+            AgentEvent::TaskComplete { call_id, verified, outcome } => {
                 let mut m = serializer.serialize_map(Some(4))?;
                 m.serialize_entry("type", "task_complete")?;
                 m.serialize_entry("call_id", call_id)?;
@@ -264,20 +252,16 @@ impl<'a> Serialize for ToolOutputChunkWire<'a> {
                 m.serialize_entry("data", data)?;
                 m.end()
             }
-            ToolOutputChunk::Closed {
-                exit_code,
-                marker_detected,
-            } => {
+            ToolOutputChunk::Closed { exit_code, marker_detected } => {
                 let mut m = serializer.serialize_map(Some(3))?;
                 m.serialize_entry("kind", "closed")?;
                 m.serialize_entry("exit_code", exit_code)?;
                 m.serialize_entry("marker_detected", marker_detected)?;
                 m.end()
-            }
-            // `ToolOutputChunk` is `#[non_exhaustive]` from the outside but we
-            // own the enum here (kay-tools) so the compiler checks match
-            // exhaustiveness at build-time. If a new variant lands, this
-            // match fails compile — which is what we want for schema review.
+            } // `ToolOutputChunk` is `#[non_exhaustive]` from the outside but we
+              // own the enum here (kay-tools) so the compiler checks match
+              // exhaustiveness at build-time. If a new variant lands, this
+              // match fails compile — which is what we want for schema review.
         }
     }
 }
@@ -309,12 +293,11 @@ impl<'a> Serialize for VerificationOutcomeWire<'a> {
                 m.serialize_entry("status", "fail")?;
                 m.serialize_entry("reason", reason)?;
                 m.end()
-            }
-            // `VerificationOutcome` is `#[non_exhaustive]` from the outside
-            // but owned by kay-tools, so the compiler enforces match
-            // exhaustiveness here. Adding a variant is a schema-change event
-            // (see CONTRACT-AgentEvent.md) — we want compile failure, not a
-            // silent `"unknown"` wire tag.
+            } // `VerificationOutcome` is `#[non_exhaustive]` from the outside
+              // but owned by kay-tools, so the compiler enforces match
+              // exhaustiveness here. Adding a variant is a schema-change event
+              // (see CONTRACT-AgentEvent.md) — we want compile failure, not a
+              // silent `"unknown"` wire tag.
         }
     }
 }
@@ -333,16 +316,10 @@ mod tests {
     #[test]
     fn provider_error_kind_is_stable() {
         assert_eq!(
-            provider_error_kind(&ProviderError::Http {
-                status: 500,
-                body: String::new()
-            }),
+            provider_error_kind(&ProviderError::Http { status: 500, body: String::new() }),
             "http"
         );
-        assert_eq!(
-            provider_error_kind(&ProviderError::Canceled),
-            "canceled"
-        );
+        assert_eq!(provider_error_kind(&ProviderError::Canceled), "canceled");
     }
 
     #[test]

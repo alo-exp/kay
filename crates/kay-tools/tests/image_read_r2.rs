@@ -29,16 +29,14 @@
 
 use std::sync::Arc;
 
-use kay_tools::{
-    AgentEvent, ImageQuota, ImageReadTool, Tool, ToolError, DEFAULT_MAX_IMAGE_BYTES,
-};
+use kay_tools::{AgentEvent, DEFAULT_MAX_IMAGE_BYTES, ImageQuota, ImageReadTool, Tool, ToolError};
 use serde_json::json;
 use tempfile::TempDir;
 
 #[path = "support/mod.rs"]
 mod support;
 
-use support::{make_ctx_with_quota, EventLog};
+use support::{EventLog, make_ctx_with_quota};
 
 /// PNG magic bytes (8 bytes). image_read only inspects the extension
 /// for MIME detection, so any payload works — this just keeps the
@@ -113,15 +111,30 @@ async fn image_read_over_cap_returns_image_too_large() {
     match err {
         ToolError::ImageTooLarge { path, actual_size, cap } => {
             assert_eq!(path, p, "path field must echo the requested path");
-            assert_eq!(actual_size, 2 * 1024, "actual_size must be the file's real length");
-            assert_eq!(cap, 1024, "cap must be the tool's configured max_image_bytes");
+            assert_eq!(
+                actual_size,
+                2 * 1024,
+                "actual_size must be the file's real length"
+            );
+            assert_eq!(
+                cap, 1024,
+                "cap must be the tool's configured max_image_bytes"
+            );
         }
         other => panic!("expected ImageTooLarge, got {other:?}"),
     }
     // Quota must be fully released on over-cap rejection — this failed
     // call should NOT count toward per-turn / per-session caps.
-    assert_eq!(quota.per_turn_count(), 0, "per_turn must be zero after over-cap rejection");
-    assert_eq!(quota.per_session_count(), 0, "per_session must be zero after over-cap rejection");
+    assert_eq!(
+        quota.per_turn_count(),
+        0,
+        "per_turn must be zero after over-cap rejection"
+    );
+    assert_eq!(
+        quota.per_session_count(),
+        0,
+        "per_session must be zero after over-cap rejection"
+    );
 }
 
 #[tokio::test]

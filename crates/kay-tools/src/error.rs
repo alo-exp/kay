@@ -35,7 +35,11 @@ pub enum ToolError {
     /// per-session image caps (parity with the `Io` / sandbox-denial
     /// rollback paths already in `ImageReadTool::invoke`).
     #[error("image at {path:?} is {actual_size} bytes (> {cap} byte cap)")]
-    ImageTooLarge { path: String, actual_size: u64, cap: u64 },
+    ImageTooLarge {
+        path: String,
+        actual_size: u64,
+        cap: u64,
+    },
 
     #[error("sandbox denied {tool:?}: {reason}")]
     SandboxDenied { tool: ToolName, reason: String },

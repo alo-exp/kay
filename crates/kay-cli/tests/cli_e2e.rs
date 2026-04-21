@@ -162,12 +162,7 @@ fn exit_code_2_on_sandbox_violation() {
     // event_filter (100%-coverage gated) proves it's absent from
     // model context.
     let mut cmd = Command::new(kay_bin());
-    cmd.args([
-        "run",
-        "--prompt",
-        "TEST:sandbox-violation",
-        "--offline",
-    ]);
+    cmd.args(["run", "--prompt", "TEST:sandbox-violation", "--offline"]);
     let output = cmd.output().expect("spawn kay");
     assert_eq!(
         output.status.code(),
@@ -458,8 +453,7 @@ fn interactive_parity_diff() {
     let prompt_expected = prompt_baseline.replace("forge>", "kay>");
 
     assert!(
-        stdout.contains(&banner_expected.trim().to_string())
-            || banner_expected.trim().is_empty(),
+        stdout.contains(&banner_expected.trim().to_string()) || banner_expected.trim().is_empty(),
         "CLI-07: kay banner must match ForgeCode parity baseline \
          (brand-swapped). Expected (normalized):\n{}\n\nActual stdout:\n{}",
         banner_expected,

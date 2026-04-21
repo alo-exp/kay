@@ -155,11 +155,8 @@ fn default_tool_set_returns_owned_registry() {
     // return a borrowed reference, THIS file's `let reg: ToolRegistry
     // = …` assignment stops compiling.
     let quota = Arc::new(ImageQuota::new(2, 20));
-    let reg: ToolRegistry = default_tool_set(
-        PathBuf::from("/tmp"),
-        quota,
-        Arc::new(NoOpInnerAgent),
-    );
+    let reg: ToolRegistry =
+        default_tool_set(PathBuf::from("/tmp"), quota, Arc::new(NoOpInnerAgent));
     // Owned registry — we can mutate it, move it, drop it.
     assert!(
         reg.len() >= 8,

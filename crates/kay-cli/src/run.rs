@@ -94,8 +94,8 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use kay_core::control::{control_channel, install_ctrl_c_handler};
-use kay_core::persona::Persona;
 use kay_core::r#loop::{RunTurnArgs, run_turn};
+use kay_core::persona::Persona;
 use kay_provider_errors::ProviderError;
 use kay_tools::events_wire::AgentEventWire;
 use kay_tools::{
@@ -463,9 +463,7 @@ async fn offline_provider(
         "TEST:loop-forever" => {
             for i in 0..3 {
                 if model_tx
-                    .send(Ok(AgentEvent::TextDelta {
-                        content: format!("loop-{i}"),
-                    }))
+                    .send(Ok(AgentEvent::TextDelta { content: format!("loop-{i}") }))
                     .await
                     .is_err()
                 {
@@ -481,9 +479,7 @@ async fn offline_provider(
         // sigint_nix` needs: a process that won't exit on its own.
         "TEST:hang-forever" => {
             let _ = model_tx
-                .send(Ok(AgentEvent::TextDelta {
-                    content: "hang".into(),
-                }))
+                .send(Ok(AgentEvent::TextDelta { content: "hang".into() }))
                 .await;
             std::future::pending::<()>().await;
         }

@@ -80,10 +80,7 @@ impl ImageReadTool {
     /// INCLUSIVE — a file whose size is exactly `max_image_bytes`
     /// succeeds; `size > max_image_bytes` rejects with
     /// `ToolError::ImageTooLarge`.
-    pub fn with_size_cap(
-        quota: Arc<crate::quota::ImageQuota>,
-        max_image_bytes: u64,
-    ) -> Self {
+    pub fn with_size_cap(quota: Arc<crate::quota::ImageQuota>, max_image_bytes: u64) -> Self {
         let name = ToolName::new("image_read");
         let description = "Read an image file from disk (JPEG/PNG/WebP/GIF) and return a \
             base64 data URI. Subject to per-turn and per-session image caps."
@@ -98,7 +95,13 @@ impl ImageReadTool {
                 ),
             },
         );
-        Self { name, description, input_schema: schema, quota, max_image_bytes }
+        Self {
+            name,
+            description,
+            input_schema: schema,
+            quota,
+            max_image_bytes,
+        }
     }
 
     /// Configured maximum image file size (bytes, inclusive).

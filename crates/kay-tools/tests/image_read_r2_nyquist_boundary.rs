@@ -63,7 +63,7 @@ use tempfile::TempDir;
 #[path = "support/mod.rs"]
 mod support;
 
-use support::{make_ctx_with_quota, EventLog};
+use support::{EventLog, make_ctx_with_quota};
 
 /// PNG magic bytes (8 bytes) — keeps the fixture recognizable but
 /// image_read only detects MIME from the extension so any payload
@@ -163,9 +163,7 @@ async fn image_read_n_plus_1_byte_rejects() {
             assert_eq!(actual_size, 1025, "actual_size = N+1 (1025)");
             assert_eq!(cap, 1024, "cap = N (1024)");
         }
-        other => panic!(
-            "expected ImageTooLarge for N+1 boundary (1025 vs 1024); got {other:?}"
-        ),
+        other => panic!("expected ImageTooLarge for N+1 boundary (1025 vs 1024); got {other:?}"),
     }
 
     // Metadata-first proof — even at a one-byte overrun the raw file
