@@ -38,12 +38,45 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
+use std::sync::Arc;
+
+use async_trait::async_trait;
+use forge_domain::{FSRead, FSSearch, FSWrite, NetFetch, ToolOutput};
+use tokio::sync::mpsc;
+use tokio_util::sync::CancellationToken;
+
 use kay_core::control::control_channel;
 use kay_core::r#loop::{RunTurnArgs, run_turn};
 use kay_core::persona::Persona;
 use kay_provider_errors::ProviderError;
-use kay_tools::AgentEvent;
-use tokio::sync::mpsc;
+use kay_tools::{
+    AgentEvent, ImageQuota, NoOpSandbox, NoOpVerifier, ServicesHandle, ToolCallContext,
+    ToolRegistry,
+};
+
+// T4.4 GREEN rippled: `RunTurnArgs` now carries `registry` + `tool_ctx`.
+// The T4.1 happy-path test never emits a `ToolCallComplete`, so neither
+// the registry nor the tool-context is exercised — but both fields must
+// still be supplied. Kept as local stubs rather than a shared helper
+// because the stub surface is ~30 LOC and sharing it would couple two
+// independent test files.
+struct NullServices;
+
+#[async_trait]
+impl ServicesHandle for NullServices {
+    async fn fs_read(&self, _: FSRead) -> anyhow::Result<ToolOutput> {
+        Ok(ToolOutput::text(""))
+    }
+    async fn fs_write(&self, _: FSWrite) -> anyhow::Result<ToolOutput> {
+        Ok(ToolOutput::text(""))
+    }
+    async fn fs_search(&self, _: FSSearch) -> anyhow::Result<ToolOutput> {
+        Ok(ToolOutput::text(""))
+    }
+    async fn net_fetch(&self, _: NetFetch) -> anyhow::Result<ToolOutput> {
+        Ok(ToolOutput::text(""))
+    }
+}
 
 #[tokio::test]
 async fn run_turn_single_turn_happy_path() {
@@ -69,6 +102,21 @@ async fn run_turn_single_turn_happy_path() {
     // ── Load forge persona from bundled YAML ────────────────────
     let persona = Persona::load("forge").expect("bundled forge persona loads");
 
+    // ── Minimal tool fixtures (unused in this test) ─────────────
+    // T4.4 added `registry` + `tool_ctx` to `RunTurnArgs`. This
+    // test emits only a `TextDelta`, so dispatch never runs — but
+    // the fields are required. An empty registry + a context with
+    // a no-op sink is sufficient; the sink is never called.
+    let registry = Arc::new(ToolRegistry::new());
+    let tool_ctx = ToolCallContext::new(
+        Arc::new(NullServices),
+        Arc::new(|_| {}),
+        Arc::new(ImageQuota::new(u32::MAX, u32::MAX)),
+        CancellationToken::new(),
+        Arc::new(NoOpSandbox),
+        Arc::new(NoOpVerifier),
+    );
+
     // ── Spawn the loop ──────────────────────────────────────────
     // `tokio::spawn` decouples the loop task from the test thread
     // so we can drain `event_rx` concurrently with loop execution.
@@ -77,6 +125,8 @@ async fn run_turn_single_turn_happy_path() {
         model_rx,
         control_rx,
         event_tx,
+        registry,
+        tool_ctx,
     }));
 
     // ── Drain events until the loop drops `event_tx` ────────────

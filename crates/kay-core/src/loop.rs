@@ -58,15 +58,19 @@
 //!   and `Abort` 2s grace are stubbed — T4.2 only reserves the
 //!   select-arm seat.
 
+use std::sync::Arc;
+
+use forge_domain::ToolName;
 use tokio::sync::mpsc;
 
 use crate::control::ControlMsg;
 use crate::persona::Persona;
 use kay_provider_errors::ProviderError;
-use kay_tools::AgentEvent;
+use kay_tools::runtime::dispatcher::dispatch;
+use kay_tools::{AgentEvent, ToolCallContext, ToolRegistry};
 
 /// Input bundle for [`run_turn`]. Constructed by callers via
-/// struct-literal so later tasks (T4.3+) can add fields — the
+/// struct-literal so later tasks (T4.5+) can add fields — the
 /// breakage that comes with new required fields is intentional:
 /// adding `input_rx` or `verifier` means every caller must be
 /// updated to wire it up. A `#[non_exhaustive]` or builder pattern
@@ -75,7 +79,9 @@ use kay_tools::AgentEvent;
 ///
 /// The field ordering here mirrors the priority ordering of the
 /// `select!` (control first, model last) so readers can read the
-/// struct top-to-bottom and match it to the arms.
+/// struct top-to-bottom and match it to the arms — plus the tool
+/// execution surface (`registry`, `tool_ctx`) grouped after the
+/// streaming surface so the two responsibilities read separately.
 pub struct RunTurnArgs {
     /// The persona driving this turn. Used to source the system
     /// prompt, tool filter, and model id.
@@ -95,6 +101,22 @@ pub struct RunTurnArgs {
     /// applied in a later task). `Drop` on the sender side means
     /// the consumer has hung up and the loop should exit cleanly.
     pub event_tx: mpsc::Sender<AgentEvent>,
+
+    /// Tool registry consulted for every model `ToolCallComplete`.
+    /// Shared (`Arc`) so the CLI builds one registry at startup and
+    /// reuses it across every turn without paying reconstruction
+    /// cost — tools are stateless after registration (D-11 /
+    /// `03-CONTEXT.md`). Cloning the `Arc` inside the loop is an
+    /// atomic refcount bump, not a tool walk.
+    pub registry: Arc<ToolRegistry>,
+
+    /// Per-turn tool-execution context: services handle, stream
+    /// sink, image quota, cancellation token, sandbox, verifier.
+    /// Owned (not `Arc`) because the cancellation token and the
+    /// image budget are turn-scoped — sharing them across turns
+    /// would leak abort state and budget accounting. The caller
+    /// builds a fresh `ToolCallContext` for each `run_turn` call.
+    pub tool_ctx: ToolCallContext,
 }
 
 /// Run a single agent turn to completion.
@@ -151,11 +173,54 @@ pub async fn run_turn(mut args: RunTurnArgs) -> Result<(), LoopError> {
             frame = args.model_rx.recv() => {
                 match frame {
                     Some(Ok(ev)) => {
-                        // Forward to the caller. If the caller
-                        // hung up, treat it as a clean exit — no
-                        // point producing events no one reads.
+                        // For `ToolCallComplete`, snapshot the three
+                        // fields needed by `dispatch` BEFORE forwarding
+                        // the event — `AgentEvent` does not derive
+                        // `Clone` (ProviderError in the `Error` variant
+                        // holds non-Clone types) so we cannot touch
+                        // `ev` after `send(ev)` moves it. The snapshot
+                        // is cheap: two `String::clone` + one
+                        // `serde_json::Value::clone`.
+                        let tool_call = match &ev {
+                            AgentEvent::ToolCallComplete { id, name, arguments } => {
+                                Some((id.clone(), name.clone(), arguments.clone()))
+                            }
+                            _ => None,
+                        };
+
+                        // Forward first, dispatch second. Order matters:
+                        // the UI expects `ToolCallComplete` to appear in
+                        // the event stream BEFORE any `ToolOutput` the
+                        // tool emits via `ctx.stream_sink`. Reversing
+                        // the order would surface "a tool produced
+                        // output" before "the model called the tool",
+                        // which is nonsense to render in a transcript.
                         if args.event_tx.send(ev).await.is_err() {
+                            // Consumer hung up — no point executing the
+                            // tool if no one will see its output.
                             return Ok(());
+                        }
+
+                        // Dispatch the tool call (if this was one).
+                        // T4.4 GREEN ignores the dispatcher's return
+                        // value (`Result<ToolOutput, ToolError>`) —
+                        // the tool emits its streamed output via
+                        // `ctx.stream_sink` during `invoke`, which is
+                        // the surface the loop cares about. T4.5 /
+                        // T4.6 will introduce error-to-event mapping
+                        // (e.g. `ToolError::NotFound` → a surfaced
+                        // error event) once the verifier lands; a
+                        // silent drop here is the MINIMUM-correct
+                        // T4.3-green semantics.
+                        if let Some((id, name, arguments)) = tool_call {
+                            let _ = dispatch(
+                                &args.registry,
+                                &ToolName::new(&name),
+                                arguments,
+                                &args.tool_ctx,
+                                &id,
+                            )
+                            .await;
                         }
                     }
                     Some(Err(_provider_err)) => {
