@@ -242,6 +242,7 @@ to earn the provenance trust that claw-code lacks.
 ## Implementations
 
 <!-- Populated automatically by SB pr-traceability.sh hook post-merge. -->
+- PR: https://github.com/alo-exp/kay/pull/8 | Date: 2026-04-22 | Spec-version: 1
 - PR: https://github.com/alo-exp/kay/pull/5 | Date: 2026-04-21 | Spec-version: 1
 - PR: https://github.com/alo-exp/kay/pull/4 | Date: 2026-04-21 | Spec-version: 1
 
