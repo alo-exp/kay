@@ -45,7 +45,7 @@ pub fn record_snapshot(
     }
     let rel_path = canonical
         .strip_prefix(&cwd_canonical)
-        .expect("starts_with checked above");
+        .map_err(|_| std::io::Error::other("path not within session cwd after starts_with check"))?;
 
     // Destination path: session_dir/snapshots/<turn>/<rel_path>
     let snap_dir = store

@@ -425,14 +425,14 @@ async fn run_async(
         // Phase 6 event-tap: passive fan-out to session transcript (E-2 from 06-BRAINSTORM.md).
         // Zero changes to run_turn / kay-core — drain loop is the sole subscriber. QG-C4 intact.
         let mut failed_session_id: Option<uuid::Uuid> = None;
-        if let Some(ref mut session) = active_session {
-            if let Err(e) = session.append_event(&AgentEventWire::from(&ev)) {
-                failed_session_id = Some(session.id);
-                tracing::error!(error = %e, "transcript write failed — session marked lost");
-                // DL-9: TranscriptDeleted → mark lost in SQLite, then exit 1
-                if let Ok(store) = kay_session::SessionStore::open(&session_store_dir) {
-                    let _ = kay_session::index::mark_session_lost(&store, &session.id);
-                }
+        if let Some(ref mut session) = active_session
+            && let Err(e) = session.append_event(&AgentEventWire::from(&ev))
+        {
+            failed_session_id = Some(session.id);
+            tracing::error!(error = %e, "transcript write failed — session marked lost");
+            // DL-9: TranscriptDeleted → mark lost in SQLite, then exit 1
+            if let Ok(store) = kay_session::SessionStore::open(&session_store_dir) {
+                let _ = kay_session::index::mark_session_lost(&store, &session.id);
             }
         }
         if let Some(session_id) = failed_session_id {

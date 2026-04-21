@@ -119,7 +119,7 @@ fn list(args: ListArgs) -> Result<()> {
             .collect();
         println!("{}", serde_json::to_string_pretty(&json_arr)?);
     } else {
-        println!("{:<36}  {:<8}  {:<20}  {}", "ID", "STATUS", "STARTED", "TITLE");
+        println!("{:<36}  {:<8}  {:<20}  TITLE", "ID", "STATUS", "STARTED");
         for s in &sessions {
             println!(
                 "{:<36}  {:<8}  {:<20}  {}",

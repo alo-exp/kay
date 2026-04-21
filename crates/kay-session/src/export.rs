@@ -46,7 +46,7 @@ pub fn export_session(
         let file = std::fs::File::open(&jsonl_path)?;
         let reader = std::io::BufReader::new(file);
         reader.lines()
-            .filter_map(|l| l.ok())
+            .map_while(|l| l.ok())
             .filter(|l| !l.trim().is_empty())
             .count() as i64
     };
