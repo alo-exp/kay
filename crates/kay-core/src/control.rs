@@ -117,54 +117,85 @@ pub fn control_channel() -> (mpsc::Sender<ControlMsg>, mpsc::Receiver<ControlMsg
     mpsc::channel(CONTROL_CHANNEL_CAPACITY)
 }
 
-/// Spawn a background Tokio task that listens for `Ctrl-C` and emits a
-/// single [`ControlMsg::Abort`] into `tx` when it fires.
+/// Install a `Ctrl-C` / SIGINT listener whose delivery forwards a single
+/// [`ControlMsg::Abort`] into `tx`.
 ///
-/// Returns `Ok(())` after the task is spawned; the handler does NOT
-/// block the caller. The spawned task:
+/// Synchronous-install contract: by the time this function returns `Ok`,
+/// the POSIX `sigaction` (Unix) / `SetConsoleCtrlHandler` (Windows)
+/// registration has **already taken effect**. This is load-bearing —
+/// the CLI-03 SIGINT E2E test (`kay-cli::tests::cli_e2e::
+/// exit_code_130_on_sigint_nix`) waits a short settle window and then
+/// `kill -INT <pid>`s the child; if the handler were armed lazily on
+/// first `.await` (as with the bare `tokio::signal::ctrl_c()` future),
+/// the scheduler's polling order could let the SIGINT arrive before
+/// the task is polled, falling back to the default-disposition
+/// termination and breaking the test.
 ///
-/// 1. Awaits `tokio::signal::ctrl_c()`.
-/// 2. On signal, best-effort sends `ControlMsg::Abort` on `tx`.
-///    If the receiver is already dropped (loop already exited), the
-///    send error is silently discarded — there is nothing meaningful
+/// The implementation binds a `Signal` stream via the platform-specific
+/// `tokio::signal` constructor (`unix::signal(SignalKind::interrupt())`
+/// on Unix, `windows::ctrl_c()` on Windows) — both of which install the
+/// OS-level handler eagerly at construction time — and then spawns a
+/// background task that does the `recv().await` + forward dance.
+///
+/// ## Task body
+///
+/// 1. `recv().await` on the pre-installed signal stream.
+/// 2. On `Some(())`, best-effort `tx.send(ControlMsg::Abort).await`.
+///    If the receiver has already been dropped (loop exited), the
+///    `SendError` is silently discarded — there is nothing meaningful
 ///    to do at that point.
-/// 3. On `ctrl_c().await` error (signal subsystem failed to install),
-///    the task exits without sending. The agent loop will still
-///    terminate via its other exit conditions (stdin EOF, model
-///    end-of-stream, explicit UI `Abort`).
+/// 3. On `None` (the stream ended unexpectedly — e.g. a platform
+///    anomaly that unregisters the handler mid-flight), the task exits
+///    without sending. The agent loop terminates via its other exit
+///    conditions (stdin EOF, model end-of-stream, explicit UI `Abort`).
 ///
 /// # Errors
 ///
-/// Returns the `std::io::Error` from the signal-install path if it
-/// fails synchronously. In practice `tokio::signal::ctrl_c()` does
-/// its subsystem setup lazily on first `.await`, so this return type
-/// is here for forward-compat; the spawn itself is infallible.
-///
-/// # Platform notes
-///
-/// - Unix: binds SIGINT via `tokio::signal::ctrl_c()`.
-/// - Windows: binds the console Ctrl-C handler via
-///   `SetConsoleCtrlHandler` (Tokio handles the FFI).
+/// Returns the `std::io::Error` from the platform-level handler
+/// installation if it fails. In practice this only fails if the tokio
+/// runtime was not built with `.enable_all()` / the signal driver, or
+/// on extremely constrained platforms — both of which would be
+/// configuration bugs caught in CI, not user-facing errors.
 ///
 /// # Why this is not unit-tested here
 ///
-/// `tokio::signal::ctrl_c()` cannot be raised safely from inside a
-/// `cargo test` subprocess without terminating the test harness itself.
-/// The smoke-path ("install → Ok") is exercised by Wave 4's loop-level
-/// integration tests that call this function at startup; the channel
-/// delivery path is unit-tested in
-/// `tests/control.rs::control_abort_cooperative_grace` by calling
-/// `tx.send(ControlMsg::Abort)` directly from a spawned task.
+/// `kill -INT` cannot be safely raised from inside a `cargo test`
+/// subprocess without terminating the test harness itself. The
+/// install-returns-Ok smoke path is exercised by kay-cli's
+/// `exit_code_130_on_sigint_nix` E2E test, which spawns `kay` as a
+/// separate process and sends it SIGINT. The channel-delivery semantics
+/// are unit-tested in `tests/control.rs::control_abort_cooperative_
+/// grace` by calling `tx.send(ControlMsg::Abort)` directly from a
+/// spawned task — a hermetic substitute that exercises the same
+/// receiver-side contract without raising a real signal.
 pub fn install_ctrl_c_handler(tx: mpsc::Sender<ControlMsg>) -> std::io::Result<()> {
+    #[cfg(unix)]
+    let mut sig = {
+        use tokio::signal::unix::{SignalKind, signal};
+        // `signal(SignalKind::interrupt())` registers the sigaction
+        // SYNCHRONOUSLY and returns an mpsc-like `Signal` stream. Any
+        // SIGINT delivered after this line routes into `sig.recv()`.
+        signal(SignalKind::interrupt())?
+    };
+
+    #[cfg(windows)]
+    let mut sig = {
+        // `ctrl_c()` on the Windows tokio::signal submodule installs
+        // the console Ctrl-C handler via `SetConsoleCtrlHandler`
+        // synchronously and returns a `CtrlC` stream.
+        tokio::signal::windows::ctrl_c()?
+    };
+
     tokio::spawn(async move {
-        if tokio::signal::ctrl_c().await.is_err() {
-            // Signal subsystem failed to install on this platform /
-            // runtime; fall through silently. See function docs.
+        if sig.recv().await.is_none() {
+            // Stream ended — platform anomaly (very unusual). Fall
+            // through silently; other loop-exit conditions still apply.
             return;
         }
         // Best-effort: if the loop has already exited the receiver is
-        // dropped and SendError is meaningless.
+        // dropped and `SendError` is meaningless.
         let _ = tx.send(ControlMsg::Abort).await;
     });
+
     Ok(())
 }

@@ -55,11 +55,18 @@
 //!   routes both the `Ok` arm (Success / SandboxViolation) and the
 //!   `Err` arm (classify_error → RuntimeError / ConfigError) to
 //!   `std::process::exit`. See `src/exit.rs` for the contract table.
-//! * **SIGINT handler (T7.8).** `install_ctrl_c_handler` is not
-//!   wired in T7.3. The control channel exists but no message ever
-//!   arrives on it during a T7.3 offline run. The
-//!   `exit_code_130_on_sigint_nix` test therefore stays RED until
-//!   T7.8 lands.
+//! * **SIGINT handler (T7.8 — DONE).** Historical note:
+//!   `install_ctrl_c_handler(control_tx.clone())` now runs at the
+//!   top of `run_async`, spawning a tokio task that listens for
+//!   `ctrl_c()` and forwards `ControlMsg::Abort` into the loop. The
+//!   drain loop below tracks `aborted_seen` via the `AgentEvent::
+//!   Aborted` frame emitted by Wave 4 T4.10 and maps it to
+//!   `ExitCode::UserAbort` (130). The 2 s cooperative grace on
+//!   in-flight tool invocations is a loop-body concern documented
+//!   in `kay-core::control`; Phase 5 ships without it and the
+//!   `TEST:hang-forever` provider body is a parked future (no
+//!   tools in flight to reap), so the bare handler → Abort → loop
+//!   exit path is sufficient for the CLI-03 + LOOP-06 contract.
 //! * **Real OpenRouter transport.** `--offline` is the only mode
 //!   T7.3 exercises; the online branch (`--offline` absent) is
 //!   handled identically in T7.3 because the offline demux also
@@ -86,7 +93,7 @@ use forge_domain::{FSRead, FSSearch, FSWrite, NetFetch, ToolOutput};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-use kay_core::control::control_channel;
+use kay_core::control::{control_channel, install_ctrl_c_handler};
 use kay_core::persona::Persona;
 use kay_core::r#loop::{RunTurnArgs, run_turn};
 use kay_provider_errors::ProviderError;
@@ -221,14 +228,28 @@ pub fn execute(args: RunArgs) -> anyhow::Result<ExitCode> {
 /// Split out so `execute` stays sync and the runtime lifetime is
 /// explicit (dropped when this returns, not when `main` returns).
 ///
-/// # T7.7 return-shape
+/// # T7.7 + T7.8 return-shape
 ///
-/// Returns `Ok(ExitCode::SandboxViolation)` when at least one
-/// `AgentEvent::SandboxViolation` frame crossed the event channel
-/// during this turn — the JSONL stream surface has already told the
-/// user; this propagates the signal to the shell. Otherwise returns
-/// `Ok(ExitCode::Success)`. `Err` is preserved as-is for the
-/// classifier in `main.rs`.
+/// Returns one of:
+///
+///   * `Ok(ExitCode::UserAbort)` — SIGINT was observed and routed
+///     through the control channel. T7.8's `install_ctrl_c_handler`
+///     forwarded `ControlMsg::Abort`; Wave 4 T4.10's loop body
+///     picked it up, emitted `AgentEvent::Aborted { reason:
+///     "user_abort" }`, and closed the event stream. Takes
+///     precedence over `SandboxViolation` — a user cutting the run
+///     short is a terminal intent that dominates incidental
+///     mid-stream events.
+///   * `Ok(ExitCode::SandboxViolation)` — at least one
+///     `AgentEvent::SandboxViolation` frame crossed the event
+///     channel AND no `Aborted` frame followed. The JSONL stream
+///     surface has already told the user; this propagates the
+///     signal to the shell.
+///   * `Ok(ExitCode::Success)` — clean turn completion (verified
+///     `TaskComplete` or clean model-stream close) with no abort
+///     and no sandbox hit.
+///
+/// `Err` is preserved as-is for the classifier in `main.rs`.
 async fn run_async(prompt: String, persona: Persona) -> anyhow::Result<ExitCode> {
     // ── Channel topology ────────────────────────────────────────
     //
@@ -237,11 +258,29 @@ async fn run_async(prompt: String, persona: Persona) -> anyhow::Result<ExitCode>
     // offline scenarios never open an input or tool-output path.
     // Capacity 32 matches the locked default across all four.
     //
-    // `_control_tx` is held for the lifetime of `run_async` so the
+    // `control_tx` is held for the lifetime of `run_async` so the
     // control channel stays open through the loop body. Dropping it
     // early would flip `control_open = false` on the first poll and
     // close the priority seat; harmless today but noisy in logs.
-    let (_control_tx, control_rx) = control_channel();
+    // T7.8 also clones it into the SIGINT handler task below — that
+    // clone is what keeps the channel open long enough for
+    // `ctrl_c().await` to fire and push `ControlMsg::Abort`.
+    let (control_tx, control_rx) = control_channel();
+
+    // ── SIGINT handler (T7.8) ───────────────────────────────────
+    // Install BEFORE spawning the provider/loop so the 200 ms
+    // settle window in `exit_code_130_on_sigint_nix` is enough to
+    // guarantee the handler is armed before `kill -INT <pid>`
+    // arrives. `install_ctrl_c_handler` returns `std::io::Result<()>`
+    // which `?` auto-promotes to `anyhow::Error`; in practice the
+    // spawn itself is infallible (see `kay-core::control` docs),
+    // but the surface kept for forward-compat — the `?` handles
+    // any future synchronous subsystem-install failure without
+    // ceremony. The returned error would route through
+    // `classify_error` to `ExitCode::RuntimeError`, which is the
+    // correct bucket for a platform-level signal-install failure.
+    install_ctrl_c_handler(control_tx.clone())?;
+
     let (model_tx, model_rx) = mpsc::channel::<Result<AgentEvent, ProviderError>>(32);
     let (event_tx, mut event_rx) = mpsc::channel::<AgentEvent>(32);
 
@@ -311,11 +350,23 @@ async fn run_async(prompt: String, persona: Persona) -> anyhow::Result<ExitCode>
     // NOT short-circuit on first observation — the loop still needs
     // to drain to its natural close so subsequent events reach the
     // user (e.g., a `TaskComplete` that describes the failure mode).
+    //
+    // `aborted_seen` is the T7.8 addition, also sticky. It tracks
+    // the single `AgentEvent::Aborted { reason: "user_abort" }`
+    // frame Wave 4 T4.10 emits on `ControlMsg::Abort`. The outer
+    // return gives `UserAbort` precedence over `SandboxViolation`
+    // — a user pressing Ctrl-C is a terminal intent that dominates
+    // any incidental mid-stream event that may have occurred
+    // before the SIGINT was observed.
     let mut stdout = std::io::stdout().lock();
     let mut sandbox_violation_seen = false;
+    let mut aborted_seen = false;
     while let Some(ev) = event_rx.recv().await {
         if matches!(ev, AgentEvent::SandboxViolation { .. }) {
             sandbox_violation_seen = true;
+        }
+        if matches!(ev, AgentEvent::Aborted { .. }) {
+            aborted_seen = true;
         }
         write!(stdout, "{}", AgentEventWire::from(&ev))?;
         // `.ok()`: a broken-pipe error here (e.g., `kay run ... |
@@ -335,12 +386,18 @@ async fn run_async(prompt: String, persona: Persona) -> anyhow::Result<ExitCode>
     // derives on the source types.
     handle.await??;
 
-    // Final classification: sandbox trumps success. If the loop
-    // finished cleanly (Ok) AND we observed a sandbox violation,
-    // exit 2. Otherwise exit 0. Note this is the HAPPY-PATH arm —
-    // Err from `?` above is classified in `main.rs` via
-    // `exit::classify_error`.
-    if sandbox_violation_seen {
+    // Final classification with explicit precedence:
+    //
+    //   UserAbort > SandboxViolation > Success
+    //
+    // A user cutting the run short (SIGINT → Abort) is terminal
+    // intent and dominates any mid-stream event. Sandbox trumps
+    // success because it signals a policy hit the caller may want
+    // to gate on. Note this is the HAPPY-PATH arm — `Err` from `?`
+    // above is classified in `main.rs` via `exit::classify_error`.
+    if aborted_seen {
+        Ok(ExitCode::UserAbort)
+    } else if sandbox_violation_seen {
         Ok(ExitCode::SandboxViolation)
     } else {
         Ok(ExitCode::Success)

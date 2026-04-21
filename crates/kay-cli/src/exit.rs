@@ -54,11 +54,14 @@ pub enum ExitCode {
     SandboxViolation = 2,
     ConfigError = 3,
     /// SIGINT observed and cleanly propagated through the control
-    /// channel as `ControlMsg::Abort`. Constructed by T7.8's signal
-    /// handler; intentionally unconstructed in T7.7 (no SIGINT route
-    /// exists yet). The `#[allow]` below must be removed when T7.8
-    /// lands so the variant's dead-code check reactivates.
-    #[allow(dead_code)]
+    /// channel as `ControlMsg::Abort`. T7.8 wires
+    /// `kay_core::control::install_ctrl_c_handler` into
+    /// `run::run_async`; that handler task forwards `ControlMsg::
+    /// Abort` into the loop, which emits `AgentEvent::Aborted {
+    /// reason: "user_abort" }` and closes the event stream. The
+    /// drain loop in `run::run_async` translates the `Aborted`
+    /// frame back into this variant before `main.rs` hands the
+    /// raw discriminant to `std::process::exit`.
     UserAbort = 130,
 }
 

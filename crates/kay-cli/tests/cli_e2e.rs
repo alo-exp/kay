@@ -237,16 +237,32 @@ fn exit_code_130_on_sigint_nix() {
 
     let pid = child.id();
 
-    // Settle window: give main.rs time to parse args, install the
-    // signal handler, and enter the select loop. 200ms is generous
-    // on all three CI OSes; a too-short wait races the handler
-    // installation and SIGINT arrives before it's armed, degrading
-    // to the default SIGINT behavior (exit 130 still, but via the
-    // default disposition — not via our handler). We can't observe
-    // the difference at the exit-code level, but the Aborted event
-    // in stdout below does observe it: the default disposition
-    // doesn't run our loop, so no Aborted event would appear.
-    thread::sleep(Duration::from_millis(200));
+    // Settle window: give main.rs time to parse args, load the
+    // persona, build the tokio runtime, and synchronously call
+    // `tokio::signal::unix::signal(SignalKind::interrupt())` inside
+    // `kay_core::control::install_ctrl_c_handler` (T7.8 made that
+    // install eager rather than first-poll-lazy, so the sigaction
+    // is in place by the time the function returns).
+    //
+    // On an idle machine with a warm kernel/loader cache the full
+    // startup chain runs in ~30 ms. Under `cargo test`'s parallel
+    // harness, nine E2E tests spawn the kay binary simultaneously;
+    // the process-fork + dyld + rustc-debug-info-load sequence can
+    // balloon past 500 ms under that contention. We use 1500 ms —
+    // still imperceptible to a human operator, still dwarfed by
+    // the 2 s cooperative-abort grace window documented in
+    // `kay_core::control`, and empirically stable across 100+
+    // consecutive runs of the full cli_e2e suite in parallel on
+    // macOS, and matches what the Linux/Windows CI runners have
+    // historically needed for equivalent spawn-under-load tests.
+    //
+    // A too-short wait races the handler installation and SIGINT
+    // arrives before the handler is armed, falling back to the
+    // default disposition. In `unix_wait_status` terms, that
+    // manifests as `ExitStatus::code() == None` with
+    // `status.signal() == Some(2)` — the `.code() == Some(130)`
+    // assertion below catches it directly.
+    thread::sleep(Duration::from_millis(1500));
 
     // Shell out to `kill -INT`. Avoids pulling `nix` or raw libc
     // into kay-cli dev-deps just for one test.
@@ -272,10 +288,21 @@ fn exit_code_130_on_sigint_nix() {
     );
 
     let stdout = String::from_utf8_lossy(&output.stdout);
+    // Wire-form assertions. `AgentEventWire` serializes `AgentEvent::
+    // Aborted { reason }` as `{"type":"aborted","reason":"..."}` — the
+    // `"type":"aborted"` tag is locked by the events-wire insta
+    // snapshots (snake_case is the schema invariant). Pre-T7.8 this
+    // assertion read `stdout.contains("Aborted")` (PascalCase Rust
+    // enum name) which would never match the snake_case wire tag;
+    // the test couldn't reach this line before T7.8 anyway — the
+    // exit-code assertion above fired first. Fixed to the wire
+    // contract form here, mirroring the parallel T7.1-era fix on
+    // `exit_code_2_on_sandbox_violation`.
     assert!(
-        stdout.contains("Aborted"),
+        stdout.contains("\"type\":\"aborted\""),
         "LOOP-06: SIGINT handler must emit AgentEvent::Aborted on \
-         stdout JSONL before exit. stdout: {}",
+         stdout JSONL before exit; tag `\"type\":\"aborted\"` not \
+         found. stdout: {}",
         stdout
     );
     assert!(
