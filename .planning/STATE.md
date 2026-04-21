@@ -1,18 +1,18 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.2.0
-milestone_name: Sandbox — All Three Platforms
-status: complete
-stopped_at: "Phase 4 shipped as v0.2.0 (signed). PR #5 open on phase/04-sandbox. R-4+R-5 closed. Next: Phase 5 (Agent Loop + Canonical CLI)."
-last_updated: "2026-04-21T14:30:00Z"
-next_phase: 5
-next_action: "/silver:feature Phase 5: Agent Loop + Canonical CLI"
-last_activity: 2026-04-21 -- Phase 3 CLOSED. All 5 waves shipped + FLOW 11 verify (16/16 PASS) + FLOW 12 review (1H+5M fixed) + FLOW 13 security (PASS, 6 residuals to Phase 4/5 backlog) + FLOW 14 Nyquist (30k-case adversarial marker-forgery proptest + phase3 smoke scripts) + FLOW 16 adversarial quality-gates (9/9 PASS). 174 tests green across kay-tools surface; clippy -D warnings clean; cargo-deny green. 29 DCO-signed commits on phase/03-tool-registry.
+milestone: v0.3.0
+milestone_name: Agent Loop + Canonical CLI
+status: in_progress
+stopped_at: "Phase 4 merged (PR #5 squash=1ae2a7f). phase/05-agent-loop branch created from origin/main at 1ae2a7f. Entering Phase 5 via /silver:feature 19-flow pipeline."
+last_updated: "2026-04-21T21:37:00Z"
+next_phase: 6
+next_action: "/silver:feature Phase 6: Session Store + Transcript"
+last_activity: 2026-04-21 -- Phase 4 CLOSED (v0.2.0 signed tag shipped, PR #5 squash-merged as 1ae2a7f after 3-OS CI green). Phase 4 closure execution: 62 DCO-signed commits on phase/04-sandbox covering 4-crate sandbox split (kay-sandbox-{policy,macos,linux,windows}), escape suite (36 real subprocess kernel denial tests), R-4+R-5 residuals closed, 68 new tests + cargo-deny clean + cargo-audit clean. Post-merge CI red sweep landed 4 fixes: (1) Windows HANDLE `.is_null()` — windows-sys HANDLE is `*mut c_void`, not integer; (2) workspace fmt sweep; (3) `use std::sync::Arc` removed from dispatcher.rs; (4) `pty_pid: Option<i32>` cfg(unix)-gated. Two additional Windows-CI fixes after initial PR #5 push: (a) `wrap_windows_ps` rewritten — seed `$LASTEXITCODE = 0`, null-fallback `if ($null -eq $LASTEXITCODE) { 0 } else { $LASTEXITCODE }`, Write-Host moved inside script block so $kay_exit stays in scope; (b) `marker_streaming.rs::streams_multiple_lines_in_order` cfg-gated — Unix variant uses `/tmp` + printf; Windows variant uses `std::env::temp_dir()` + three `Write-Output` cmdlet statements. DCO CI action replaced with inline `git rev-list` shell check (tim-actions/dco crashes with argv overflow on PRs with many commits). Phase 5 entering now with standing autonomous directive.
 progress:
   total_phases: 17
-  completed_phases: 3
-  total_plans: 19
-  completed_plans: 19
+  completed_phases: 4
+  total_plans: 26
+  completed_plans: 26
   percent: 100
 ---
 
