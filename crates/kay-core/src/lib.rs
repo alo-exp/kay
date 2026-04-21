@@ -22,3 +22,8 @@ pub extern crate forge_services;
 // Coverage gate: `event_filter` is enforced at 100%-line + 100%-branch by
 // the `coverage-event-filter` CI job (QG-C4).
 pub mod event_filter;
+
+// LOOP-06 control channel — Pause/Resume/Abort pipe into the Wave 4
+// `tokio::select!` agent loop. See `control.rs` module doc for the full
+// rationale; tests live in `tests/control.rs`.
+pub mod control;
