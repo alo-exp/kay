@@ -5,10 +5,15 @@
 
 pub mod config;
 pub mod error;
+pub mod index;
 pub mod store;
 pub mod transcript;
 
 pub use config::kay_home;
 pub use error::SessionError;
+pub use index::{
+    Session, SessionSummary, SessionStatus,
+    create_session, list_sessions, close_session, resume_session, mark_session_lost,
+};
 pub use store::SessionStore;
 pub use transcript::TranscriptWriter;

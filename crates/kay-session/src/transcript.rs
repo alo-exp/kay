@@ -12,6 +12,7 @@ use crate::error::SessionError;
 ///
 /// I/O errors from `append_event` map to `SessionError::TranscriptDeleted`
 /// per DL-9 (caller marks session "lost" and exits 1).
+#[derive(Debug)]
 pub struct TranscriptWriter {
     file: File,
     path: PathBuf,

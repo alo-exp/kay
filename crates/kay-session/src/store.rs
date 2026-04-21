@@ -7,8 +7,8 @@ use crate::error::SessionError;
 /// Schema version: 1 (see .planning/phases/06-session-store/06-CONTEXT.md)
 /// WAL mode is set on every open; foreign keys enforced via PRAGMA.
 pub struct SessionStore {
-    pub(crate) conn: Connection,
-    pub(crate) sessions_dir: PathBuf,
+    pub conn: Connection,
+    pub sessions_dir: PathBuf,
 }
 
 impl std::fmt::Debug for SessionStore {
@@ -107,5 +107,10 @@ impl SessionStore {
     /// Return the directory that holds per-session subdirectories.
     pub fn sessions_dir(&self) -> &Path {
         &self.sessions_dir
+    }
+
+    /// Return the per-session subdirectory path for the given UUID.
+    pub(crate) fn session_dir(&self, id: &uuid::Uuid) -> PathBuf {
+        self.sessions_dir.join(id.to_string())
     }
 }
