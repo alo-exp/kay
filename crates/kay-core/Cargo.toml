@@ -7,12 +7,41 @@ rust-version.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "Kay's core harness — aggregator re-exporter for forge_* sub-crates (ForgeCode parity baseline at 022ecd994eaec30b519b13348c64ef314f825e21)"
+description = "Kay's core harness — aggregator re-exporter for forge_* sub-crates + Phase 5 agent loop, personas, event filter, and control channel (ForgeCode parity baseline at 022ecd994eaec30b519b13348c64ef314f825e21)"
 
 [dependencies]
+# Phase 2.5 forge_* re-exports (kay-core as aggregator)
 forge_api = { path = "../forge_api" }
 forge_config = { path = "../forge_config" }
 forge_domain = { path = "../forge_domain" }
 forge_json_repair = { path = "../forge_json_repair" }
 forge_repo = { path = "../forge_repo" }
 forge_services = { path = "../forge_services" }
+
+# Phase 5 additions (per .planning/phases/05-agent-loop/05-DEPENDENCIES.md §3.4):
+# - kay-tools: for `AgentEvent` pattern matching in event_filter (QG-C4) + sage_query
+# - tokio/tokio-util/futures: biased `select!` over 4 channels + CancellationToken
+# - async-trait: `Verifier` trait (future-phase real verifier lands here)
+# - serde + serde_yml: persona YAML deserialization (`deny_unknown_fields`)
+# - tracing: structured logging across loop / event_filter / persona
+# - thiserror: persona + loop error types
+kay-tools = { path = "../kay-tools" }
+tokio = { workspace = true }
+tokio-util = { workspace = true }
+futures = { workspace = true }
+async-trait = { workspace = true }
+serde = { workspace = true }
+serde_yml = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+# Phase 5 additions (per .planning/phases/05-agent-loop/05-DEPENDENCIES.md §3.4):
+# - pretty_assertions: clearer diff output in failing tests
+# - tempfile: external persona YAML integration tests (`Persona::from_path`)
+# - proptest: event_filter + select! property coverage (10k cases)
+# - insta: wire-schema + persona deserialization snapshot locking
+pretty_assertions = { workspace = true }
+tempfile = { workspace = true }
+proptest = "1"
+insta = { workspace = true }
