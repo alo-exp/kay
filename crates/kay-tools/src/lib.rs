@@ -22,8 +22,8 @@ pub mod schema;
 pub mod seams;
 
 pub use builtins::{
-    ExecuteCommandsTool, FsReadTool, FsSearchTool, FsWriteTool, ImageReadTool, NetFetchTool,
-    TaskCompleteTool,
+    ExecuteCommandsTool, FsReadTool, FsSearchTool, FsWriteTool, ImageReadTool, InnerAgent,
+    NetFetchTool, NoOpInnerAgent, SageQueryTool, TaskCompleteTool,
 };
 pub use contract::Tool;
 pub use default_set::default_tool_set;

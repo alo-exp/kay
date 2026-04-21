@@ -237,6 +237,40 @@ impl Tool for SageQueryTool {
     }
 }
 
+/// Placeholder inner-agent used by the default factory before the
+/// production OpenRouter-backed `InnerAgent` is wired up (Wave 7).
+///
+/// Returns `ToolError::ExecutionFailed` when invoked — LOUDLY. We do
+/// NOT return an empty `Ok` here because that would let a test or
+/// early-boot `kay run` invocation silently "succeed" at a sage_query
+/// call that actually did no research. An error value with a pointed
+/// message makes the misuse self-documenting in logs.
+///
+/// The struct has zero fields (unit struct) — same shape convention
+/// as `NoOpSandbox` / `NoOpVerifier` in the other two seams. Callers
+/// instantiate via `Arc::new(NoOpInnerAgent)` and hand the `Arc<dyn
+/// InnerAgent>` to `default_tool_set`.
+#[derive(Debug, Default, Clone, Copy)]
+pub struct NoOpInnerAgent;
+
+#[async_trait]
+impl InnerAgent for NoOpInnerAgent {
+    async fn run(
+        &self,
+        _prompt: String,
+        _ctx: ToolCallContext,
+    ) -> Result<ToolOutput, ToolError> {
+        Err(ToolError::ExecutionFailed {
+            tool: ToolName::new("sage_query"),
+            source: anyhow::anyhow!(
+                "NoOpInnerAgent cannot execute sage_query — \
+                 replace with a concrete InnerAgent impl before \
+                 invoking (Wave 7 wires the OpenRouter-backed one)"
+            ),
+        })
+    }
+}
+
 #[cfg(test)]
 #[allow(clippy::unwrap_used, clippy::expect_used)]
 mod tests {

@@ -63,7 +63,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use kay_core::persona::{Persona, PersonaError};
-use kay_tools::{ImageQuota, ToolRegistry, default_tool_set};
+use kay_tools::{ImageQuota, NoOpInnerAgent, ToolRegistry, default_tool_set};
 
 // Launch allowlist fixture — mirrors
 // `crates/kay-provider-openrouter/tests/fixtures/config/allowlist.json`
@@ -86,7 +86,11 @@ const LAUNCH_ALLOWLIST: &[&str] = &[
 fn registry_with_default_tools() -> ToolRegistry {
     let project_root = PathBuf::from("/tmp/persona-test");
     let quota = Arc::new(ImageQuota::new(2, 20));
-    default_tool_set(project_root, quota)
+    // Persona tests validate tool_filter entries resolve against the
+    // registry; they never INVOKE sage_query. NoOpInnerAgent is the
+    // right placeholder — the registered SageQueryTool's schema and
+    // name are all these tests ever probe.
+    default_tool_set(project_root, quota, Arc::new(NoOpInnerAgent))
 }
 
 // -----------------------------------------------------------------------------

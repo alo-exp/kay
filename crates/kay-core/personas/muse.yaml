@@ -23,5 +23,6 @@ tool_filter:
   - fs_read
   - fs_search
   - image_read
+  - sage_query
   - task_complete
 model: anthropic/claude-sonnet-4.6

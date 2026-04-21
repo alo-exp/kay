@@ -12,6 +12,7 @@ Persona {
         "fs_search",
         "image_read",
         "net_fetch",
+        "sage_query",
         "task_complete",
     ],
     model: "anthropic/claude-sonnet-4.6",

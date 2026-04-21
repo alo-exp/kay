@@ -16,8 +16,12 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use kay_tools::{ImageQuota, default_tool_set};
+use kay_tools::{ImageQuota, NoOpInnerAgent, default_tool_set};
 
+// Phase 5 Wave 5: reference set grows from 7 → 8 with the addition of
+// `sage_query`, the forge/muse-callable sub-tool that delegates to
+// sage for focused research. Kept sorted by "registration order" in
+// `default_tool_set` for easy visual diffing vs. source.
 const EXPECTED: &[&str] = &[
     "execute_commands",
     "task_complete",
@@ -26,18 +30,22 @@ const EXPECTED: &[&str] = &[
     "fs_write",
     "fs_search",
     "net_fetch",
+    "sage_query",
 ];
 
 fn build_registry() -> kay_tools::ToolRegistry {
     let quota = Arc::new(ImageQuota::new(2, 20));
-    default_tool_set(PathBuf::from("/tmp"), quota)
+    // NoOpInnerAgent suffices: these tests never invoke sage_query,
+    // they only assert it is REGISTERED. A concrete agent isn't
+    // needed until Wave 7's end-to-end tests.
+    default_tool_set(PathBuf::from("/tmp"), quota, Arc::new(NoOpInnerAgent))
 }
 
 #[test]
-fn default_set_has_seven_tools_with_expected_names() {
+fn default_set_has_eight_tools_with_expected_names() {
     let reg = build_registry();
     let defs = reg.tool_definitions();
-    assert_eq!(defs.len(), 7, "expected 7 tools, got {}", defs.len());
+    assert_eq!(defs.len(), 8, "expected 8 tools, got {}", defs.len());
 
     let mut names: Vec<String> = defs.iter().map(|d| d.name.as_str().to_string()).collect();
     names.sort();

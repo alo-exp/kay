@@ -13,5 +13,5 @@ pub use fs_search::FsSearchTool;
 pub use fs_write::FsWriteTool;
 pub use image_read::ImageReadTool;
 pub use net_fetch::NetFetchTool;
-pub use sage_query::{InnerAgent, SageQueryTool};
+pub use sage_query::{InnerAgent, NoOpInnerAgent, SageQueryTool};
 pub use task_complete::TaskCompleteTool;
