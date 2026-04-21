@@ -192,6 +192,13 @@ subtle = "2.6"
 nix = { version = "0.29", features = ["signal"] }
 tokio-util = { version = "0.7", features = ["rt"] }
 
+# Phase 5 (kay-cli) additions
+# assert_cmd + predicates pair for subprocess E2E tests of the `kay` binary
+# (Wave 7 T7.1: exit codes, JSONL stream, --help parity). Consumer:
+# crates/kay-cli [dev-dependencies] — see .planning/phases/05-agent-loop/05-DEPENDENCIES.md §3.2.
+assert_cmd = "2"
+predicates = "3"
+
 # Platform-specific
 windows-sys = { version = "0.61", features = ["Win32_System_Console", "Win32_System_Threading", "Win32_Security", "Win32_System_JobObjects"] }
 landlock    = "0.4"
