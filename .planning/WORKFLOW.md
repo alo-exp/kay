@@ -9,8 +9,8 @@ Intent: "Phase 5: Agent Loop + Canonical CLI. Headless `kay run --prompt` execut
 Composed: 2026-04-21T21:40:00Z
 Composer: /silver:feature
 Mode: autonomous (§10e; bypass-permissions; never stall; never pause for confirmation)
-Last-path: 10
-Last-beat: 2026-04-21T23:55:00Z
+Last-path: 11-all-waves
+Last-beat: 2026-04-22T02:10:00Z
 
 ## Path Log
 | # | Path | Status | Artifacts Produced | Exit Condition Met |
@@ -26,6 +26,7 @@ Last-beat: 2026-04-21T23:55:00Z
 | 8 | DISCUSS (gsd-discuss-phase) | complete | 05-CONTEXT.md (DL-1..DL-7 locked: parity-fixture REAL, pause=buffer-and-replay, forge_main retained through Phase 10, Paused+Aborted variants added 11→13, events-buffer DEFERRED, REQUIREMENTS traceability fix Wave 7 pre-task commit, ROADMAP Phase 4 checkbox hotfix); ROADMAP.md Phase 4 [x] COMPLETE applied | ✓ all 5 open Qs + 3 INFO items resolved |
 | 9 | ANALYZE-DEPS (gsd-analyze-dependencies) | complete | 05-DEPENDENCIES.md (cross-phase deps Phase 2/3/4; wave DAG refined; external crate map; CI additions {coverage-event-filter job}; 2 new workspace dev-deps {assert_cmd, predicates}; kay-core + kay-cli Cargo.toml additions enumerated; 8 dependency invariants for planner) | ✓ no cycles; no scope creep into frozen Phase 4 crates |
 | 10 | PLAN (gsd-plan-phase) | complete | 05-PLAN.md (71 atomic tasks across 7 waves; 1 task = 1 DCO-signed commit; RED→GREEN→REFACTOR cadence per TDD; full REQ traceability LOOP-01..06 + CLI-01/03/04/05/07 + R-1 + R-2; 23 snapshot artifacts {17 wire → 18 after T6b.4 + 3 persona + 3 trybuild stderr}; wave exit gates; risk mitigation ownership table; deviation protocol; parallelism hints for gsd-autonomous dispatch) | ✓ goal-backward trace complete; all 11 REQs + 2 residuals covered; executable by gsd-autonomous |
+| 11 | EXECUTE (all 7 waves, TDD) | complete | 64 DCO-signed commits on phase/05-agent-loop (aef775d..031c5f3). Wave 1: AgentEventWire + Paused/Aborted variants + 21 insta snapshots. Wave 2: event_filter QG-C4 (100% coverage CI gate) + ControlMsg channel + SIGINT handler. Wave 3: Persona serde (deny_unknown_fields) + forge/sage/muse bundled YAMLs + Persona::load + from_path. Wave 4: run_turn biased select! (control>input>tool>model) + task_complete verify gate + dispatcher integration + Pause/Resume/Abort state machine + select-arm refactor. Wave 5: sage_query sub-tool with nesting_depth guard + threading through ToolCallContext + default_tool_set registration + sage YAML regression. Wave 6: R-1 PTY tokenizer ([\s;\|&]) + R-2 ImageReadTool max_image_bytes cap + trybuild canaries + .fail.rs fixtures. Wave 7: kay-cli crate (clap derives for kay run + interactive fallback, banner/prompt/help ports, exit codes 0/1/2/3/130, reedline REPL, forgecode-parity fixtures + capture script, forge_main retention description) | ✓ all 64 commits atomic + DCO-signed; kay-cli E2E 9/9 green; kay-tools + kay-core full suites green; clippy -D warnings clean; variant count=13; QG-C4 100% coverage enforced in CI; CLI-07 parity-diff GREEN against forgecode-parity-baseline tag |
 
 ## Skipped Paths
 | Path | Reason |
