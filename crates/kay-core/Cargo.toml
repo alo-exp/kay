@@ -26,6 +26,12 @@ forge_services = { path = "../forge_services" }
 # - tracing: structured logging across loop / event_filter / persona
 # - thiserror: persona + loop error types
 kay-tools = { path = "../kay-tools" }
+# Phase 5 Wave 4 T4.2 promoted kay-provider-errors from dev-dep to runtime
+# dep because `kay_core::r#loop::RunTurnArgs::model_rx` carries
+# `Result<AgentEvent, ProviderError>` in its public API. Kept out of the
+# re-export surface (loop module uses it internally) — callers that need
+# it continue to import from `kay_provider_errors` directly.
+kay-provider-errors = { path = "../kay-provider-errors" }
 tokio = { workspace = true }
 tokio-util = { workspace = true }
 futures = { workspace = true }
@@ -41,13 +47,14 @@ thiserror = { workspace = true }
 # - tempfile: external persona YAML integration tests (`Persona::from_path`)
 # - proptest: event_filter + select! property coverage (10k cases)
 # - insta: wire-schema + persona deserialization snapshot locking
-# - kay-provider-errors: ProviderError/RetryReason test fixtures (event_filter tests)
 # - serde_json: JSON fixtures for ToolCallComplete.arguments in tests
 # - tokio (test-util): `tokio::test` + mpsc in control + loop integration tests
+#
+# Note: `kay-provider-errors` moved to [dependencies] in T4.2 because the
+# public API of `kay_core::r#loop::RunTurnArgs` now references `ProviderError`.
 pretty_assertions = { workspace = true }
 tempfile = { workspace = true }
 proptest = "1"
 insta = { workspace = true }
-kay-provider-errors = { path = "../kay-provider-errors" }
 serde_json = { workspace = true }
 tokio = { workspace = true, features = ["macros", "test-util", "rt-multi-thread"] }

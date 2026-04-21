@@ -39,8 +39,8 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use kay_core::control::control_channel;
-use kay_core::persona::Persona;
 use kay_core::r#loop::{RunTurnArgs, run_turn};
+use kay_core::persona::Persona;
 use kay_provider_errors::ProviderError;
 use kay_tools::AgentEvent;
 use tokio::sync::mpsc;
@@ -61,9 +61,7 @@ async fn run_turn_single_turn_happy_path() {
     // select! sees the stream-close branch without racing — the
     // value is already buffered, and recv() returns None after.
     model_tx
-        .send(Ok(AgentEvent::TextDelta {
-            content: "hello kay".into(),
-        }))
+        .send(Ok(AgentEvent::TextDelta { content: "hello kay".into() }))
         .await
         .expect("buffered send into capacity-32 channel");
     drop(model_tx);

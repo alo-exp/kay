@@ -32,3 +32,12 @@ pub mod control;
 // for `forge` / `sage` / `muse` agent profiles. See `persona.rs` module
 // doc; tests live in `tests/persona.rs`.
 pub mod persona;
+
+// LOOP-01 / LOOP-05 / LOOP-06 agent loop — `run_turn` drives one turn
+// via a biased `tokio::select!` over control / input / tool / model
+// channels. Module named `r#loop` because `loop` is a Rust keyword;
+// the `loop.rs` file path and `r#loop` path segment are both per
+// PLAN.md Wave 4 T4.2. See `loop.rs` module doc; tests live in
+// `tests/loop.rs`, `tests/loop_dispatcher_integration.rs`, and
+// `tests/loop_property.rs`.
+pub mod r#loop;
