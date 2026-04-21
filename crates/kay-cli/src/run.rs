@@ -154,6 +154,12 @@ pub struct RunArgs {
     /// integration test.)
     #[arg(long, value_name = "PATH")]
     pub persona: Option<PathBuf>,
+
+    /// Resume an existing session by its UUID. Loads the transcript
+    /// cursor from sessions.db and appends new events to the existing
+    /// session (SESS-03). Absent = create a new session.
+    #[arg(long, value_name = "SESSION_ID")]
+    pub resume: Option<uuid::Uuid>,
 }
 
 /// Entry-point dispatched from `main.rs` on the `Run` subcommand.
