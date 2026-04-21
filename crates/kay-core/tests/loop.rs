@@ -108,6 +108,8 @@ async fn run_turn_single_turn_happy_path() {
     // the fields are required. An empty registry + a context with
     // a no-op sink is sufficient; the sink is never called.
     let registry = Arc::new(ToolRegistry::new());
+    // nesting_depth = 0: these are top-level turns. sage_query depth
+    // threading is tested in `crates/kay-tools/tests/sage_query.rs`.
     let tool_ctx = ToolCallContext::new(
         Arc::new(NullServices),
         Arc::new(|_| {}),
@@ -115,6 +117,7 @@ async fn run_turn_single_turn_happy_path() {
         CancellationToken::new(),
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
+        0,
     );
 
     // ── Spawn the loop ──────────────────────────────────────────
@@ -227,6 +230,8 @@ async fn task_complete_does_not_terminate_on_pending_verification() {
 
     let persona = Persona::load("forge").expect("bundled forge persona loads");
     let registry = Arc::new(ToolRegistry::new());
+    // nesting_depth = 0: these are top-level turns. sage_query depth
+    // threading is tested in `crates/kay-tools/tests/sage_query.rs`.
     let tool_ctx = ToolCallContext::new(
         Arc::new(NullServices),
         Arc::new(|_| {}),
@@ -234,6 +239,7 @@ async fn task_complete_does_not_terminate_on_pending_verification() {
         CancellationToken::new(),
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
+        0,
     );
 
     let handle = tokio::spawn(run_turn(RunTurnArgs {
@@ -332,6 +338,8 @@ async fn task_complete_on_verifier_pass_terminates_loop() {
 
     let persona = Persona::load("forge").expect("bundled forge persona loads");
     let registry = Arc::new(ToolRegistry::new());
+    // nesting_depth = 0: these are top-level turns. sage_query depth
+    // threading is tested in `crates/kay-tools/tests/sage_query.rs`.
     let tool_ctx = ToolCallContext::new(
         Arc::new(NullServices),
         Arc::new(|_| {}),
@@ -339,6 +347,7 @@ async fn task_complete_on_verifier_pass_terminates_loop() {
         CancellationToken::new(),
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
+        0,
     );
 
     let handle = tokio::spawn(run_turn(RunTurnArgs {
@@ -464,6 +473,8 @@ async fn control_pause_buffers_then_resume_replays() {
 
     let persona = Persona::load("forge").expect("bundled forge persona loads");
     let registry = Arc::new(ToolRegistry::new());
+    // nesting_depth = 0: these are top-level turns. sage_query depth
+    // threading is tested in `crates/kay-tools/tests/sage_query.rs`.
     let tool_ctx = ToolCallContext::new(
         Arc::new(NullServices),
         Arc::new(|_| {}),
@@ -471,6 +482,7 @@ async fn control_pause_buffers_then_resume_replays() {
         CancellationToken::new(),
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
+        0,
     );
 
     let handle = tokio::spawn(run_turn(RunTurnArgs {
@@ -601,6 +613,8 @@ async fn control_abort_emits_aborted_event_and_exits() {
 
     let persona = Persona::load("forge").expect("bundled forge persona loads");
     let registry = Arc::new(ToolRegistry::new());
+    // nesting_depth = 0: these are top-level turns. sage_query depth
+    // threading is tested in `crates/kay-tools/tests/sage_query.rs`.
     let tool_ctx = ToolCallContext::new(
         Arc::new(NullServices),
         Arc::new(|_| {}),
@@ -608,6 +622,7 @@ async fn control_abort_emits_aborted_event_and_exits() {
         CancellationToken::new(),
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
+        0,
     );
 
     let handle = tokio::spawn(run_turn(RunTurnArgs {
@@ -697,6 +712,8 @@ async fn control_double_abort_is_idempotent() {
 
     let persona = Persona::load("forge").expect("bundled forge persona loads");
     let registry = Arc::new(ToolRegistry::new());
+    // nesting_depth = 0: these are top-level turns. sage_query depth
+    // threading is tested in `crates/kay-tools/tests/sage_query.rs`.
     let tool_ctx = ToolCallContext::new(
         Arc::new(NullServices),
         Arc::new(|_| {}),
@@ -704,6 +721,7 @@ async fn control_double_abort_is_idempotent() {
         CancellationToken::new(),
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
+        0,
     );
 
     let handle = tokio::spawn(run_turn(RunTurnArgs {

@@ -156,6 +156,7 @@ fn drive_loop(
 
         let persona = Persona::load("forge").expect("bundled forge persona loads");
         let registry = Arc::new(ToolRegistry::new());
+        // nesting_depth = 0: proptest fixture is a top-level turn.
         let tool_ctx = ToolCallContext::new(
             Arc::new(NullServices),
             Arc::new(|_| {}),
@@ -163,6 +164,7 @@ fn drive_loop(
             CancellationToken::new(),
             Arc::new(NoOpSandbox),
             Arc::new(NoOpVerifier),
+            0,
         );
 
         let handle = tokio::spawn(run_turn(RunTurnArgs {

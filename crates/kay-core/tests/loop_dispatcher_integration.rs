@@ -175,6 +175,7 @@ async fn loop_plus_dispatcher_invokes_registered_tool() {
             .try_send(ev)
             .expect("event channel has capacity; test emits exactly one tool event");
     });
+    // nesting_depth = 0: this integration test is a top-level turn.
     let tool_ctx = ToolCallContext::new(
         Arc::new(NullServices),
         stream_sink,
@@ -182,6 +183,7 @@ async fn loop_plus_dispatcher_invokes_registered_tool() {
         CancellationToken::new(),
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
+        0,
     );
 
     // ── Mock provider: one ToolCallComplete frame, then close ───────

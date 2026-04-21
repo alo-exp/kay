@@ -79,6 +79,9 @@ pub fn make_ctx_with_services(log: EventLog, services: Arc<dyn ServicesHandle>) 
             guard.push(ev);
         }
     });
+    // nesting_depth = 0: tests in kay-tools are all top-level invocations
+    // (sage_query's depth-threading logic is tested independently in
+    // crates/kay-tools/tests/sage_query.rs with explicit depths).
     ToolCallContext::new(
         services,
         sink,
@@ -86,6 +89,7 @@ pub fn make_ctx_with_services(log: EventLog, services: Arc<dyn ServicesHandle>) 
         CancellationToken::new(),
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
+        0,
     )
 }
 
@@ -105,5 +109,6 @@ pub fn make_ctx_with_quota(log: EventLog, quota: Arc<ImageQuota>) -> ToolCallCon
         CancellationToken::new(),
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
+        0,
     )
 }
