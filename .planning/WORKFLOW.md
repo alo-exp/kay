@@ -9,8 +9,8 @@ Intent: "Phase 5: Agent Loop + Canonical CLI. Headless `kay run --prompt` execut
 Composed: 2026-04-21T21:40:00Z
 Composer: /silver:feature
 Mode: autonomous (§10e; bypass-permissions; never stall; never pause for confirmation)
-Last-path: 15-nyquist
-Last-beat: 2026-04-22T03:14:00Z
+Last-path: 16-quality-gates-adversarial
+Last-beat: 2026-04-22T03:42:00Z
 
 ## Path Log
 | # | Path | Status | Artifacts Produced | Exit Condition Met |
@@ -32,6 +32,7 @@ Last-beat: 2026-04-22T03:14:00Z
 | 14 | SECURE + SECURITY (silver:security + gsd-secure-phase, consolidated) | complete | 05-SECURITY.md (status=passed; 9/9 threats closed: T-3-06 NoOpVerifier, QG-C4 event_filter, T-5-01..T-5-07; ASVS L2 posture; 840 deps audited, 0 vulns; 0 unsafe blocks; 0 secret leaks; 2 LOW + 1 INFO non-gating); committed 2789c66 | ✓ zero blockers; ASVS L2 fully met |
 | 15 | NYQUIST (gsd-validate-phase) | complete | 05-NYQUIST.md (status=passed; 14 REQs audited; 4 gaps filled with 9 tests across 4 files: GAP-A R-2 N±1 boundary, GAP-B QG-C4 review-guard trip-wire, GAP-C CLI-07 negative parity-diff, GAP-D LOOP-06 Pause+ToolCallComplete no-re-dispatch-on-replay; test_suite_after 236 passed / 0 failed / 1 ignored; 0 production-code changes); commits 0681a8a, 295918c, 579facd, ed57d9d | ✓ all 14 boundaries sampled ≥ 2× variation rate; zero BLOCKER gaps |
 | 15.5 | SIDE-BRANCH chore/forge-app-template-partial | complete (separate stream) | 9 handlebars templates vendored to templates/ from upstream SHA 022ecd9; forge_app 614→653 tests (39 pre-existing failures fixed); commit d1939a1 on chore branch; phase/05-agent-loop HEAD unchanged | ✓ off-phase fix for I-05-01 REVIEW finding; not merged into Phase 5 per explicit user directive |
+| 16 | QUALITY-GATES-ADVERSARIAL (silver:quality-gates; pre-ship mode) | complete | 05-QUALITY-GATES-ADVERSARIAL.md (Step 0 auto-detect: PLAN.md + VERIFICATION.md status=passed → adversarial; 9/9 PASS Modularity+Reusability+Scalability+Security+Reliability+Usability+Testability+Extensibility+AI/LLM-Safety; 0 failures requiring redesign; 3 INFO non-gating: INFO-01 pause-buffer unbounded→Phase 10, INFO-02 no-circuit-breaker→Phase 6, INFO-03 select-arm 5-ceiling→Phase 6+; commit_range 1ae2a7f..ba18dcb; 73 commits audited; 0 unsafe + 0 vulns across 840 deps); committed 6f6b106 | ✓ Overall PASS; Phase 5 cleared for Step 14-15 shipping |
 
 ## Skipped Paths
 | Path | Reason |
