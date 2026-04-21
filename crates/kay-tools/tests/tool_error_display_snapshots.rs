@@ -39,7 +39,9 @@ fn snap_image_too_large_display() {
     let err = ToolError::ImageTooLarge {
         path: "/tmp/evil-20gb.img".to_string(),
         actual_size: 2 * 1024 * 1024,
-        cap: 1 * 1024 * 1024,
+        // 1 MiB, written as `1024 * 1024` rather than `1 * 1024 * 1024`
+        // so `clippy::identity_op` stays silent under `-D warnings`.
+        cap: 1024 * 1024,
     };
     insta::assert_snapshot!(err.to_string());
 }
