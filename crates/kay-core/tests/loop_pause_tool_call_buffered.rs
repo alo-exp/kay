@@ -174,6 +174,21 @@ impl ServicesHandle for NullServices {
     }
 }
 
+/// The 5-tuple returned by `spawn_turn_with_counting_tool`.
+///
+/// Aliased to keep clippy::type_complexity quiet — the
+/// signature is a deliberate test-only harness bundle, not a
+/// production surface, and factoring it into a named type
+/// makes call sites read as `let (handle, model_tx, ctl_tx,
+/// event_rx, dispatch_count) = spawn_turn_with_counting_tool(...)`.
+type TurnHarness = (
+    tokio::task::JoinHandle<Result<(), kay_core::r#loop::LoopError>>,
+    mpsc::Sender<Result<AgentEvent, ProviderError>>,
+    mpsc::Sender<ControlMsg>,
+    mpsc::Receiver<AgentEvent>,
+    Arc<AtomicUsize>,
+);
+
 /// Shared turn wiring so each test reads as "set up, act, assert"
 /// rather than 50 lines of boilerplate. Returns the handle to the
 /// spawned `run_turn` plus the receiver side of every channel the
@@ -185,15 +200,7 @@ impl ServicesHandle for NullServices {
 /// observes) and `sink_tx` (what the tool forwards its
 /// ToolOutput through) — they are the same underlying channel,
 /// so both streams land in the same drain.
-fn spawn_turn_with_counting_tool(
-    tool_name: &'static str,
-) -> (
-    tokio::task::JoinHandle<Result<(), kay_core::r#loop::LoopError>>,
-    mpsc::Sender<Result<AgentEvent, ProviderError>>,
-    mpsc::Sender<ControlMsg>,
-    mpsc::Receiver<AgentEvent>,
-    Arc<AtomicUsize>,
-) {
+fn spawn_turn_with_counting_tool(tool_name: &'static str) -> TurnHarness {
     let (model_tx, model_rx) = mpsc::channel::<Result<AgentEvent, ProviderError>>(32);
     let (ctl_tx, control_rx) = control_channel();
     let (event_tx, event_rx) = mpsc::channel::<AgentEvent>(32);
@@ -353,7 +360,7 @@ async fn tool_call_during_pause_is_buffered_no_dispatch_no_output() {
     // Drain any remaining events (Paused + maybe Aborted if the
     // abort arm raced the buffered frame) — they go to the sink
     // before the loop drops event_tx on exit.
-    let _join = tokio::time::timeout(Duration::from_millis(500), handle)
+    tokio::time::timeout(Duration::from_millis(500), handle)
         .await
         .expect("run_turn must exit within 500ms of Abort")
         .expect("run_turn task joined cleanly")
@@ -513,7 +520,7 @@ async fn tool_call_resume_replay_does_not_re_run_dispatch() {
         .send(ControlMsg::Abort)
         .await
         .expect("Abort accepted");
-    let _join = tokio::time::timeout(Duration::from_millis(500), handle)
+    tokio::time::timeout(Duration::from_millis(500), handle)
         .await
         .expect("run_turn must exit within 500ms of Abort")
         .expect("run_turn task joined cleanly")
