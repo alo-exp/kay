@@ -30,6 +30,22 @@ pub enum ToolError {
     #[error("tool not found: {tool:?}")]
     NotFound { tool: ToolName },
 
+    /// `sage_query` was invoked at a nesting depth that would push the
+    /// sub-turn beyond the configured ceiling (Phase 5 LOOP-03 — max 2
+    /// levels of agent recursion). Belt + suspenders: sage's YAML
+    /// `tool_filter` already excludes `sage_query`, but if that
+    /// exclusion ever drifts, this runtime guard catches the recursion
+    /// before the sub-turn spawns.
+    ///
+    /// `depth` is the PARENT context's nesting_depth at the time of
+    /// the rejected invoke. `limit` is the inclusive maximum (parent
+    /// depth must be `< limit`). The sage_query tool rejects when
+    /// `depth >= limit` — i.e. the inner sub-turn would be at depth
+    /// `limit + 1`. Default limit is 2 (configured inside the
+    /// `sage_query` builtin).
+    #[error("sage_query nesting depth {depth} exceeds limit {limit}")]
+    NestingDepthExceeded { depth: u8, limit: u8 },
+
     #[error(transparent)]
     Io(#[from] std::io::Error),
 }
