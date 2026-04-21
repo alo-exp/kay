@@ -7,7 +7,7 @@ rust-version.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "ForgeCode CLI entry point (will be rebranded to kay-cli in Phase 5)"
+description = "Legacy ForgeCode CLI retained for binary-preservation through Phase 10; the canonical kay-cli surface lives at crates/kay-cli (Phase 5 Wave 7, DL-3)"
 
 [[bin]]
 name = "forge"
