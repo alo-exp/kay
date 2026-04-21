@@ -71,11 +71,11 @@ Requirements for initial release. Each maps to a roadmap phase.
 
 ### Session Store (SESS)
 
-- [ ] **SESS-01**: JSONL transcript as source of truth; SQLite index for lookup/resume
-- [ ] **SESS-02**: Pre-edit snapshots enable single-step rewind within a session
-- [ ] **SESS-03**: Session resume by ID restores full transcript + cursor position
-- [ ] **SESS-04**: `parent_session_id` column reserved in SQLite schema from v1 (for v2 multi-agent orchestration)
-- [ ] **SESS-05**: Session export as self-contained JSONL for reproducibility and benchmark submission
+- [x] **SESS-01**: JSONL transcript as source of truth; SQLite index for lookup/resume
+- [x] **SESS-02**: Pre-edit snapshots enable single-step rewind within a session
+- [x] **SESS-03**: Session resume by ID restores full transcript + cursor position
+- [x] **SESS-04**: `parent_session_id` column reserved in SQLite schema from v1 (for v2 multi-agent orchestration)
+- [x] **SESS-05**: Session export as self-contained JSONL for reproducibility and benchmark submission
 
 ### Context Engine (CTX)
 
@@ -116,7 +116,7 @@ Requirements for initial release. Each maps to a roadmap phase.
 Kay CLI is the **canonical user-facing surface** and the contract GUI/TUI frontends consume. Rebrands + extends ForgeCode's `forge_main` (imported during Phase 1) — its interactive mode inherits completer, editor, banner, stream-renderer, and syntax highlighter from upstream.
 
 - [ ] **CLI-01**: `kay` CLI preserves headless non-interactive mode for CI and TB 2.0 submission
-- [ ] **CLI-02**: CLI supports session import/export and replay
+- [x] **CLI-02**: CLI supports session import/export and replay
 - [ ] **CLI-03**: CLI exit codes reflect task success/failure/sandbox-violation cleanly
 - [ ] **CLI-04**: `kay-cli` crate rebrands `forge_main`: renames the binary to `kay`, rewrites banners/help text to Kay, preserves all inherited interactive behaviors (completer, editor, stream-renderer, syntax highlighter) without regression against the `forgecode-parity-baseline` tag
 - [ ] **CLI-05**: Structured-event output mode (`--events jsonl` or equivalent) streams every agent event to stdout in a stable JSONL contract consumed by both `kay-tui` and `kay-tauri`
@@ -250,12 +250,12 @@ Every v1 requirement maps to exactly one phase. Populated by the gsd-roadmapper 
 | CLI-04 | Phase 5 | Pending |
 | CLI-05 | Phase 5 | Pending |
 | CLI-07 | Phase 5 | Pending |
-| SESS-01 | Phase 6 | Pending |
-| SESS-02 | Phase 6 | Pending |
-| SESS-03 | Phase 6 | Pending |
-| SESS-04 | Phase 6 | Pending |
-| SESS-05 | Phase 6 | Pending |
-| CLI-02 | Phase 6 | Pending |
+| SESS-01 | Phase 6 | Complete — PR #12 |
+| SESS-02 | Phase 6 | Complete — PR #12 |
+| SESS-03 | Phase 6 | Complete — PR #12 |
+| SESS-04 | Phase 6 | Complete — PR #12 |
+| SESS-05 | Phase 6 | Complete — PR #12 |
+| CLI-02 | Phase 6 | Complete — PR #12 |
 | CTX-01 | Phase 7 | Pending |
 | CTX-02 | Phase 7 | Pending |
 | CTX-03 | Phase 7 | Pending |
