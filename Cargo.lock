@@ -4412,6 +4412,7 @@ dependencies = [
 name = "kay-core"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "async-trait",
  "forge_api",
  "forge_config",
