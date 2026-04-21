@@ -7,7 +7,7 @@ pub mod net_fetch;
 pub mod sage_query;
 pub mod task_complete;
 
-pub use execute_commands::ExecuteCommandsTool;
+pub use execute_commands::{ExecuteCommandsTool, should_use_pty};
 pub use fs_read::FsReadTool;
 pub use fs_search::FsSearchTool;
 pub use fs_write::FsWriteTool;

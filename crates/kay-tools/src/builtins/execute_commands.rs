@@ -128,20 +128,99 @@ impl ExecuteCommandsTool {
 }
 
 /// Heuristic: which commands should transparently engage a PTY? True when
-/// `tty_flag` is set explicitly OR the first-token basename is in the
-/// denylist (SHELL-02). Public only at `pub(crate)` — exposed for unit tests.
-pub(crate) fn should_use_pty(command: &str, tty_flag: bool) -> bool {
+/// `tty_flag` is set explicitly OR *any* shell-level token's basename is
+/// in the denylist (SHELL-02 + R-1). Public for integration testing — the
+/// heuristic is behavior-frozen by `crates/kay-tools/tests/execute_commands_r1.rs`.
+///
+/// # R-1 tokenization (Phase 3 residual, closed in Phase 5 Wave 6a)
+///
+/// The first-token-only form used in Phase 3 missed compound commands
+/// like `cd /tmp; vim file`, `git log | less`, and `make && htop`
+/// because the first whitespace-separated token was not PTY-requiring.
+/// We now walk every token produced by [`split_shell_tokens`], which
+/// splits on `[\s;|&]+` while respecting `"…"`, `'…'` quoted runs and
+/// `\`-escapes. The basename check then matches any token, not just
+/// the first.
+///
+/// The tokenizer is intentionally not a full POSIX shell lexer — it
+/// sees just enough structure to stop a PTY-requiring command from
+/// slipping through on the right-hand side of a compound form. Real
+/// shell evaluation still happens in `sh -c` / `powershell -Command`.
+pub fn should_use_pty(command: &str, tty_flag: bool) -> bool {
     if tty_flag {
         return true;
     }
-    let Some(first) = command.split_whitespace().next() else {
-        return false;
-    };
-    let basename = Path::new(first)
-        .file_stem()
-        .and_then(|s| s.to_str())
-        .unwrap_or(first);
-    PTY_REQUIRING_FIRST_TOKENS.contains(&basename)
+    for token in split_shell_tokens(command) {
+        let basename = Path::new(token.as_str())
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or(token.as_str());
+        if PTY_REQUIRING_FIRST_TOKENS.contains(&basename) {
+            return true;
+        }
+    }
+    false
+}
+
+/// Quote-aware splitter on `[\s;|&]+`.
+///
+/// - Content inside a `"…"` or `'…'` matched run stays in one token;
+///   separator characters inside are inert.
+/// - A `\` outside quotes (and outside single-quotes) escapes the next
+///   character literally — matching the `sh -c` command that
+///   `execute_commands` ultimately invokes.
+/// - Runs of separator characters collapse; empty tokens are never
+///   emitted.
+///
+/// Not a full POSIX lexer: `$var`, backticks, subshells, here-docs and
+/// mismatched quotes are passed through character-by-character. That
+/// is deliberate — the goal is PTY-heuristic robustness, not complete
+/// shell parsing.
+fn split_shell_tokens(cmd: &str) -> Vec<String> {
+    let mut tokens = Vec::new();
+    let mut cur = String::new();
+    let mut in_single = false;
+    let mut in_double = false;
+    let mut escaped = false;
+
+    for ch in cmd.chars() {
+        if escaped {
+            cur.push(ch);
+            escaped = false;
+            continue;
+        }
+        if in_single {
+            if ch == '\'' {
+                in_single = false;
+            } else {
+                cur.push(ch);
+            }
+            continue;
+        }
+        if in_double {
+            match ch {
+                '"' => in_double = false,
+                '\\' => escaped = true,
+                _ => cur.push(ch),
+            }
+            continue;
+        }
+        match ch {
+            '\\' => escaped = true,
+            '\'' => in_single = true,
+            '"' => in_double = true,
+            c if c.is_whitespace() || c == ';' || c == '|' || c == '&' => {
+                if !cur.is_empty() {
+                    tokens.push(std::mem::take(&mut cur));
+                }
+            }
+            _ => cur.push(ch),
+        }
+    }
+    if !cur.is_empty() {
+        tokens.push(cur);
+    }
+    tokens
 }
 
 #[async_trait]
