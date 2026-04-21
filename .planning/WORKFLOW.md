@@ -30,6 +30,7 @@ Last-beat: 2026-04-22T10:00:00Z
 | 14 | NYQUIST | complete | 06-NYQUIST.md (50 tests / 23 public APIs, all critical paths covered) | ✓ PASS |
 | 15 | QUALITY-GATES-SHIP | complete | 06-QUALITY-GATES-SHIP.md (9/9 adversarial dimensions PASS; 2 backlog issues #10 #11 filed) | ✓ all 9 PASS |
 | 16 | SHIP | complete | branch pushed, PR ready for creation | ✓ |
+| 17 | EPISODIC-MEMORY | complete | memory/project_kay_phase6_session_store.md (rusqlite 0.38 lock, DL-5/7/8/9, E-2 pattern, borrow fix, trybuild ignore rationale) | ✓ |
 
 ## Skipped Paths
 | Path | Reason |
