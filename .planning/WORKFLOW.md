@@ -9,8 +9,8 @@ Intent: "Phase 5: Agent Loop + Canonical CLI. Headless `kay run --prompt` execut
 Composed: 2026-04-21T21:40:00Z
 Composer: /silver:feature
 Mode: autonomous (§10e; bypass-permissions; never stall; never pause for confirmation)
-Last-path: 12-verify-work
-Last-beat: 2026-04-22T02:28:00Z
+Last-path: 15-nyquist
+Last-beat: 2026-04-22T03:14:00Z
 
 ## Path Log
 | # | Path | Status | Artifacts Produced | Exit Condition Met |
@@ -28,6 +28,10 @@ Last-beat: 2026-04-22T02:28:00Z
 | 10 | PLAN (gsd-plan-phase) | complete | 05-PLAN.md (71 atomic tasks across 7 waves; 1 task = 1 DCO-signed commit; RED→GREEN→REFACTOR cadence per TDD; full REQ traceability LOOP-01..06 + CLI-01/03/04/05/07 + R-1 + R-2; 23 snapshot artifacts {17 wire → 18 after T6b.4 + 3 persona + 3 trybuild stderr}; wave exit gates; risk mitigation ownership table; deviation protocol; parallelism hints for gsd-autonomous dispatch) | ✓ goal-backward trace complete; all 11 REQs + 2 residuals covered; executable by gsd-autonomous |
 | 11 | EXECUTE (all 7 waves, TDD) | complete | 64 DCO-signed commits on phase/05-agent-loop (aef775d..031c5f3). Wave 1: AgentEventWire + Paused/Aborted variants + 21 insta snapshots. Wave 2: event_filter QG-C4 (100% coverage CI gate) + ControlMsg channel + SIGINT handler. Wave 3: Persona serde (deny_unknown_fields) + forge/sage/muse bundled YAMLs + Persona::load + from_path. Wave 4: run_turn biased select! (control>input>tool>model) + task_complete verify gate + dispatcher integration + Pause/Resume/Abort state machine + select-arm refactor. Wave 5: sage_query sub-tool with nesting_depth guard + threading through ToolCallContext + default_tool_set registration + sage YAML regression. Wave 6: R-1 PTY tokenizer ([\s;\|&]) + R-2 ImageReadTool max_image_bytes cap + trybuild canaries + .fail.rs fixtures. Wave 7: kay-cli crate (clap derives for kay run + interactive fallback, banner/prompt/help ports, exit codes 0/1/2/3/130, reedline REPL, forgecode-parity fixtures + capture script, forge_main retention description) | ✓ all 64 commits atomic + DCO-signed; kay-cli E2E 9/9 green; kay-tools + kay-core full suites green; clippy -D warnings clean; variant count=13; QG-C4 100% coverage enforced in CI; CLI-07 parity-diff GREEN against forgecode-parity-baseline tag |
 | 12 | VERIFY-WORK (gsd-verify-work) | complete | 05-VERIFICATION.md (status=passed; 8/8 ROADMAP criteria + 11/11 REQs + 2/2 residuals + 7/7 wave gates + 7/7 DLs; 1 auto-fix landed as 63e2b27 clippy::identity_op; 2 deviations documented: variant 13→14 additive undercount, cargo serial-mode transient stall); committed d69c8fa | ✓ zero blockers; DCO + ED25519 signed; Steps 9-16 unblocked |
+| 13 | CODE-REVIEW (gsd-code-review) | complete | 05-REVIEW.md (recommendation=PASS; 0 blockers/critical/high/medium; 2 LOW + 3 INFO non-gating; commit_range 1ae2a7f..8432c87; 68 commits); committed af707d6 | ✓ zero gating findings; non-blocking items owned by future phases |
+| 14 | SECURE + SECURITY (silver:security + gsd-secure-phase, consolidated) | complete | 05-SECURITY.md (status=passed; 9/9 threats closed: T-3-06 NoOpVerifier, QG-C4 event_filter, T-5-01..T-5-07; ASVS L2 posture; 840 deps audited, 0 vulns; 0 unsafe blocks; 0 secret leaks; 2 LOW + 1 INFO non-gating); committed 2789c66 | ✓ zero blockers; ASVS L2 fully met |
+| 15 | NYQUIST (gsd-validate-phase) | complete | 05-NYQUIST.md (status=passed; 14 REQs audited; 4 gaps filled with 9 tests across 4 files: GAP-A R-2 N±1 boundary, GAP-B QG-C4 review-guard trip-wire, GAP-C CLI-07 negative parity-diff, GAP-D LOOP-06 Pause+ToolCallComplete no-re-dispatch-on-replay; test_suite_after 236 passed / 0 failed / 1 ignored; 0 production-code changes); commits 0681a8a, 295918c, 579facd, ed57d9d | ✓ all 14 boundaries sampled ≥ 2× variation rate; zero BLOCKER gaps |
+| 15.5 | SIDE-BRANCH chore/forge-app-template-partial | complete (separate stream) | 9 handlebars templates vendored to templates/ from upstream SHA 022ecd9; forge_app 614→653 tests (39 pre-existing failures fixed); commit d1939a1 on chore branch; phase/05-agent-loop HEAD unchanged | ✓ off-phase fix for I-05-01 REVIEW finding; not merged into Phase 5 per explicit user directive |
 
 ## Skipped Paths
 | Path | Reason |
