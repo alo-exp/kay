@@ -110,6 +110,36 @@ pub fn record_snapshot(
     Ok(())
 }
 
+/// List original paths that would be restored by `rewind`, without restoring.
+///
+/// Returns the set of original_path values for the most recent snapshot of
+/// each tracked file. Empty vec means no snapshots exist (not an error).
+pub fn list_rewind_paths(
+    store: &SessionStore,
+    session_id: &Uuid,
+) -> Result<Vec<PathBuf>, SessionError> {
+    let mut stmt = store.conn.prepare(
+        "SELECT s.original_path
+         FROM snapshots s
+         INNER JOIN (
+             SELECT original_path, MAX(turn) AS max_turn
+             FROM snapshots
+             WHERE session_id = ?1
+             GROUP BY original_path
+         ) latest ON s.original_path = latest.original_path AND s.turn = latest.max_turn
+         WHERE s.session_id = ?1",
+    )?;
+
+    let paths: Vec<PathBuf> = stmt
+        .query_map(rusqlite::params![session_id.to_string()], |r| {
+            Ok(PathBuf::from(r.get::<_, String>(0)?))
+        })?
+        .filter_map(|r| r.ok())
+        .collect();
+
+    Ok(paths)
+}
+
 /// Restore the most recent snapshot for each tracked file in a session.
 ///
 /// For each distinct original_path in the snapshots table, selects the

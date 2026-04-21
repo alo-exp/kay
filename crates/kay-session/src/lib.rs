@@ -19,6 +19,6 @@ pub use index::{
     Session, SessionSummary, SessionStatus,
     create_session, list_sessions, close_session, resume_session, mark_session_lost,
 };
-pub use snapshot::SessConfig;
+pub use snapshot::{SessConfig, list_rewind_paths};
 pub use store::SessionStore;
 pub use transcript::TranscriptWriter;

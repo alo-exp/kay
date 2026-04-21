@@ -225,7 +225,7 @@ pub fn execute(args: RunArgs) -> anyhow::Result<ExitCode> {
         .enable_all()
         .build()?;
 
-    runtime.block_on(run_async(args.prompt, persona))
+    runtime.block_on(run_async(args.prompt, persona, args.resume))
 }
 
 /// The async half of `execute` — builds channels, spawns the offline
@@ -256,7 +256,11 @@ pub fn execute(args: RunArgs) -> anyhow::Result<ExitCode> {
 ///     and no sandbox hit.
 ///
 /// `Err` is preserved as-is for the classifier in `main.rs`.
-async fn run_async(prompt: String, persona: Persona) -> anyhow::Result<ExitCode> {
+async fn run_async(
+    prompt: String,
+    persona: Persona,
+    resume: Option<uuid::Uuid>,
+) -> anyhow::Result<ExitCode> {
     // ── Channel topology ────────────────────────────────────────
     //
     // Four channels per `05-BRAINSTORM.md` §Engineering-Lens, but
@@ -295,6 +299,8 @@ async fn run_async(prompt: String, persona: Persona) -> anyhow::Result<ExitCode>
     // cooperatively with the loop's `select!`. Inlining would
     // serialize production + forwarding and defeat the whole point
     // of a biased select.
+    // Pre-compute session title from prompt before prompt is moved into the provider task.
+    let session_title: String = prompt.chars().take(120).collect();
     tokio::spawn(offline_provider(prompt, model_tx));
 
     // ── Empty registry + minimal context ────────────────────────
@@ -364,6 +370,38 @@ async fn run_async(prompt: String, persona: Persona) -> anyhow::Result<ExitCode>
     // — a user pressing Ctrl-C is a terminal intent that dominates
     // any incidental mid-stream event that may have occurred
     // before the SIGINT was observed.
+    // Phase 6 event-tap setup: open session store and create/resume session.
+    // rusqlite Connection is Send (not Sync) in 0.38 — safe across .await on
+    // current_thread runtime (block_on has no Send requirement).
+    let session_store_dir = kay_session::kay_home().join("sessions");
+    let _ = std::fs::create_dir_all(&session_store_dir);
+    let mut active_session: Option<kay_session::index::Session> =
+        match kay_session::SessionStore::open(&session_store_dir) {
+            Ok(store) => {
+                if let Some(resume_id) = resume {
+                    match kay_session::index::resume_session(&store, &resume_id) {
+                        Ok(session) => Some(session),
+                        Err(e) => {
+                            tracing::warn!("resume failed: {e}; starting fresh session");
+                            let cwd = std::env::current_dir().unwrap_or_default();
+                            kay_session::index::create_session(
+                                &store, &session_title, "forge", "", &cwd,
+                            ).ok()
+                        }
+                    }
+                } else {
+                    let cwd = std::env::current_dir().unwrap_or_default();
+                    kay_session::index::create_session(
+                        &store, &session_title, "forge", "", &cwd,
+                    ).ok()
+                }
+            }
+            Err(e) => {
+                tracing::warn!("session store unavailable: {e}; events will not be persisted");
+                None
+            }
+        };
+
     let mut stdout = std::io::stdout().lock();
     let mut sandbox_violation_seen = false;
     let mut aborted_seen = false;
@@ -383,6 +421,23 @@ async fn run_async(prompt: String, persona: Persona) -> anyhow::Result<ExitCode>
         // broken-pipe still routes to `ExitCode::RuntimeError` via
         // the `?` on `write!` above if the write itself fails.
         stdout.flush().ok();
+
+        // Phase 6 event-tap: passive fan-out to session transcript (E-2 from 06-BRAINSTORM.md).
+        // Zero changes to run_turn / kay-core — drain loop is the sole subscriber. QG-C4 intact.
+        let mut failed_session_id: Option<uuid::Uuid> = None;
+        if let Some(ref mut session) = active_session {
+            if let Err(e) = session.append_event(&AgentEventWire::from(&ev)) {
+                failed_session_id = Some(session.id);
+                tracing::error!(error = %e, "transcript write failed — session marked lost");
+                // DL-9: TranscriptDeleted → mark lost in SQLite, then exit 1
+                if let Ok(store) = kay_session::SessionStore::open(&session_store_dir) {
+                    let _ = kay_session::index::mark_session_lost(&store, &session.id);
+                }
+            }
+        }
+        if let Some(session_id) = failed_session_id {
+            return Err(anyhow::anyhow!("transcript deleted during session {session_id}"));
+        }
     }
 
     // ── Join the loop task ──────────────────────────────────────
