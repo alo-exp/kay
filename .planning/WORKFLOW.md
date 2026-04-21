@@ -9,8 +9,8 @@ Intent: "Phase 6: Session Store + Transcript. JSONL source-of-truth transcripts 
 Composed: 2026-04-22T00:00:00Z
 Composer: /silver:feature
 Mode: autonomous (§10e; bypass-permissions; never stall; never pause for confirmation)
-Last-path: 9-analyze-deps
-Last-beat: 2026-04-22T02:00:00Z
+Last-path: 16-ship
+Last-beat: 2026-04-22T10:00:00Z
 
 ## Path Log
 | # | Path | Status | Artifacts Produced | Exit Condition Met |
@@ -24,6 +24,12 @@ Last-beat: 2026-04-22T02:00:00Z
 | 8 | DISCUSS | complete | 06-CONTEXT.md (DL-1..DL-9 locked: replay=events-only, rewind=turn-N, config=~/.kay+KAY_HOME, snapshots=per-session, export=dir-no-compression+--include-persona, path-traversal=CWD-boundary, title=untrusted-data, rewind=--force/--dry-run, transcript-delete=TranscriptDeleted-error) | ✓ all 5 OQs + 4 QG-WARNs resolved |
 | 9 | ANALYZE-DEPS | complete | 06-DEPENDENCIES.md (new workspace member kay-session; rusqlite bundled local dep; proptest+trybuild local dev-deps; kay-cli gains kay-session dep; 6 invariants; W-1..W-7 sequential DAG; CI impact: no new jobs) | ✓ all crate boundaries mapped |
 | 10 | PLAN | complete | 06-PATTERNS.md (pattern mapper); 06-01..07-PLAN.md (7 wave plans: W-1 store/schema, W-2 JSONL, W-3 CRUD, W-4 snapshots, W-5 fork, W-6 export/import/replay, W-7 CLI); plan-checker 0 blockers 0 warnings | ✓ all 7 PLAN.md files verified |
+| 11 | EXECUTE | complete | 7 TDD waves (14 RED+GREEN commits), 91 tests green, kay-session crate + kay-cli integration, clippy -D warnings clean, QG-C4 intact | ✓ all 7 waves complete |
+| 12 | VERIFY | complete | 06-VERIFICATION.md (12/12 SC passed, 6 REQs closed, QG-C4 verified) | ✓ PASS |
+| 13 | SECURE | complete | 06-SECURITY.md (8-threat model, all mitigated or accepted, no new attack surface) | ✓ PASS |
+| 14 | NYQUIST | complete | 06-NYQUIST.md (50 tests / 23 public APIs, all critical paths covered) | ✓ PASS |
+| 15 | QUALITY-GATES-SHIP | complete | 06-QUALITY-GATES-SHIP.md (9/9 adversarial dimensions PASS; 2 backlog issues #10 #11 filed) | ✓ all 9 PASS |
+| 16 | SHIP | complete | branch pushed, PR ready for creation | ✓ |
 
 ## Skipped Paths
 | Path | Reason |
@@ -35,7 +41,7 @@ Last-beat: 2026-04-22T02:00:00Z
 ## Phase Iterations
 | Phase | Paths Executed |
 |-------|----------------|
-| 6 | (in progress) |
+| 6 | BOOTSTRAP ✓ → ORIENT ✓ → BRAINSTORM ✓ → TESTING-STRATEGY ✓ → VALIDATION ✓ → QUALITY-GATES-DESIGN ✓ → DISCUSS ✓ → ANALYZE-DEPS ✓ → PLAN ✓ → EXECUTE ✓ → VERIFY ✓ → SECURE ✓ → NYQUIST ✓ → QUALITY-GATES-SHIP ✓ → SHIP ✓ |
 
 ## Dynamic Insertions
 | After Path | Inserted Path | Reason | Timestamp |
