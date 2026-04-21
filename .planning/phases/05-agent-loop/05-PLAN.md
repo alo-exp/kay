@@ -410,30 +410,30 @@ Each task = 1 DCO-signed commit. RED = failing test added; GREEN = minimal impl;
   - REQ: R-2
   - Depends: T6b.3
 
-#### Wave 6c — trybuild compile-fail tier
+#### Wave 6c — trybuild compile-fail tier (ADAPTED — see below)
 
-- **T6c.1 INFRA** — Create `crates/kay-tools/tests/compile_fail.rs` runner (`trybuild::TestCases::new().compile_fail("tests/compile_fail/*.rs")`)
-  - Files: `crates/kay-tools/tests/compile_fail.rs` (new)
-  - Tests: infrastructural; T6c.2 produces the fixtures it runs
-  - Commit: `test(kay-tools): trybuild compile-fail test runner infrastructure`
-  - REQ: infra
-  - Depends: T1.0
+**Adaptation rationale (committed during execution, d7fc8a0 → c88410c):**
 
-- **T6c.2 FIXTURES** — Write 3 compile-fail fixtures locking object-safety invariants
-  - Files: `crates/kay-tools/tests/compile_fail/tool_not_object_safe.rs`, `crates/kay-tools/tests/compile_fail/services_handle_not_object_safe.rs`, `crates/kay-tools/tests/compile_fail/default_tool_set_factory_closure_lifetime.rs`
-  - Tests: runner picks them up; stderr snapshots auto-generated on first run
-  - Commit: `test(kay-tools): 3 compile-fail fixtures lock object-safety invariants (Tool, ServicesHandle, default_tool_set)`
-  - REQ: infra
-  - Depends: T6c.1
+The original plan called for un-`#[ignore]`-ing the trybuild harness and generating real `.stderr` snapshots. Execution surfaced the Phase 3 `forge_tool_macros` CWD blocker still applies: `ToolDescription`'s derive reads description markdown at macro-expansion time via a path relative to CWD; under trybuild (CWD = `target/tests/trybuild/<pkg>/`), paths don't resolve, the macro panics, and every fixture's build fails with contaminated errors that drown out the real compile-error signal. Fixing `forge_tool_macros` requires re-proving TB 2.0 parity (Phase 1 EVAL-01), which is out-of-scope for Phase 5.
 
-- **T6c.3 STDERR-SNAPSHOT** — Run `TRYBUILD=overwrite cargo test --test compile_fail` to generate `.stderr` snapshots; commit them
-  - Files: `crates/kay-tools/tests/compile_fail/*.stderr` (3 files, generated)
-  - Tests: T6c.1 runner green
-  - Commit: `test(kay-tools): lock trybuild .stderr snapshots (run once with TRYBUILD=overwrite)`
-  - REQ: infra
-  - Depends: T6c.2
+**Adapted execution (three commits: d7fc8a0, c88410c, + note here):**
 
-**Wave 6 exit:** R-1 closed (6 tests green 3-OS); R-2 closed (5 tests green; wire snapshot added); trybuild tier green with 3 fixtures.
+- **T6c.1 CANARIES (adapted: INFRA→CANARIES)** — Add three integration-tier object-safety canaries that LIVE-enforce the three Wave 6c contracts at PR-merge time, bypassing the trybuild blocker entirely.
+  - File: `crates/kay-tools/tests/contract_object_safety_canaries.rs` (new, 175 lines, 3 tests)
+  - Commit: d7fc8a0 — `test(kay-tools): T6c.1 CANARIES — Wave 6c object-safety integration-tier locks`
+  - Coverage: `Arc<dyn Tool>` coercion (duplicate anchor), `Arc<dyn ServicesHandle>` coercion (NEW), `default_tool_set(_,_,_) -> ToolRegistry` by-value return (NEW).
+  - Runtime status: 3 tests GREEN.
+
+- **T6c.2 FIXTURES** — Two `.fail.rs` reviewer fixtures for the two NEW Wave 6c contracts + extend the existing `#[ignore]`-d trybuild harness to reference them.
+  - Files: `crates/kay-tools/tests/compile_fail/services_handle_not_object_safe.fail.rs`, `crates/kay-tools/tests/compile_fail/default_tool_set_signature.fail.rs`, `crates/kay-tools/tests/compile_fail_harness.rs` (extended).
+  - Commit: c88410c — `test(kay-tools): T6c.2 FIXTURES — Wave 6c .fail.rs reviewer fixtures + harness wiring`
+  - Note: Phase 3's two existing fixtures (tool_not_object_safe, input_schema_wrong_return) now join the Wave 6c two in a 4-fixture harness that remains `#[ignore]`-d. Each fixture ↔ canary pair is documented in the harness module.
+
+- **T6c.3 DOC (adapted: STDERR-SNAPSHOT→DOC)** — Document the stderr-snapshot deferral in the harness module docs with a concrete "When to un-ignore" recipe (`TRYBUILD=overwrite cargo test -p kay-tools --test compile_fail_harness`) so a future `forge_tool_macros`-unblocking phase has a one-line runbook.
+  - Absorbed into T6c.2's commit (compile_fail_harness.rs module-level docstring).
+  - The committed `.stderr` snapshots from the original plan are DEFERRED to a future harness-focused phase that either (a) moves `forge_tool_macros` to `CARGO_MANIFEST_DIR`-relative paths AND re-proves TB 2.0 parity, OR (b) adds a `forge_domain` shim that trybuild can build. At that point the snapshots land in `tests/compile_fail/*.stderr` alongside the fixtures.
+
+**Wave 6 exit (as adapted):** R-1 closed (6 tests green on 3 OSes — macOS/Linux/Windows); R-2 closed (5 tests green + wire snapshot added); Wave 6c object-safety tier covered via 3 live canaries + 4 reviewer fixtures in the `#[ignore]`-d trybuild harness ready to un-ignore once the `forge_tool_macros` blocker lifts.
 
 ### Wave 7 — kay-cli binary + forge_main port (CLI-01/03/04/05/07)
 
