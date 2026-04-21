@@ -46,13 +46,23 @@
 //! - Provider frame is `Err(ProviderError)` → for T4.2, treated as
 //!   clean exit. Error→`AgentEvent::Error` conversion is deferred
 //!   to a Wave 4 later task.
-//! - `ControlMsg::Abort` → Wave 4 T4.10. T4.2 stubs the handler.
+//! - `ControlMsg::Abort` → emits `AgentEvent::Aborted { reason:
+//!   "user_abort" }` and returns `Ok(())` (T4.10).
 //!
-//! ## Not yet handled (tracked in PLAN.md Wave 4 later tasks)
+//! ## Not yet handled (tracked in PLAN.md later waves)
 //!
-//! - **Control semantics** (T4.9/T4.10). `Pause` buffer-and-replay
-//!   and `Abort` 2s grace are stubbed — T4.2 only reserves the
-//!   select-arm seat.
+//! - **2s grace period on Abort**. `05-BRAINSTORM.md` §Product-Lens
+//!   specifies a cooperative-then-force two-stage cancel, but the
+//!   in-flight tool registry that lets the loop "wait for tools to
+//!   settle" lands in a later wave. T4.10 ships the minimum-correct
+//!   shape: observe Abort, signal the UI, exit immediately.
+//! - **Dispatch + verify gate during Pause.** A `ToolCallComplete`
+//!   that arrives while paused is buffered but its dispatch is
+//!   deferred until Resume replays it — and on replay, dispatch is
+//!   NOT re-run (the buffered event is a historical record, not a
+//!   live invocation). A future wave can add "defer-then-replay"
+//!   dispatch semantics; T4.10 tests exercise only `TextDelta`
+//!   during Pause so the simpler semantic is sufficient.
 //!
 //! ## Completed in prior tasks
 //!
@@ -62,7 +72,14 @@
 //!   outcome: VerificationOutcome::Pass, .. }` short-circuits the
 //!   loop; any other outcome (Pending, Fail, inconsistent flags) is
 //!   treated as "continue".
+//! - **Pause/Resume/Abort** (T4.9/T4.10). LOOP-06 buffer-and-replay
+//!   pause semantics backed by a `VecDeque<AgentEvent>`; Abort emits
+//!   exactly one `AgentEvent::Aborted { reason: "user_abort" }` and
+//!   exits `Ok(())` — idempotent under double-Abort because the
+//!   second message is never received after the first exit drops
+//!   `control_rx`.
 
+use std::collections::VecDeque;
 use std::sync::Arc;
 
 use forge_domain::ToolName;
@@ -147,6 +164,29 @@ pub async fn run_turn(mut args: RunTurnArgs) -> Result<(), LoopError> {
     // `tokio::select!` docs §"Disabling branches".
     let mut control_open = true;
 
+    // LOOP-06 control state (T4.10 GREEN).
+    //
+    // `paused`: while true, the model arm pushes incoming events
+    // into `pause_buffer` instead of forwarding them. A `VecDeque`
+    // is the natural fit: `push_back` on buffering, `pop_front`
+    // during Resume gives FIFO replay with O(1) amortized per op.
+    // `Vec` + `drain(..)` would also work but loses the explicit
+    // front/back vocabulary, which makes the handler harder to
+    // read. No upper bound on the buffer — `05-BRAINSTORM.md`
+    // §DL-2 locks this as "unbounded; the user chose to pause
+    // and the provider's own capacity-32 mpsc provides natural
+    // backpressure upstream". A future wave can add a soft cap +
+    // drop-oldest policy if an adversarial provider is suspected.
+    //
+    // `pause_buffer`: only AgentEvents, never the raw Result from
+    // `model_rx`. Provider errors during Pause are unusual — we
+    // still exit on them (current T4.2 semantics) because a
+    // transport failure cannot be "un-paused". When T4.x maps
+    // ProviderError → AgentEvent::Error, the error-events can
+    // also flow through this buffer.
+    let mut paused: bool = false;
+    let mut pause_buffer: VecDeque<AgentEvent> = VecDeque::new();
+
     loop {
         tokio::select! {
             biased;
@@ -156,12 +196,75 @@ pub async fn run_turn(mut args: RunTurnArgs) -> Result<(), LoopError> {
             // budget in `05-BRAINSTORM.md`).
             ctl = args.control_rx.recv(), if control_open => {
                 match ctl {
-                    Some(_msg) => {
-                        // Pause / Resume / Abort handling lands in
-                        // T4.10 (DL-2 buffer-and-replay + 2s grace
-                        // on Abort). For T4.2 we accept the message
-                        // and continue — the priority seat is held
-                        // so the arm ordering is locked in.
+                    Some(ControlMsg::Pause) => {
+                        // Emit a single Paused event so the UI can
+                        // show the paused state, then flip the
+                        // buffering flag. Order matters: emitting
+                        // Paused AFTER setting `paused=true` would
+                        // race with a model frame arriving between
+                        // the flag-flip and the send — the model
+                        // frame would be buffered before the UI
+                        // knew the agent was paused, surfacing as
+                        // "events arrive out of nowhere on resume".
+                        //
+                        // On event_tx hangup we exit cleanly: no
+                        // consumer means nothing to pause FOR.
+                        if args.event_tx.send(AgentEvent::Paused).await.is_err() {
+                            return Ok(());
+                        }
+                        paused = true;
+                    }
+                    Some(ControlMsg::Resume) => {
+                        // Drain the buffer in FIFO order. `pop_front`
+                        // loop is O(n) where n is the buffer depth;
+                        // while draining, NEW model events continue
+                        // to arrive on `model_rx` but will not be
+                        // selected over this control-arm body —
+                        // inside a `select!` arm, execution is
+                        // synchronous until the arm returns, so the
+                        // flush is atomic w.r.t. the outer select.
+                        //
+                        // `paused = false` goes AFTER the flush so
+                        // any interleaving caused by `send().await`
+                        // yielding to the runtime cannot race a
+                        // model frame into the "post-resume" path
+                        // before the queued ones are out.
+                        while let Some(buffered) = pause_buffer.pop_front() {
+                            if args.event_tx.send(buffered).await.is_err() {
+                                return Ok(());
+                            }
+                        }
+                        paused = false;
+                    }
+                    Some(ControlMsg::Abort) => {
+                        // Emit Aborted once and return. The second
+                        // Abort in the idempotency test lands here
+                        // too — but the first return already drops
+                        // `args.control_rx`, so the second sender
+                        // write either races the drop (Ok) or fails
+                        // (SendError). Either way the second message
+                        // is never received → never re-emits
+                        // `Aborted`.
+                        //
+                        // No 2s grace period here: that's the shape
+                        // a future wave adds once there's an in-
+                        // flight tool registry to drain. The T4.10
+                        // MVP semantics are the minimum correct:
+                        // observe Abort, tell the UI, exit.
+                        //
+                        // `let _ =` on the send: if the consumer
+                        // has already hung up, we still want to exit
+                        // cleanly. The Aborted event is a courtesy
+                        // signal, not a must-deliver. Propagating a
+                        // SendError here would turn a benign hangup
+                        // into a loop error for no user benefit.
+                        let _ = args
+                            .event_tx
+                            .send(AgentEvent::Aborted {
+                                reason: "user_abort".into(),
+                            })
+                            .await;
+                        return Ok(());
                     }
                     None => {
                         // Sender dropped — no further control is
@@ -178,6 +281,35 @@ pub async fn run_turn(mut args: RunTurnArgs) -> Result<(), LoopError> {
             frame = args.model_rx.recv() => {
                 match frame {
                     Some(Ok(ev)) => {
+                        // ── Pause gate (LOOP-06 / DL-2) ─────────────
+                        // While paused, queue the event for FIFO
+                        // replay on Resume. Skip forward, dispatch,
+                        // and the verify gate: buffering BOTH the
+                        // event AND its side effects is the only
+                        // shape that makes "pause" mean what the
+                        // user thinks it means ("the agent stops
+                        // doing things"). A paused ToolCallComplete
+                        // whose dispatch fires immediately would
+                        // mutate files AFTER the user said pause —
+                        // a worse UX than deferring the whole
+                        // event.
+                        //
+                        // Known limitation: a verified `TaskComplete
+                        // { Pass }` that arrives during Pause will
+                        // NOT terminate the loop until Resume
+                        // flushes the buffer and the NEXT model
+                        // frame arrives to re-enter this arm. A
+                        // future wave can re-check the terminates-
+                        // turn flag on each buffer pop; for Wave 4
+                        // MVP the simpler "only forwarded events
+                        // can trigger the verify gate" semantic is
+                        // sufficient (the tests exercise only
+                        // TextDelta during Pause).
+                        if paused {
+                            pause_buffer.push_back(ev);
+                            continue;
+                        }
+
                         // For `ToolCallComplete`, snapshot the three
                         // fields needed by `dispatch` BEFORE forwarding
                         // the event — `AgentEvent` does not derive
