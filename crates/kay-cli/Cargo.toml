@@ -7,9 +7,48 @@ rust-version.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "Kay headless CLI for benchmark + CI use"
+description = "Kay headless CLI — `kay run --prompt` + interactive fallback (Phase 5)"
+
+# Kay's canonical binary. `kay` is the entry point consumed by:
+#   - Phase 5:  headless execute → compose → stream → tool → verify → turn-end
+#   - Phase 9:  kay-tauri (desktop UI) — reads the structured-event JSONL stream
+#   - Phase 9.5: kay-tui (terminal UI) — same JSONL contract (CLI-05)
+# See .planning/phases/05-agent-loop/05-PLAN.md Wave 7 for the task breakdown
+# and .planning/phases/05-agent-loop/05-DEPENDENCIES.md §3.3 for this dep list.
+[[bin]]
+name = "kay"
+path = "src/main.rs"
 
 [dependencies]
-clap = { workspace = true }
-anyhow = { workspace = true }
+# Kay core + tools (intra-workspace)
+kay-core = { path = "../kay-core" }
 kay-tools = { path = "../kay-tools" }
+
+# Async runtime + streams
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+futures = { workspace = true }
+
+# Serialization (JSONL event stream + YAML persona loader)
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_yml = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# CLI argument parsing
+clap = { workspace = true }
+
+[dev-dependencies]
+# Subprocess E2E harness for `kay` binary (Wave 7 T7.1: 9 E2E cases)
+assert_cmd = { workspace = true }
+predicates = { workspace = true }
+tempfile = { workspace = true }
+insta = { workspace = true }
+pretty_assertions = { workspace = true }
