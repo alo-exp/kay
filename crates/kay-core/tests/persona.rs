@@ -284,7 +284,10 @@ model: {good}
 #[test]
 fn load_forge_from_bundled() {
     let persona = Persona::load("forge").expect("bundled forge.yaml should load");
-    assert_eq!(persona.name, "forge", "name field in forge.yaml must be 'forge'");
+    assert_eq!(
+        persona.name, "forge",
+        "name field in forge.yaml must be 'forge'"
+    );
     assert!(
         persona.tool_filter.iter().any(|t| t == "fs_write"),
         "forge must include fs_write in tool_filter (role: write)"

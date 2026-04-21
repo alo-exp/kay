@@ -148,13 +148,60 @@ impl Persona {
             Err(PersonaError::ModelNotAllowed(self.model.clone()))
         }
     }
+
+    /// Load a bundled persona by name.
+    ///
+    /// Resolves `name` against the three YAMLs bundled at compile
+    /// time from `crates/kay-core/personas/`:
+    ///
+    /// | `name` value | Bundled source                |
+    /// |--------------|-------------------------------|
+    /// | `"forge"`    | `personas/forge.yaml`         |
+    /// | `"sage"`     | `personas/sage.yaml`          |
+    /// | `"muse"`     | `personas/muse.yaml`          |
+    ///
+    /// The bundling uses `include_str!`, so the YAML content is
+    /// baked into the `kay-core` binary — no filesystem lookup at
+    /// runtime, no working-directory sensitivity, no missing-file
+    /// errors at load time. This matches the CLI-01 "works out of
+    /// the box" requirement.
+    ///
+    /// # Errors
+    ///
+    /// - [`PersonaError::UnknownPersona`] — `name` does not match a
+    ///   bundled persona. The kay-cli layer catches this to offer
+    ///   the user a suggestion ("try forge / sage / muse").
+    /// - [`PersonaError::Yaml`] — the bundled YAML failed to parse.
+    ///   This should not happen in production because the YAMLs are
+    ///   authored in-tree and validated by the T3.7 snapshot tests,
+    ///   but the error is surfaced rather than panicked for defense
+    ///   in depth.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use kay_core::persona::Persona;
+    ///
+    /// let forge = Persona::load("forge").expect("forge is bundled");
+    /// assert_eq!(forge.name, "forge");
+    /// ```
+    pub fn load(name: &str) -> Result<Self, PersonaError> {
+        let yaml = match name {
+            "forge" => include_str!("../personas/forge.yaml"),
+            "sage" => include_str!("../personas/sage.yaml"),
+            "muse" => include_str!("../personas/muse.yaml"),
+            _ => return Err(PersonaError::UnknownPersona(name.to_string())),
+        };
+        Self::from_yaml_str(yaml)
+    }
 }
 
 /// Error surface for persona loading and post-parse validation.
 ///
-/// Extended in Wave 3 later tasks (T3.5 `UnknownPersona` for bundled
-/// loader; T3.6 `Io` for external-path loader). For T3.1/T3.2 the
-/// enum covers YAML parse + two validation branches.
+/// Extended in Wave 3 later tasks (T3.6 adds `Io` for the
+/// external-path loader). T3.1 / T3.2 cover YAML parse + two
+/// validation branches; T3.5 adds `UnknownPersona` for the bundled
+/// lookup.
 #[derive(Debug, thiserror::Error)]
 pub enum PersonaError {
     /// YAML parse or schema error — includes deny_unknown_fields
@@ -171,4 +218,12 @@ pub enum PersonaError {
     /// allowlist. The inner string is the rejected model id.
     #[error("model '{0}' is not in Kay's launch allowlist")]
     ModelNotAllowed(String),
+
+    /// `Persona::load(name)` was called with a name that does not
+    /// match any of the bundled personas (forge / sage / muse).
+    /// The inner string is the rejected name so the CLI can echo it
+    /// back to the user ("persona 'ghost' is not bundled; try forge,
+    /// sage, or muse").
+    #[error("persona '{0}' is not bundled (expected one of: forge, sage, muse)")]
+    UnknownPersona(String),
 }
