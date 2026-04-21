@@ -66,6 +66,33 @@ clap = { workspace = true }
 colored = { workspace = true }
 console = { workspace = true }
 
+# Interactive prompt (T7.6 skeleton, T7.9 REPL): `reedline` is the
+# same line-editor forge_main uses; `nu-ansi-term` colors segments in
+# the multi-line starship-style prompt; `convert_case` uppercases the
+# active agent name; `derive_setters` generates the fluent setters
+# `KayPrompt` exposes (usage/model/git_branch/…); `gix` resolves the
+# current git branch for the left-prompt segment. All workspace deps
+# carried forward from `forge_main` — no Kay-specific version pins.
+#
+# T7.6 commits the struct + `Prompt` impl; the actual reedline REPL
+# wiring that consumes them lands in T7.9.
+reedline = { workspace = true }
+nu-ansi-term = { workspace = true }
+convert_case = { workspace = true }
+derive_setters = { workspace = true }
+gix = { workspace = true }
+
+# forge_api gives `KayPrompt` access to the canonical `AgentId` /
+# `ModelId` / `Usage` / `TokenCount` types so the prompt rendering
+# can show agent name + token counts + model + cost. Re-exporting
+# these through kay-core would be cleaner (Phase 10 residual), but
+# depending on forge_api directly here avoids coupling the prompt
+# port to that rename. DL-3 brand-name guard note: `forge_api` is an
+# internal crate name (not user-visible); the banned surface is
+# user-visible --help / prompt text, which KayPrompt already
+# brand-cleans (`kay or muse` wording in tests).
+forge_api = { path = "../forge_api" }
+
 [dev-dependencies]
 # Subprocess E2E harness for `kay` binary (Wave 7 T7.1: 9 E2E cases)
 assert_cmd = { workspace = true }

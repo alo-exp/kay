@@ -33,6 +33,7 @@ use clap::Parser;
 mod banner;
 mod boot;
 mod eval;
+mod prompt;
 mod run;
 
 #[derive(Parser)]
@@ -92,25 +93,26 @@ fn main() -> anyhow::Result<()> {
 
 /// Interactive-fallback entry point.
 ///
-/// T7.4 wires this to the real `banner::display()` port (Kay ASCII
-/// wordmark, version, command tips). T7.6 will port the `kay>` prompt
-/// into its own module; T7.9 replaces the inline `print!` and early
-/// return with a full reedline REPL loop. Until then we emit the
-/// banner, then a single prompt, then return — enough for the
-/// `interactive_parity_diff` test (T7.11) to compare against the
-/// ForgeCode baseline fixture captured in T7.10.
+/// T7.4 wired this to the real `banner::display()` port (Kay ASCII
+/// wordmark, version, command tips). T7.6 added the `prompt::KAY_PROMPT`
+/// constant used below; T7.9 will replace the inline `print!` and
+/// early return with a full reedline REPL loop driven by `KayPrompt`.
+/// Until then we emit the banner, then the prompt literal, then
+/// return — enough for the `interactive_parity_diff` test (T7.11) to
+/// compare against the ForgeCode baseline fixture captured in T7.10.
 ///
-/// Why print the prompt here at all: the RED test asserts `kay>`
-/// appears in stdout on `kay` (no args). Keeping the prompt in this
-/// function lets T7.6 and T7.9 migrate incrementally without the
-/// parity test flickering between runs.
+/// Why print the prompt here at all: the RED test asserts the
+/// `kay>` literal appears in stdout on `kay` (no args). Routing
+/// through `prompt::KAY_PROMPT` instead of a bare string literal
+/// keeps T7.9 (reedline REPL) and T7.11 (parity diff) pointing at
+/// the same source-of-truth for the fallback prompt shape.
 fn interactive_fallback() -> anyhow::Result<()> {
     // Full interactive-mode tip set (cli_mode=false) — `kay` invoked
     // with no args maps to the full REPL eventually, so the tips
     // reflect that destination surface.
     banner::display(false)?;
 
-    print!("kay> ");
+    print!("{}", prompt::KAY_PROMPT);
     // stdout is line-buffered in terminals but fully-buffered when
     // piped; flush so subprocess-level E2E tests see the prompt
     // before we return and Drop closes stdout.
