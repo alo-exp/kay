@@ -14,6 +14,7 @@ members = [
     "crates/kay-sandbox-windows",
     "crates/kay-tauri",
     "crates/kay-tools",
+    "crates/kay-session",
     "crates/kay-tui",
     "crates/forge_tool_macros",
     "crates/forge_template",
