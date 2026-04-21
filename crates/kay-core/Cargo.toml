@@ -41,7 +41,13 @@ thiserror = { workspace = true }
 # - tempfile: external persona YAML integration tests (`Persona::from_path`)
 # - proptest: event_filter + select! property coverage (10k cases)
 # - insta: wire-schema + persona deserialization snapshot locking
+# - kay-provider-errors: ProviderError/RetryReason test fixtures (event_filter tests)
+# - serde_json: JSON fixtures for ToolCallComplete.arguments in tests
+# - tokio (test-util): `tokio::test` + mpsc in control + loop integration tests
 pretty_assertions = { workspace = true }
 tempfile = { workspace = true }
 proptest = "1"
 insta = { workspace = true }
+kay-provider-errors = { path = "../kay-provider-errors" }
+serde_json = { workspace = true }
+tokio = { workspace = true, features = ["macros", "test-util", "rt-multi-thread"] }
