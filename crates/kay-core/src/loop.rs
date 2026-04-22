@@ -139,6 +139,16 @@ pub struct RunTurnArgs {
     /// would leak abort state and budget accounting. The caller
     /// builds a fresh `ToolCallContext` for each `run_turn` call.
     pub tool_ctx: ToolCallContext,
+
+    /// Context engine consulted at turn start (before the event loop).
+    /// NoOpContextEngine is the default until Phase 8 wires real retrieval.
+    pub context_engine: Arc<dyn kay_context::engine::ContextEngine>,
+
+    /// Token budget for context assembly this turn.
+    pub context_budget: kay_context::budget::ContextBudget,
+
+    /// User's prompt for this turn, passed to context_engine.retrieve().
+    pub initial_prompt: String,
 }
 
 /// Reason string carried on [`AgentEvent::Aborted`] when the loop
@@ -431,6 +441,15 @@ pub async fn run_turn(mut args: RunTurnArgs) -> Result<(), LoopError> {
     // this buffer.
     let mut paused: bool = false;
     let mut pause_buffer: VecDeque<AgentEvent> = VecDeque::new();
+
+    // Context retrieval at turn start (Phase 7 DL-9).
+    // _ctx_packet unused in Phase 7 — Phase 8+ injects into OpenRouter request.
+    #[allow(unused)]
+    let _ctx_packet = args
+        .context_engine
+        .retrieve(&args.initial_prompt, &args.registry.schemas())
+        .await
+        .unwrap_or_default();
 
     loop {
         tokio::select! {

@@ -11,7 +11,7 @@ description = "Session store + JSONL transcript persistence (Phase 6: SESS-01..0
 
 [dependencies]
 kay-tools    = { path = "../kay-tools" }
-rusqlite     = { version = "0.38", features = ["bundled"] }
+rusqlite     = { workspace = true }
 uuid         = { workspace = true }
 chrono       = { workspace = true }
 dirs         = { workspace = true }

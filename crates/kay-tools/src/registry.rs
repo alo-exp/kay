@@ -52,6 +52,14 @@ impl ToolRegistry {
             .collect()
     }
 
+    /// Return the raw `input_schema()` JSON Value for each registered tool.
+    /// Consumed by `ContextEngine::retrieve` (Phase 7 DL-13) so the context
+    /// engine can apply `SchemaHardener` to the schemas in-context.
+    /// Iteration order is not stable (HashMap) — callers must not rely on order.
+    pub fn schemas(&self) -> Vec<serde_json::Value> {
+        self.tools.values().map(|t| t.input_schema()).collect()
+    }
+
     pub fn len(&self) -> usize {
         self.tools.len()
     }
@@ -166,5 +174,20 @@ mod tests {
         r.register(dummy("same"));
         r.register(dummy("same"));
         assert_eq!(r.len(), 1, "second register with same name overwrites");
+    }
+
+    #[test]
+    fn schemas_returns_one_per_tool() {
+        let mut r = ToolRegistry::new();
+        r.register(dummy("alpha"));
+        r.register(dummy("beta"));
+        let schemas = r.schemas();
+        assert_eq!(schemas.len(), 2);
+        for s in &schemas {
+            assert!(
+                s.get("type").is_some() || s.get("properties").is_some(),
+                "schema must be a JSON object: {s}"
+            );
+        }
     }
 }

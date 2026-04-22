@@ -1,0 +1,9 @@
+---
+source: crates/kay-tools/tests/events_wire_snapshots.rs
+expression: wire_value(&ev)
+---
+{
+  "indexed": 10,
+  "total": 100,
+  "type": "index_progress"
+}

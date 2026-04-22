@@ -186,7 +186,7 @@ Plans:
 ### Phase 7: Context Engine
 
 **Goal**: Kay prompts are built from ForgeCode-grade structured context — function signatures and module boundaries from tree-sitter, retrieved via hybrid structural + vector search with an explicit per-turn budget — not raw file dumps.
-**Depends on**: Phase 5 (parallelizable with Phase 6)
+**Depends on**: Phase 5, Phase 6
 **Requirements**: CTX-01, CTX-02, CTX-03, CTX-04, CTX-05
 **Success Criteria** (what must be TRUE):
   1. Opening a new project triggers a lazy tree-sitter index that extracts function signatures and module boundaries into the symbol store, not full file bodies.
@@ -346,9 +346,54 @@ Plans:
 Plans:
 - [ ] TBD (promote with /gsd-review-backlog when ready; natural slot: during Phase 9.5 TUI work or Phase 10 settings UI)
 
+### Phase 999.4: Watcher debounce event-driven test coordination (BACKLOG)
+
+**Goal:** [Captured 2026-04-22 via /silver-quality-gates Phase 7 design-time review, Testability dim advisory] — W-7 integration tests in `crates/kay-context/tests/watcher.rs` use `tokio::time::sleep(500ms+buffer)` to wait for the 500ms debounce window before asserting `invalidate()` call counts. This is correct but slow and timing-sensitive in resource-constrained CI. Convert to event-driven coordination: thread a `oneshot` channel through the `invalidation_callback` so tests await the actual callback rather than sleeping. Eliminates ~600ms of sleep per watcher test and removes the CI flakiness risk.
+**Requirements:** TBD (quality improvement to Phase 7 test suite)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready; natural slot: post-Phase 7 merge if watcher tests cause CI flakiness)
+
+### Phase 999.5: Tighten SymbolStore field visibility — conn pub → pub(crate) (BACKLOG)
+
+**Goal:** [Captured 2026-04-22 via /silver-quality-gates Phase 7 adversarial review, Modularity/Reusability dim — IN-02] — `SymbolStore::conn` is `pub`, leaking `rusqlite::Connection` to all downstream callers including integration tests that call `store.conn.query_row()` directly. Once tests migrate to using accessor methods, `conn` should be changed to `pub(crate)` and `db_path` should remain `pub`. This enforces the storage-layer abstraction and allows switching to a connection pool (r2d2) without callers needing to change.
+**Requirements:** TBD (quality improvement to Phase 7 public API)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready; natural slot: during Phase 8 integration work or post-v1 API hardening)
+
+### Phase 999.6: Rename context_e2e.rs → context_smoke.rs + Phase 8 behavioral coverage (BACKLOG)
+
+**Goal:** [Captured 2026-04-22 via Phase 7 adversarial review, IN-03] — `crates/kay-cli/tests/context_e2e.rs` contains compilation smoke checks, not end-to-end behavioral tests. The file name overstates coverage. Rename to `context_smoke.rs`, add a module-level doc comment clarifying Phase 8 behavioral coverage, then add real E2E tests once `KayContextEngine` is wired in Phase 8.
+**Requirements:** TBD (quality improvement to Phase 7/8 test suite)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready; natural slot: Phase 8 execution)
+
+### Phase 999.7: SymbolKind::from_kind_str unknown arm should emit tracing::warn! (BACKLOG)
+
+**Goal:** [Captured 2026-04-22 via Phase 7 adversarial review, IN-04] — The `_` arm of `SymbolKind::from_kind_str` silently maps unknown strings to `FileBoundary`. Future schema version mismatches will produce wrong SymbolKind values without any log. Add `tracing::warn!(kind = s, "unknown symbol kind in database; treating as FileBoundary")` to make schema drift visible.
+**Requirements:** TBD (quality improvement to Phase 7)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready; quick inline fix, low priority)
+
+### Phase 999.8: Migrate ann_search L2 full-table scan to sqlite-vec vec0 virtual table (BACKLOG)
+
+**Goal:** [Captured 2026-04-22 via Phase 7 adversarial review, Scalability dim advisory] — `ann_search` performs a Rust-side L2 full-table scan of `symbols_vec` (JSON-serialised embeddings). This is acceptable for local dev codebases (thousands of symbols) but will degrade at >100k symbols. Once `sqlite-vec =0.1.x` stable releases with reliable C source files on crates.io, migrate to the `vec0` virtual-table path for indexed HNSW-style ANN search.
+**Requirements:** TBD (extends CTX-03 retrieval performance)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready; natural slot: post-Phase 8 or Phase 12 performance hardening)
+
 ---
 *Roadmap created: 2026-04-19*
-*Last backlog update: 2026-04-20 — added 999.2 + 999.3 from Phase 2 quality-gates advisory*
+*Last backlog update: 2026-04-22 — added 999.5..999.8 from Phase 7 adversarial quality-gates review*
 *Phase 2.5 plans authored: 2026-04-20 — 4 plans created (02.5-01 through 02.5-04)*
 *Phase 3 plans authored: 2026-04-20 — 5 plans created (03-01 through 03-05)*
 
