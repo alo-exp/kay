@@ -201,6 +201,7 @@ impl ParentSpy {
             sandbox,
             Arc::new(NoOpVerifier),
             nesting_depth,
+            Arc::new(Mutex::new(String::new())),
         )
     }
 }

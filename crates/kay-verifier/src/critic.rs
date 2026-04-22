@@ -79,6 +79,7 @@ impl CriticRole {
     }
 }
 
+#[allow(dead_code)]
 pub(crate) struct CriticPrompt {
     pub role: CriticRole,
 }

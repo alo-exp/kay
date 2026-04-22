@@ -10,10 +10,15 @@ use kay_tools::{
 use crate::mode::{VerifierConfig, VerifierMode};
 
 pub struct MultiPerspectiveVerifier {
+    #[allow(dead_code)]
     provider: Arc<OpenRouterProvider>,
+    #[allow(dead_code)]
     cost_cap: Arc<CostCap>,
+    #[allow(dead_code)]
     config: VerifierConfig,
+    #[allow(dead_code)]
     verifier_cost: Arc<Mutex<f64>>,
+    #[allow(dead_code)]
     stream_sink: Arc<dyn Fn(AgentEvent) + Send + Sync>,
 }
 

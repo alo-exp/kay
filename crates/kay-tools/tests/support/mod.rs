@@ -90,6 +90,7 @@ pub fn make_ctx_with_services(log: EventLog, services: Arc<dyn ServicesHandle>) 
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
         0,
+        Arc::new(Mutex::new(String::new())),
     )
 }
 
@@ -110,5 +111,6 @@ pub fn make_ctx_with_quota(log: EventLog, quota: Arc<ImageQuota>) -> ToolCallCon
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
         0,
+        Arc::new(Mutex::new(String::new())),
     )
 }

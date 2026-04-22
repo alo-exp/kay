@@ -62,7 +62,7 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
 use forge_domain::{FSRead, FSSearch, FSWrite, NetFetch, ToolName, ToolOutput};
@@ -184,6 +184,7 @@ async fn loop_plus_dispatcher_invokes_registered_tool() {
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
         0,
+        Arc::new(Mutex::new(String::new())),
     );
 
     // ── Mock provider: one ToolCallComplete frame, then close ───────

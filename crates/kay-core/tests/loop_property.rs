@@ -61,7 +61,7 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use async_trait::async_trait;
@@ -165,6 +165,7 @@ fn drive_loop(
             Arc::new(NoOpSandbox),
             Arc::new(NoOpVerifier),
             0,
+            Arc::new(Mutex::new(String::new())),
         );
 
         let handle = tokio::spawn(run_turn(RunTurnArgs {

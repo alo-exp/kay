@@ -38,7 +38,7 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
 use forge_domain::{FSRead, FSSearch, FSWrite, NetFetch, ToolOutput};
@@ -118,6 +118,7 @@ async fn run_turn_single_turn_happy_path() {
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
         0,
+        Arc::new(Mutex::new(String::new())),
     );
 
     // ── Spawn the loop ──────────────────────────────────────────
@@ -243,6 +244,7 @@ async fn task_complete_does_not_terminate_on_pending_verification() {
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
         0,
+        Arc::new(Mutex::new(String::new())),
     );
 
     let handle = tokio::spawn(run_turn(RunTurnArgs {
@@ -354,6 +356,7 @@ async fn task_complete_on_verifier_pass_terminates_loop() {
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
         0,
+        Arc::new(Mutex::new(String::new())),
     );
 
     let handle = tokio::spawn(run_turn(RunTurnArgs {
@@ -492,6 +495,7 @@ async fn control_pause_buffers_then_resume_replays() {
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
         0,
+        Arc::new(Mutex::new(String::new())),
     );
 
     let handle = tokio::spawn(run_turn(RunTurnArgs {
@@ -635,6 +639,7 @@ async fn control_abort_emits_aborted_event_and_exits() {
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
         0,
+        Arc::new(Mutex::new(String::new())),
     );
 
     let handle = tokio::spawn(run_turn(RunTurnArgs {
@@ -737,6 +742,7 @@ async fn control_double_abort_is_idempotent() {
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
         0,
+        Arc::new(Mutex::new(String::new())),
     );
 
     let handle = tokio::spawn(run_turn(RunTurnArgs {

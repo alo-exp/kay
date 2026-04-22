@@ -60,7 +60,7 @@
 //! the fresh context across an await point for a reason that has
 //! nothing to do with borrowing.
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
 use forge_domain::{ToolName, ToolOutput};
@@ -230,6 +230,7 @@ impl Tool for SageQueryTool {
             ctx.sandbox.clone(),
             ctx.verifier.clone(),
             ctx.nesting_depth + 1,
+            Arc::new(Mutex::new(String::new())),
         );
 
         // ── Delegate to inner agent ────────────────────────────────

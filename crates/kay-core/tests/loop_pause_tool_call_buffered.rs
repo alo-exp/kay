@@ -89,7 +89,7 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
@@ -232,6 +232,7 @@ fn spawn_turn_with_counting_tool(tool_name: &'static str) -> TurnHarness {
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
         0,
+        Arc::new(Mutex::new(String::new())),
     );
 
     let persona = Persona::load("forge").expect("bundled forge persona loads");

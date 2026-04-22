@@ -19,7 +19,7 @@
 //! Logged as Rule-1 deviation in 03-01-SUMMARY.md and Rule-3 reconciliation
 //! in 03-05-SUMMARY.md.
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
 use forge_domain::{FSRead, FSSearch, FSWrite, NetFetch, ToolOutput};
@@ -86,6 +86,13 @@ pub struct ToolCallContext {
     /// seam (`RecordingAgent` in `tests/sage_query.rs`) can snapshot
     /// it directly without reaching into crate internals.
     pub nesting_depth: u8,
+    /// Incrementally-built summary of tool calls + outputs this turn.
+    /// The agent loop appends tool names and output snippets here via
+    /// [`Self::append_task_context`]. `task_complete` snapshots this
+    /// before calling `verifier.verify()` so critics see full context.
+    /// Sub-turns (`sage_query`) receive a fresh empty string — each
+    /// sub-turn accumulates its own independent context.
+    pub task_context: Arc<Mutex<String>>,
 }
 
 impl ToolCallContext {
@@ -96,12 +103,10 @@ impl ToolCallContext {
     /// augmentation.
     ///
     /// Phase 5 Wave 5 T5.2 added the 7th parameter `nesting_depth: u8`.
-    /// Top-level callers (CLI, test harnesses) pass `0`; `sage_query`'s
-    /// internal inner-ctx builder passes `parent.nesting_depth + 1`.
-    /// Making the param required — rather than defaulting to 0 via a
-    /// builder pattern — is deliberate: forgetting to thread the depth
-    /// on a new sub-tool would silently defeat the LOOP-03 guard, so
-    /// the compiler surfaces the omission at every call site.
+    /// Phase 8 W-4 adds the 8th parameter `task_context`.
+    /// Top-level callers pass `Arc::new(Mutex::new(String::new()))`;
+    /// `sage_query`'s inner context passes a fresh empty string (each
+    /// sub-turn accumulates its own independent context).
     pub fn new(
         services: Arc<dyn ServicesHandle>,
         stream_sink: Arc<dyn Fn(AgentEvent) + Send + Sync>,
@@ -110,6 +115,7 @@ impl ToolCallContext {
         sandbox: Arc<dyn Sandbox>,
         verifier: Arc<dyn TaskVerifier>,
         nesting_depth: u8,
+        task_context: Arc<Mutex<String>>,
     ) -> Self {
         Self {
             services,
@@ -119,7 +125,23 @@ impl ToolCallContext {
             sandbox,
             verifier,
             nesting_depth,
+            task_context,
         }
+    }
+
+    /// Append a line to the task_context summary string.
+    /// Called by the agent loop after each tool call completes.
+    pub fn append_task_context(&self, line: &str) {
+        if let Ok(mut ctx) = self.task_context.lock() {
+            ctx.push_str(line);
+            ctx.push('\n');
+        }
+    }
+
+    /// Return an independent snapshot of the current task_context.
+    /// Called by `task_complete` before handing to the verifier.
+    pub fn snapshot_task_context(&self) -> String {
+        self.task_context.lock().map(|g| g.clone()).unwrap_or_default()
     }
 
     /// Minimal context for unit tests. Uses no-op impls for all seams
@@ -154,24 +176,34 @@ impl ToolCallContext {
             Arc::new(NoOpSandbox),
             Arc::new(NoOpVerifier),
             0,
+            Arc::new(Mutex::new(String::new())),
         )
     }
 }
 
 #[cfg(test)]
 mod phase8_ctx_tests {
+    use super::*;
+
     #[test]
     fn fresh_task_context_is_empty() {
-        todo!("RED: task_context field not yet added — W-4 GREEN will implement")
+        let ctx = ToolCallContext::for_test();
+        assert!(ctx.task_context.lock().unwrap().is_empty());
     }
 
     #[test]
     fn append_task_context_accumulates() {
-        todo!("RED: task_context field not yet added — W-4 GREEN will implement")
+        let ctx = ToolCallContext::for_test();
+        ctx.append_task_context("called tool: fs_read");
+        assert!(ctx.task_context.lock().unwrap().contains("fs_read"));
     }
 
     #[test]
     fn snapshot_is_independent() {
-        todo!("RED: task_context field not yet added — W-4 GREEN will implement")
+        let ctx = ToolCallContext::for_test();
+        ctx.append_task_context("line1");
+        let snap = ctx.snapshot_task_context();
+        ctx.append_task_context("line2");
+        assert!(!snap.contains("line2"), "snapshot must be independent of later appends");
     }
 }

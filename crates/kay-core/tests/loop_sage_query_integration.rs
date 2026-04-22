@@ -221,6 +221,7 @@ async fn forge_calls_sage_via_sage_query_end_to_end() {
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
         0, // top-level turn; sage_query must bump this to 1
+        Arc::new(Mutex::new(String::new())),
     );
 
     // ── Mock provider: one ToolCallComplete (sage_query), then close ─
