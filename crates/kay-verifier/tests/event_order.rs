@@ -31,7 +31,10 @@ fn build_verifier(
     server_url: &str,
     mode: kay_verifier::VerifierMode,
     cost_ceiling_usd: f64,
-) -> (Arc<Mutex<Vec<AgentEvent>>>, kay_verifier::MultiPerspectiveVerifier) {
+) -> (
+    Arc<Mutex<Vec<AgentEvent>>>,
+    kay_verifier::MultiPerspectiveVerifier,
+) {
     let provider = Arc::new(
         OpenRouterProvider::builder()
             .endpoint(format!("{}/api/v1/chat/completions", server_url))
@@ -76,8 +79,7 @@ async fn t2_03a_benchmark_mode_emits_events_in_role_order() {
         .create_async()
         .await;
 
-    let (events, verifier) =
-        build_verifier(&srv.url(), kay_verifier::VerifierMode::Benchmark, 1.0);
+    let (events, verifier) = build_verifier(&srv.url(), kay_verifier::VerifierMode::Benchmark, 1.0);
     let outcome = verifier.verify("summary", "context").await;
 
     let guard = events.lock().unwrap();
@@ -115,7 +117,10 @@ async fn t2_03a_benchmark_mode_emits_events_in_role_order() {
     );
 
     assert!(
-        matches!(outcome, kay_tools::seams::verifier::VerificationOutcome::Pass { .. }),
+        matches!(
+            outcome,
+            kay_tools::seams::verifier::VerificationOutcome::Pass { .. }
+        ),
         "T2-03a: expected Pass (all critics passed), got {outcome:?}"
     );
 }
@@ -144,10 +149,12 @@ async fn t2_03b_verifier_disabled_follows_all_verification_events() {
 
     let guard = events.lock().unwrap();
 
-    let last_verification_pos =
-        guard.iter().rposition(|e| matches!(e, AgentEvent::Verification { .. }));
-    let first_disabled_pos =
-        guard.iter().position(|e| matches!(e, AgentEvent::VerifierDisabled { .. }));
+    let last_verification_pos = guard
+        .iter()
+        .rposition(|e| matches!(e, AgentEvent::Verification { .. }));
+    let first_disabled_pos = guard
+        .iter()
+        .position(|e| matches!(e, AgentEvent::VerifierDisabled { .. }));
 
     assert!(
         first_disabled_pos.is_some(),
@@ -164,19 +171,26 @@ async fn t2_03b_verifier_disabled_follows_all_verification_events() {
         );
     }
 
-    if let Some(AgentEvent::VerifierDisabled { reason, cost_usd }) =
-        guard.iter().find(|e| matches!(e, AgentEvent::VerifierDisabled { .. }))
+    if let Some(AgentEvent::VerifierDisabled { reason, cost_usd }) = guard
+        .iter()
+        .find(|e| matches!(e, AgentEvent::VerifierDisabled { .. }))
     {
         assert_eq!(
             reason.as_str(),
             "cost_ceiling_exceeded",
             "T2-03b: VerifierDisabled reason must be 'cost_ceiling_exceeded', got '{reason}'"
         );
-        assert!(*cost_usd >= 0.0, "T2-03b: cost_usd must be non-negative, got {cost_usd}");
+        assert!(
+            *cost_usd >= 0.0,
+            "T2-03b: cost_usd must be non-negative, got {cost_usd}"
+        );
     }
 
     assert!(
-        matches!(outcome, kay_tools::seams::verifier::VerificationOutcome::Pass { .. }),
+        matches!(
+            outcome,
+            kay_tools::seams::verifier::VerificationOutcome::Pass { .. }
+        ),
         "T2-03b: expected Pass on ceiling breach, got {outcome:?}"
     );
 }

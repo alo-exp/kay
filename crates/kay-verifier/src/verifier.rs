@@ -2,9 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
 use futures::StreamExt;
-use kay_provider_openrouter::{
-    ChatRequest, CostCap, Message, OpenRouterProvider, Provider,
-};
+use kay_provider_openrouter::{ChatRequest, CostCap, Message, OpenRouterProvider, Provider};
 use kay_tools::{
     events::AgentEvent,
     seams::verifier::{TaskVerifier, VerificationOutcome},
@@ -88,7 +86,10 @@ impl TaskVerifier for MultiPerspectiveVerifier {
                 },
                 Message {
                     role: "user".into(),
-                    content: format!("Task Summary:\n{}\n\nTask Context:\n{}", task_summary, task_context),
+                    content: format!(
+                        "Task Summary:\n{}\n\nTask Context:\n{}",
+                        task_summary, task_context
+                    ),
                     tool_call_id: None,
                 },
             ];
@@ -139,7 +140,8 @@ impl TaskVerifier for MultiPerspectiveVerifier {
                     // Emit Verification event for this critic (VERIFY-04)
                     match CriticResponse::from_json(&response_text) {
                         Ok(cr) => {
-                            let verdict_str = if cr.is_pass() { "pass" } else { "fail" }.to_string();
+                            let verdict_str =
+                                if cr.is_pass() { "pass" } else { "fail" }.to_string();
                             (self.stream_sink)(AgentEvent::Verification {
                                 critic_role: role.as_str().to_string(),
                                 verdict: verdict_str.clone(),
@@ -191,9 +193,7 @@ impl TaskVerifier for MultiPerspectiveVerifier {
                 }
             }
         }
-        VerificationOutcome::Pass {
-            note: format!("all {} critics passed", roles.len()),
-        }
+        VerificationOutcome::Pass { note: format!("all {} critics passed", roles.len()) }
     }
 }
 

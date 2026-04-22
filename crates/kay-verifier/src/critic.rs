@@ -111,26 +111,38 @@ mod tests {
     #[test]
     fn reject_unknown_verdict() {
         let json = r#"{"verdict":"maybe","reason":"not sure"}"#;
-        assert!(CriticResponse::from_json(json).is_err(), "unknown verdict must be rejected");
+        assert!(
+            CriticResponse::from_json(json).is_err(),
+            "unknown verdict must be rejected"
+        );
     }
 
     #[test]
     fn reject_missing_verdict() {
         let json = r#"{"reason":"only reason, no verdict"}"#;
-        assert!(CriticResponse::from_json(json).is_err(), "missing verdict must be rejected");
+        assert!(
+            CriticResponse::from_json(json).is_err(),
+            "missing verdict must be rejected"
+        );
     }
 
     #[test]
     fn reject_missing_reason() {
         let json = r#"{"verdict":"pass"}"#;
-        assert!(CriticResponse::from_json(json).is_err(), "missing reason must be rejected");
+        assert!(
+            CriticResponse::from_json(json).is_err(),
+            "missing reason must be rejected"
+        );
     }
 
     #[test]
     fn reject_additional_properties() {
         // ForgeCode schema hardening: deny_unknown_fields — extra fields must be rejected
         let json = r#"{"verdict":"pass","reason":"ok","extra":"ignored"}"#;
-        assert!(CriticResponse::from_json(json).is_err(), "extra properties must be rejected");
+        assert!(
+            CriticResponse::from_json(json).is_err(),
+            "extra properties must be rejected"
+        );
     }
 
     #[test]

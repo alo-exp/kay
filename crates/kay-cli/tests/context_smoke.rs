@@ -42,5 +42,8 @@ fn verifier_config_default_is_interactive() {
         "default mode should be Interactive for CLI use"
     );
     assert_eq!(cfg.max_retries, 3, "default max_retries should be 3");
-    assert!(cfg.cost_ceiling_usd > 0.0, "default cost ceiling should be positive");
+    assert!(
+        cfg.cost_ceiling_usd > 0.0,
+        "default cost ceiling should be positive"
+    );
 }

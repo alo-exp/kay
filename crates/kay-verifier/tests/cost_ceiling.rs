@@ -40,7 +40,10 @@ fn build_verifier(
     server_url: &str,
     mode: kay_verifier::VerifierMode,
     cost_ceiling_usd: f64,
-) -> (Arc<Mutex<Vec<AgentEvent>>>, kay_verifier::MultiPerspectiveVerifier) {
+) -> (
+    Arc<Mutex<Vec<AgentEvent>>>,
+    kay_verifier::MultiPerspectiveVerifier,
+) {
     let provider = Arc::new(
         OpenRouterProvider::builder()
             .endpoint(format!("{}/api/v1/chat/completions", server_url))
@@ -92,14 +95,17 @@ async fn t2_02a_ceiling_breached_after_critic_1() {
     let outcome = verifier.verify("summary", "context").await;
 
     let guard = events.lock().unwrap();
-    let verification_count =
-        guard.iter().filter(|e| matches!(e, AgentEvent::Verification { .. })).count();
-    let disabled_count =
-        guard.iter().filter(|e| matches!(e, AgentEvent::VerifierDisabled { .. })).count();
+    let verification_count = guard
+        .iter()
+        .filter(|e| matches!(e, AgentEvent::Verification { .. }))
+        .count();
+    let disabled_count = guard
+        .iter()
+        .filter(|e| matches!(e, AgentEvent::VerifierDisabled { .. }))
+        .count();
 
     assert_eq!(
-        verification_count,
-        1,
+        verification_count, 1,
         "T2-02a: expected 1 Verification event (critic 1 ran before ceiling check), \
          got {verification_count}. Events: {guard:?}"
     );
@@ -139,20 +145,22 @@ async fn t2_02b_all_critics_run_when_under_ceiling() {
     let outcome = verifier.verify("summary", "context").await;
 
     let guard = events.lock().unwrap();
-    let verification_count =
-        guard.iter().filter(|e| matches!(e, AgentEvent::Verification { .. })).count();
-    let disabled_count =
-        guard.iter().filter(|e| matches!(e, AgentEvent::VerifierDisabled { .. })).count();
+    let verification_count = guard
+        .iter()
+        .filter(|e| matches!(e, AgentEvent::Verification { .. }))
+        .count();
+    let disabled_count = guard
+        .iter()
+        .filter(|e| matches!(e, AgentEvent::VerifierDisabled { .. }))
+        .count();
 
     assert_eq!(
-        verification_count,
-        3,
+        verification_count, 3,
         "T2-02b: expected 3 Verification events (3 x $0.02 = $0.06 < $0.10 ceiling), \
          got {verification_count}. Events: {guard:?}"
     );
     assert_eq!(
-        disabled_count,
-        0,
+        disabled_count, 0,
         "T2-02b: expected 0 VerifierDisabled events (all under ceiling), \
          got {disabled_count}. Events: {guard:?}"
     );
@@ -188,14 +196,17 @@ async fn t2_02c_ceiling_breached_after_critic_2() {
     let outcome = verifier.verify("summary", "context").await;
 
     let guard = events.lock().unwrap();
-    let verification_count =
-        guard.iter().filter(|e| matches!(e, AgentEvent::Verification { .. })).count();
-    let disabled_count =
-        guard.iter().filter(|e| matches!(e, AgentEvent::VerifierDisabled { .. })).count();
+    let verification_count = guard
+        .iter()
+        .filter(|e| matches!(e, AgentEvent::Verification { .. }))
+        .count();
+    let disabled_count = guard
+        .iter()
+        .filter(|e| matches!(e, AgentEvent::VerifierDisabled { .. }))
+        .count();
 
     assert_eq!(
-        verification_count,
-        2,
+        verification_count, 2,
         "T2-02c: expected 2 Verification events (critics 1 and 2 ran), \
          got {verification_count}. Events: {guard:?}"
     );
@@ -279,15 +290,17 @@ async fn t2_02e_no_verification_after_ceiling_breach() {
     verifier.verify("summary", "context").await;
 
     let guard = events.lock().unwrap();
-    if let Some(disabled_pos) =
-        guard.iter().position(|e| matches!(e, AgentEvent::VerifierDisabled { .. }))
+    if let Some(disabled_pos) = guard
+        .iter()
+        .position(|e| matches!(e, AgentEvent::VerifierDisabled { .. }))
     {
         let after = &guard[disabled_pos + 1..];
-        let verification_after =
-            after.iter().filter(|e| matches!(e, AgentEvent::Verification { .. })).count();
+        let verification_after = after
+            .iter()
+            .filter(|e| matches!(e, AgentEvent::Verification { .. }))
+            .count();
         assert_eq!(
-            verification_after,
-            0,
+            verification_after, 0,
             "T2-02e: expected 0 Verification events after VerifierDisabled, \
              got {verification_after}. Events: {guard:?}"
         );
