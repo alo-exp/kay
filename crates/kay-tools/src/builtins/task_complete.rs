@@ -94,7 +94,8 @@ impl Tool for TaskCompleteTool {
             ToolError::InvalidArgs { tool: self.name.clone(), reason: e.to_string() }
         })?;
 
-        let outcome = ctx.verifier.verify(&input.summary).await;
+        // task_context is empty until W-4 wires ToolCallContext::task_context
+        let outcome = ctx.verifier.verify(&input.summary, "").await;
         let verified = matches!(outcome, VerificationOutcome::Pass { .. });
         let body = outcome_body(&outcome);
 

@@ -36,11 +36,19 @@ impl MultiPerspectiveVerifier {
 
 #[async_trait]
 impl TaskVerifier for MultiPerspectiveVerifier {
-    // W-3 RED: 2-arg signature does NOT match the current 1-arg trait → compile error.
-    // W-3 GREEN: trait signature expanded to 2 args, making this compile.
-    async fn verify(&self, _task_summary: &str, _task_context: &str) -> VerificationOutcome {
-        // TODO: implement in W-3 GREEN
-        todo!("MultiPerspectiveVerifier not yet implemented")
+    async fn verify(&self, task_summary: &str, task_context: &str) -> VerificationOutcome {
+        if matches!(self.config.mode, VerifierMode::Disabled) {
+            return VerificationOutcome::Pass {
+                note: "verifier disabled (VerifierMode::Disabled)".into(),
+            };
+        }
+        // W-3: Disabled path implemented. Full Interactive/Benchmark critic
+        // calls wired in W-6 once cost ceiling + event ordering are in place.
+        // For now, return Pass so the agent loop can make forward progress.
+        let _ = (task_summary, task_context);
+        VerificationOutcome::Pass {
+            note: "stub: critic calls wired in W-6".into(),
+        }
     }
 }
 
@@ -56,7 +64,8 @@ mod tests {
     fn make_verifier(mode: VerifierMode) -> MultiPerspectiveVerifier {
         let provider = Arc::new(
             OpenRouterProvider::builder()
-                .endpoint("http://localhost:9999".into())
+                .endpoint("http://localhost:9999".to_string())
+                .api_key("test-key-not-used")
                 .build()
                 .expect("builder"),
         );
