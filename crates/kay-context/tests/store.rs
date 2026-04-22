@@ -17,10 +17,14 @@ fn schema_creates_tables() {
     ).unwrap();
     assert_eq!(count, 2);
     // Verify symbols_fts virtual table
-    let fts_count: i64 = store.conn.query_row(
-        "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='symbols_fts'",
-        [], |r| r.get(0)
-    ).unwrap();
+    let fts_count: i64 = store
+        .conn
+        .query_row(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='symbols_fts'",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap();
     assert_eq!(fts_count, 1);
 }
 
@@ -47,9 +51,13 @@ fn insert_and_query_by_name() {
 fn delete_clears_fts() {
     let (store, _dir) = open_temp();
     let sym = Symbol {
-        id: 0, name: "bar".to_string(), kind: SymbolKind::Struct,
+        id: 0,
+        name: "bar".to_string(),
+        kind: SymbolKind::Struct,
         file_path: "src/bar.rs".to_string(),
-        start_line: 1, end_line: 5, sig: "struct bar {}".to_string(),
+        start_line: 1,
+        end_line: 5,
+        sig: "struct bar {}".to_string(),
     };
     store.insert_symbol(&sym).unwrap();
     store.delete_file("src/bar.rs").unwrap();
@@ -72,18 +80,29 @@ fn index_state_skip_on_same_hash() {
 #[test]
 fn index_state_updates_on_hash_change() {
     let (store, _dir) = open_temp();
-    store.check_and_set_index_state("main.rs", "hash_v1").unwrap();
+    store
+        .check_and_set_index_state("main.rs", "hash_v1")
+        .unwrap();
     // Insert a symbol for this file
     let sym = Symbol {
-        id: 0, name: "old_fn".to_string(), kind: SymbolKind::Function,
+        id: 0,
+        name: "old_fn".to_string(),
+        kind: SymbolKind::Function,
         file_path: "main.rs".to_string(),
-        start_line: 1, end_line: 2, sig: "fn old_fn()".to_string(),
+        start_line: 1,
+        end_line: 2,
+        sig: "fn old_fn()".to_string(),
     };
     store.insert_symbol(&sym).unwrap();
     // Different hash — should NOT skip, and old symbols for file should be deleted
-    let should_skip = store.check_and_set_index_state("main.rs", "hash_v2").unwrap();
+    let should_skip = store
+        .check_and_set_index_state("main.rs", "hash_v2")
+        .unwrap();
     assert!(!should_skip, "should NOT skip when hash changes");
     // Verify old symbols were cleared (delete_file is called internally when hash changes)
     let results = store.search_fts("old_fn", 10).unwrap();
-    assert!(results.is_empty(), "old symbols should be cleared on hash change");
+    assert!(
+        results.is_empty(),
+        "old symbols should be cleared on hash change"
+    );
 }

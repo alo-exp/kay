@@ -1,5 +1,5 @@
 use crate::error::ContextError;
-use notify_debouncer_mini::{new_debouncer, DebouncedEventKind, DebounceEventResult};
+use notify_debouncer_mini::{DebounceEventResult, DebouncedEventKind, new_debouncer};
 use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
@@ -49,19 +49,17 @@ impl FileWatcher {
                     ) && is_source_file(&e.path)
                         && !should_ignore(&e.path)
                 });
-                if triggered { callback(); }
+                if triggered {
+                    callback();
+                }
             },
         )
-        .map_err(|e| {
-            std::io::Error::other(format!("notify debouncer init: {e}"))
-        })?;
+        .map_err(|e| std::io::Error::other(format!("notify debouncer init: {e}")))?;
 
         debouncer
             .watcher()
             .watch(root, notify::RecursiveMode::Recursive)
-            .map_err(|e| {
-                std::io::Error::other(format!("notify watch: {e}"))
-            })?;
+            .map_err(|e| std::io::Error::other(format!("notify watch: {e}")))?;
 
         Ok(Self { _watcher: debouncer })
     }
@@ -87,7 +85,12 @@ fn should_ignore(path: &std::path::Path) -> bool {
     if IGNORED_SEGMENTS.iter().any(|seg| path_str.contains(seg)) {
         return true;
     }
-    if path.extension().and_then(|e| e.to_str()).map(|ext| IGNORED_EXTS.contains(&ext)).unwrap_or(false) {
+    if path
+        .extension()
+        .and_then(|e| e.to_str())
+        .map(|ext| IGNORED_EXTS.contains(&ext))
+        .unwrap_or(false)
+    {
         return true;
     }
     false

@@ -1,5 +1,5 @@
+use kay_context::retriever::{apply_name_bonus, rrf_merge, rrf_score};
 use kay_context::store::{Symbol, SymbolKind, SymbolStore};
-use kay_context::retriever::{rrf_merge, rrf_score, apply_name_bonus};
 use tempfile::TempDir;
 
 fn make_store() -> (SymbolStore, TempDir) {
@@ -9,14 +9,17 @@ fn make_store() -> (SymbolStore, TempDir) {
 }
 
 fn insert_sym(store: &SymbolStore, name: &str, sig: &str, file: &str) {
-    store.insert_symbol(&Symbol {
-        id: 0,
-        name: name.to_string(),
-        kind: SymbolKind::Function,
-        file_path: file.to_string(),
-        start_line: 1, end_line: 2,
-        sig: sig.to_string(),
-    }).unwrap();
+    store
+        .insert_symbol(&Symbol {
+            id: 0,
+            name: name.to_string(),
+            kind: SymbolKind::Function,
+            file_path: file.to_string(),
+            start_line: 1,
+            end_line: 2,
+            sig: sig.to_string(),
+        })
+        .unwrap();
 }
 
 #[test]
@@ -49,13 +52,19 @@ fn fts_prefix_match() {
 #[test]
 fn fts_name_bonus_applied() {
     // rrf_score + apply_name_bonus arithmetic
-    let base = rrf_score(0);  // 1/60
+    let base = rrf_score(0); // 1/60
     let with_bonus = apply_name_bonus(base, "query_term", "query_term");
     let without_bonus = apply_name_bonus(base, "other_name", "query_term");
-    assert!(with_bonus > without_bonus,
-        "exact name match should have higher score: {} vs {}", with_bonus, without_bonus);
-    assert!((with_bonus - base - 0.5).abs() < f64::EPSILON,
-        "name bonus should be exactly +0.5");
+    assert!(
+        with_bonus > without_bonus,
+        "exact name match should have higher score: {} vs {}",
+        with_bonus,
+        without_bonus
+    );
+    assert!(
+        (with_bonus - base - 0.5).abs() < f64::EPSILON,
+        "name bonus should be exactly +0.5"
+    );
 }
 
 #[test]
@@ -67,18 +76,27 @@ fn fts_ranking_order() {
     let results = store.search_fts("foo", 10).unwrap();
     assert!(!results.is_empty());
     // heavy has more occurrences, should rank first
-    assert_eq!(results[0].name, "foo_heavy",
-        "symbol with more query occurrences should rank first");
+    assert_eq!(
+        results[0].name, "foo_heavy",
+        "symbol with more query occurrences should rank first"
+    );
 }
 
 #[test]
 fn fts_multi_word_query() {
     let (store, _dir) = make_store();
-    insert_sym(&store, "run_loop_fn", "fn run_loop_fn() // run and loop", "a.rs");
+    insert_sym(
+        &store,
+        "run_loop_fn",
+        "fn run_loop_fn() // run and loop",
+        "a.rs",
+    );
     insert_sym(&store, "only_run", "fn only_run()", "b.rs");
     // FTS5 multi-word: both tokens must match
     let results = store.search_fts("run loop", 10).unwrap();
     // run_loop_fn has both "run" and "loop", only_run has only "run"
-    assert!(results.iter().any(|s| s.name == "run_loop_fn"),
-        "multi-token query should match symbol containing both tokens");
+    assert!(
+        results.iter().any(|s| s.name == "run_loop_fn"),
+        "multi-token query should match symbol containing both tokens"
+    );
 }

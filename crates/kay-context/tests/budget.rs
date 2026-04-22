@@ -46,7 +46,10 @@ fn one_over_truncates() {
     let symbols = vec![make_symbol("foo", "fn foo() -> i32")]; // estimate=7
     let packet = budget.assemble(symbols, &[]);
     assert_eq!(packet.dropped_symbols, 1, "should drop 1 symbol");
-    assert!(packet.symbols.is_empty(), "no symbol should fit in 6 tokens");
+    assert!(
+        packet.symbols.is_empty(),
+        "no symbol should fit in 6 tokens"
+    );
 }
 
 #[test]

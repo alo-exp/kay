@@ -49,11 +49,7 @@ impl TreeSitterIndexer {
 
         let should_skip = store.check_and_set_index_state(&file_path_str, &hash)?;
         if should_skip {
-            return Ok(IndexStats {
-                files: 1,
-                symbols: 0,
-                skipped_files: 1,
-            });
+            return Ok(IndexStats { files: 1, symbols: 0, skipped_files: 1 });
         }
 
         let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("");
@@ -71,11 +67,7 @@ impl TreeSitterIndexer {
             store.insert_symbol(&sym)?;
         }
 
-        Ok(IndexStats {
-            files: 1,
-            symbols: sym_count,
-            skipped_files: 0,
-        })
+        Ok(IndexStats { files: 1, symbols: sym_count, skipped_files: 0 })
     }
 
     fn extract_symbols(
@@ -146,12 +138,8 @@ impl TreeSitterIndexer {
                 continue;
             }
 
-            let start_line = def_node
-                .map(|n| n.start_position().row as u32)
-                .unwrap_or(0);
-            let end_line = def_node
-                .map(|n| n.end_position().row as u32)
-                .unwrap_or(0);
+            let start_line = def_node.map(|n| n.start_position().row as u32).unwrap_or(0);
+            let end_line = def_node.map(|n| n.end_position().row as u32).unwrap_or(0);
 
             let sig = def_node
                 .and_then(|n| n.utf8_text(source_bytes).ok())
