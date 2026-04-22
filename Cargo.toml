@@ -24,6 +24,7 @@ members = [
     "crates/forge_embed",
     "crates/forge_ci",
     "crates/forge_walker",
+    "crates/kay-context",
     "crates/forge_markdown_stream",
     "crates/forge_select",
     "crates/forge_display",
@@ -192,6 +193,17 @@ portable-pty = "0.9"
 subtle = "2.6"
 nix = { version = "0.29", features = ["signal"] }
 tokio-util = { version = "0.7", features = ["rt"] }
+
+# Phase 7 (kay-context) additions
+rusqlite              = { version = "0.38", features = ["bundled"] }
+tree-sitter           = "0.23"
+tree-sitter-rust      = "0.23"
+tree-sitter-typescript = "0.23"
+tree-sitter-python    = "0.23"
+tree-sitter-go        = "0.23"
+sqlite-vec            = "=0.1.10-alpha.3"
+notify                = "6.1"
+notify-debouncer-mini = "0.4"
 
 # Phase 5 (kay-cli) additions
 # assert_cmd + predicates pair for subprocess E2E tests of the `kay` binary

@@ -1,0 +1,36 @@
+[package]
+name = "kay-context"
+publish = false
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Context engine: tree-sitter symbol store, hybrid FTS5+vec retrieval, budget (Phase 7: CTX-01..CTX-05)"
+
+[dependencies]
+kay-tools              = { path = "../kay-tools" }
+rusqlite               = { workspace = true }
+tree-sitter            = { workspace = true }
+tree-sitter-rust       = { workspace = true }
+tree-sitter-typescript = { workspace = true }
+tree-sitter-python     = { workspace = true }
+tree-sitter-go         = { workspace = true }
+sqlite-vec             = { workspace = true }
+notify                 = { workspace = true }
+notify-debouncer-mini  = { workspace = true }
+serde                  = { workspace = true }
+serde_json             = { workspace = true }
+thiserror              = { workspace = true }
+tracing                = { workspace = true }
+async-trait            = { workspace = true }
+tokio                  = { workspace = true }
+anyhow                 = { workspace = true }
+sha2                   = { workspace = true }
+hex                    = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+proptest = "1"
+insta    = { workspace = true }
