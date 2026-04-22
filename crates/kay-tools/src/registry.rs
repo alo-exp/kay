@@ -52,6 +52,14 @@ impl ToolRegistry {
             .collect()
     }
 
+    /// Return the raw `input_schema()` JSON Value for each registered tool.
+    /// Consumed by `ContextEngine::retrieve` (Phase 7 DL-13) so the context
+    /// engine can apply `SchemaHardener` to the schemas in-context.
+    /// Iteration order is not stable (HashMap) — callers must not rely on order.
+    pub fn schemas(&self) -> Vec<serde_json::Value> {
+        self.tools.values().map(|t| t.input_schema()).collect()
+    }
+
     pub fn len(&self) -> usize {
         self.tools.len()
     }

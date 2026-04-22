@@ -1,0 +1,9 @@
+---
+source: crates/kay-tools/tests/events_wire_snapshots.rs
+expression: wire_value(&ev)
+---
+{
+  "budget_tokens": 7168,
+  "dropped_symbols": 3,
+  "type": "context_truncated"
+}

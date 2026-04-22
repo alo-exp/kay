@@ -172,6 +172,20 @@ impl<'a> Serialize for AgentEventWire<'a> {
                 m.serialize_entry("reason", reason)?;
                 m.end()
             }
+            AgentEvent::ContextTruncated { dropped_symbols, budget_tokens } => {
+                let mut m = serializer.serialize_map(Some(3))?;
+                m.serialize_entry("type", "context_truncated")?;
+                m.serialize_entry("dropped_symbols", dropped_symbols)?;
+                m.serialize_entry("budget_tokens", budget_tokens)?;
+                m.end()
+            }
+            AgentEvent::IndexProgress { indexed, total } => {
+                let mut m = serializer.serialize_map(Some(3))?;
+                m.serialize_entry("type", "index_progress")?;
+                m.serialize_entry("indexed", indexed)?;
+                m.serialize_entry("total", total)?;
+                m.end()
+            }
         }
     }
 }

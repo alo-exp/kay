@@ -149,6 +149,25 @@ pub enum AgentEvent {
     /// additive schema change (bump CONTRACT-AgentEvent.md + kay-cli
     /// `--version` per LOOP-02 drift policy).
     Aborted { reason: String },
+
+    // -- Phase 7 additive variants (DL-12 — context engine signals) ----------
+    /// Emitted by ContextBudget when context assembly drops symbols to fit
+    /// the token budget. Consumers may surface this as a "context truncated"
+    /// warning in the UI. `dropped_symbols` is the count of symbols that
+    /// did not fit; `budget_tokens` is the configured available-token ceiling.
+    ContextTruncated {
+        dropped_symbols: usize,
+        budget_tokens: usize,
+    },
+
+    /// Emitted by TreeSitterIndexer during incremental re-index. `indexed`
+    /// is the count of files processed so far; `total` is the total file
+    /// count in the watch scope. Consumers may use this to render a progress
+    /// bar. Final emission has `indexed == total`.
+    IndexProgress {
+        indexed: usize,
+        total: usize,
+    },
 }
 
 /// A single streamed output frame from a tool. Phase 3 SHELL-03.
