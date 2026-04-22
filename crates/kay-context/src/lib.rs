@@ -15,7 +15,7 @@ pub mod watcher;
 
 pub use budget::{ContextBudget, ContextPacket, estimate_tokens};
 pub use embedder::{EmbeddingProvider, NoOpEmbedder};
-pub use engine::{ContextEngine, KayContextEngine, NoOpContextEngine};
+pub use engine::{ContextEngine, NoOpContextEngine};
 pub use error::ContextError;
 pub use hardener::SchemaHardener;
 pub use indexer::{IndexStats, TreeSitterIndexer};
