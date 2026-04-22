@@ -1,300 +1,84 @@
 //! T2-02: Cost ceiling integration tests for MultiPerspectiveVerifier.
 //!
 //! Tests verify that:
-//! - Cost accumulation works correctly
-//! - Verifier disables itself when ceiling is exceeded
-//! - No additional critics run after ceiling breach
-//! - VerifierDisabled event is emitted on ceiling breach (VERIFY-03)
+//! - Cost accumulates correctly from provider usage events
+//! - VerifierDisabled fires before a critic when accumulated cost > ceiling
+//! - VerifierDisabled reason = "cost_ceiling_exceeded" (VERIFY-03)
+//! - No Verification events appear after VerifierDisabled
 //!
-//! These tests use mockito to mock the OpenRouterProvider HTTP responses.
-//! They will FAIL in RED because the current stub verify() doesn't call
-//! the provider or emit events.
+//! These tests use mockito to mock OpenRouterProvider HTTP responses.
+//! They FAIL in RED because the stub verify() returns Pass without calling
+//! the provider or emitting events.
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use std::sync::{Arc, Mutex};
 
-use kay_provider_openrouter::OpenRouterProvider;
+use kay_provider_openrouter::{Allowlist, CostCap, OpenRouterProvider};
 use kay_tools::events::AgentEvent;
 use kay_tools::seams::verifier::TaskVerifier;
 use mockito::Server;
 
 // ---------------------------------------------------------------------------
-// Test helpers
+// SSE helper: returns a pass verdict with the given USD cost in the usage chunk.
 // ---------------------------------------------------------------------------
 
-/// Builds a ChatRequest for a critic role with the given task context.
-/// Builds an SSE response body for a critic pass verdict.
-fn critic_pass_sse(cost_tokens: u64) -> String {
-    // Simulate a streaming response: text delta + usage
-    format!(
-        "data: {{\"choices\":[{{\"delta\":{{\"content\":\"{{\\\"verdict\\\":\\\"pass\\\",\\\"reason\\\":\\\"looks good\\\"}}\"}}}}],\"usage\":{{\"prompt_tokens\":10,\"completion_tokens\":{},\"total_tokens\":{}}}}}\n\ndata: [DONE]\n\n",
-        cost_tokens, 10 + cost_tokens
-    )
+fn critic_pass_sse(cost_usd: f64) -> String {
+    let chunk = serde_json::json!({
+        "choices": [{"delta": {"content": r#"{"verdict":"pass","reason":"looks good"}"#}}],
+        "usage": {
+            "prompt_tokens": 10,
+            "completion_tokens": 5,
+            "total_tokens": 15,
+            "cost": cost_usd
+        }
+    });
+    format!("data: {chunk}\n\ndata: [DONE]")
 }
 
-// ---------------------------------------------------------------------------
-// T2-02a: Cost ceiling $0.001, first critic costs $0.002 → VerifierDisabled
-// ---------------------------------------------------------------------------
-
-#[tokio::test]
-async fn t2_02a_first_critic_exceeds_ceiling_emits_disabled_event() {
-    // Arrange: mock server returns a response costing > $0.001
-    let mut srv = Server::new_async().await;
-    let cost_tokens = 10_000u64; // ~$0.002 at typical pricing
-    let body = critic_pass_sse(cost_tokens);
-
-    let _m = srv
-        .mock("POST", "/api/v1/chat/completions")
-        .with_status(200)
-        .with_header("content-type", "text/event-stream")
-        .with_body(&body)
-        .create_async()
-        .await;
-
+fn build_verifier(
+    server_url: &str,
+    mode: kay_verifier::VerifierMode,
+    cost_ceiling_usd: f64,
+) -> (Arc<Mutex<Vec<AgentEvent>>>, kay_verifier::MultiPerspectiveVerifier) {
     let provider = Arc::new(
         OpenRouterProvider::builder()
-            .endpoint(format!("{}/api/v1/chat/completions", srv.url()))
+            .endpoint(format!("{}/api/v1/chat/completions", server_url))
             .api_key("test-key")
+            .allowlist(Allowlist::from_models(vec!["openai/gpt-4o-mini".into()]))
             .build()
             .expect("build provider"),
     );
-
     let events: Arc<Mutex<Vec<AgentEvent>>> = Arc::new(Mutex::new(Vec::new()));
     let events_cl = Arc::clone(&events);
     let sink = Arc::new(move |ev: AgentEvent| {
         events_cl.lock().unwrap().push(ev);
     }) as Arc<dyn Fn(AgentEvent) + Send + Sync>;
-
     let verifier = kay_verifier::MultiPerspectiveVerifier::new(
-        Arc::clone(&provider),
-        Arc::new(kay_provider_openrouter::CostCap::uncapped()),
+        provider,
+        Arc::new(CostCap::uncapped()),
         kay_verifier::VerifierConfig {
-            mode: kay_verifier::VerifierMode::Interactive,
+            mode,
             max_retries: 3,
-            cost_ceiling_usd: 0.001, // Very low — first critic exceeds this
+            cost_ceiling_usd,
             model: "openai/gpt-4o-mini".into(),
         },
         sink,
     );
-
-    // Act
-    let outcome = verifier
-        .verify("summary", "context")
-        .await;
-
-    // Assert
-    // T2-02a: VerifierDisabled must be emitted (VERIFY-03), and verify returns Pass
-    let guard = events.lock().unwrap();
-    let disabled_count =
-        guard.iter().filter(|e| matches!(e, AgentEvent::VerifierDisabled { .. })).count();
-    let verification_count =
-        guard.iter().filter(|e| matches!(e, AgentEvent::Verification { .. })).count();
-
-    assert!(
-        disabled_count >= 1,
-        "T2-02a FAILED: expected at least 1 VerifierDisabled event (cost_ceiling_exceeded), got {disabled_count}. Events: {guard:?}"
-    );
-    assert_eq!(
-        verification_count, 0,
-        "T2-02a FAILED: expected 0 Verification events (critic 1 should NOT run when cost already exceeds ceiling), got {verification_count}"
-    );
-    assert!(
-        matches!(outcome, kay_tools::seams::verifier::VerificationOutcome::Pass { .. }),
-        "T2-02a FAILED: expected Pass on ceiling breach, got {outcome:?}"
-    );
+    (events, verifier)
 }
 
 // ---------------------------------------------------------------------------
-// T2-02b: Ceiling $0.10, 3 critics each $0.03 → all 3 run, total $0.09 < ceiling
+// T2-02a: Benchmark mode, ceiling $0.01, each critic costs $0.02.
+// Critic 1 runs → Verification emitted, accumulated = $0.02.
+// Before critic 2: $0.02 > $0.01 → VerifierDisabled fires.
+// Result: 1 Verification + ≥1 VerifierDisabled.
 // ---------------------------------------------------------------------------
 
 #[tokio::test]
-async fn t2_02b_all_critics_run_when_under_ceiling() {
-    // Arrange: three responses, each costing ~$0.03
+async fn t2_02a_ceiling_breached_after_critic_1() {
     let mut srv = Server::new_async().await;
-    let cost_tokens = 15_000u64; // ~$0.03
-
-    // All three critics return pass
-    for _ in 0..3 {
-        let body = critic_pass_sse(cost_tokens);
-        let _m = srv
-            .mock("POST", "/api/v1/chat/completions")
-            .with_status(200)
-            .with_header("content-type", "text/event-stream")
-            .with_body(&body)
-            .create_async()
-            .await;
-    }
-
-    let provider = Arc::new(
-        OpenRouterProvider::builder()
-            .endpoint(format!("{}/api/v1/chat/completions", srv.url()))
-            .api_key("test-key")
-            .build()
-            .expect("build provider"),
-    );
-
-    let events: Arc<Mutex<Vec<AgentEvent>>> = Arc::new(Mutex::new(Vec::new()));
-    let events_cl = Arc::clone(&events);
-    let sink =
-        Arc::new(move |ev: AgentEvent| { events_cl.lock().unwrap().push(ev); })
-            as Arc<dyn Fn(AgentEvent) + Send + Sync>;
-
-    let verifier = kay_verifier::MultiPerspectiveVerifier::new(
-        Arc::clone(&provider),
-        Arc::new(kay_provider_openrouter::CostCap::uncapped()),
-        kay_verifier::VerifierConfig {
-            mode: kay_verifier::VerifierMode::Benchmark,
-            max_retries: 3,
-            cost_ceiling_usd: 0.10, // Ceiling $0.10; 3 × $0.03 = $0.09 < ceiling
-            model: "openai/gpt-4o-mini".into(),
-        },
-        sink,
-    );
-
-    // Act
-    let outcome = verifier.verify("summary", "context").await;
-
-    // Assert
-    let guard = events.lock().unwrap();
-    let verification_events: Vec<&AgentEvent> =
-        guard.iter().filter(|e| matches!(e, AgentEvent::Verification { .. })).collect();
-    let disabled_count =
-        guard.iter().filter(|e| matches!(e, AgentEvent::VerifierDisabled { .. })).count();
-
-    assert_eq!(
-        verification_events.len(),
-        3,
-        "T2-02b FAILED: expected 3 Verification events (one per critic), got {}. Events: {guard:?}",
-        verification_events.len()
-    );
-    assert_eq!(
-        disabled_count, 0,
-        "T2-02b FAILED: expected 0 VerifierDisabled events (all under ceiling), got {disabled_count}"
-    );
-    assert!(
-        matches!(outcome, kay_tools::seams::verifier::VerificationOutcome::Pass { .. }),
-        "T2-02b FAILED: expected Pass when all critics pass, got {outcome:?}"
-    );
-}
-
-// ---------------------------------------------------------------------------
-// T2-02c: Ceiling $0.10, critic 2 pushes over ceiling → VerifierDisabled after 2
-// ---------------------------------------------------------------------------
-
-#[tokio::test]
-async fn t2_02c_ceiling_breached_after_critic_2_disables_verifier() {
-    // Arrange: critic 1 costs $0.03, critic 2 costs $0.03 (total $0.06, still under
-    // $0.10), but critic 3 would cost $0.06 (total $0.12, over $0.10). So VerifierDisabled
-    // fires AFTER critic 2 but BEFORE critic 3.
-    let mut srv = Server::new_async().await;
-
-    // Critic 1: pass, ~$0.03
-    let _m1 = srv
-        .mock("POST", "/api/v1/chat/completions")
-        .with_status(200)
-        .with_header("content-type", "text/event-stream")
-        .with_body(&critic_pass_sse(15_000))
-        .expect_at_least(1) // May be called once or twice depending on retry
-        .create_async()
-        .await;
-
-    // Critic 2: pass, ~$0.03
-    let _m2 = srv
-        .mock("POST", "/api/v1/chat/completions")
-        .with_status(200)
-        .with_header("content-type", "text/event-stream")
-        .with_body(&critic_pass_sse(15_000))
-        .expect_at_least(1)
-        .create_async()
-        .await;
-
-    // Critic 3: not registered — any unmatched request returns 404.
-    // Test verifies via assertion below that only 2 critics ran.
-
-    let provider = Arc::new(
-        OpenRouterProvider::builder()
-            .endpoint(format!("{}/api/v1/chat/completions", srv.url()))
-            .api_key("test-key")
-            .build()
-            .expect("build provider"),
-    );
-
-    let events: Arc<Mutex<Vec<AgentEvent>>> = Arc::new(Mutex::new(Vec::new()));
-    let events_cl = Arc::clone(&events);
-    let sink =
-        Arc::new(move |ev: AgentEvent| { events_cl.lock().unwrap().push(ev); })
-            as Arc<dyn Fn(AgentEvent) + Send + Sync>;
-
-    let verifier = kay_verifier::MultiPerspectiveVerifier::new(
-        Arc::clone(&provider),
-        Arc::new(kay_provider_openrouter::CostCap::uncapped()),
-        kay_verifier::VerifierConfig {
-            mode: kay_verifier::VerifierMode::Benchmark,
-            max_retries: 3,
-            // Ceiling $0.10. After critic 1 ($0.03): remaining $0.07.
-            // After critic 2 ($0.06 total): remaining $0.04.
-            // Check happens BEFORE critic 3 call: $0.06 > $0.10? No, wait...
-            // Let me set it so critic 2 pushes us over.
-            // Actually: 3 critics × $0.04 = $0.12. After 2 critics: $0.08.
-            // Let me use costs that trigger exactly.
-            // Better: use 4 critics × $0.03 = $0.12. After 3: $0.09. Still < $0.10.
-            // Let me reconsider the cost ceiling math.
-            // I'll set ceiling = $0.07 so that after 2 critics ($0.06) we're close,
-            // but check happens BEFORE 3rd. 
-            // Actually the check is BEFORE each call.
-            // Let me use: ceiling = $0.06, critics cost $0.03 each.
-            // After critic 1: $0.03 < $0.06 ✓. After critic 2: check: $0.03 > $0.06? No.
-            // Hmm, I need the check to FAIL after critic 2.
-            // If ceiling = $0.05 and critics cost $0.03:
-            // After critic 1: $0.03 < $0.05 ✓. Critic 1 costs $0.03.
-            // After critic 1 run, verifier_cost = $0.03.
-            // Before critic 2: check $0.03 > $0.05? No.
-            // After critic 2 run: verifier_cost = $0.06.
-            // Before critic 3: check $0.06 > $0.05? Yes! → VerifierDisabled.
-            cost_ceiling_usd: 0.05,
-            model: "openai/gpt-4o-mini".into(),
-        },
-        sink,
-    );
-
-    // Act
-    let outcome = verifier.verify("summary", "context").await;
-
-    // Assert
-    let guard = events.lock().unwrap();
-    let verification_events: Vec<&AgentEvent> =
-        guard.iter().filter(|e| matches!(e, AgentEvent::Verification { .. })).collect();
-    let disabled_count =
-        guard.iter().filter(|e| matches!(e, AgentEvent::VerifierDisabled { .. })).count();
-
-    assert_eq!(
-        verification_events.len(),
-        2,
-        "T2-02c FAILED: expected 2 Verification events (critics 1 and 2 ran), got {}. Events: {guard:?}",
-        verification_events.len()
-    );
-    assert!(
-        disabled_count >= 1,
-        "T2-02c FAILED: expected at least 1 VerifierDisabled event, got {disabled_count}. Events: {guard:?}"
-    );
-    assert!(
-        matches!(outcome, kay_tools::seams::verifier::VerificationOutcome::Pass { .. }),
-        "T2-02c FAILED: expected Pass on ceiling breach, got {outcome:?}"
-    );
-}
-
-// ---------------------------------------------------------------------------
-// T2-02d: verifier_cost and cost_usd in events show same cumulative value
-// ---------------------------------------------------------------------------
-
-#[tokio::test]
-async fn t2_02d_verifier_cost_matches_event_costs() {
-    // Arrange: one critic returning pass
-    let mut srv = Server::new_async().await;
-    let body = critic_pass_sse(5_000); // Small response
-
+    let body = critic_pass_sse(0.02);
     let _m = srv
         .mock("POST", "/api/v1/chat/completions")
         .with_status(200)
@@ -303,41 +87,155 @@ async fn t2_02d_verifier_cost_matches_event_costs() {
         .create_async()
         .await;
 
-    let provider = Arc::new(
-        OpenRouterProvider::builder()
-            .endpoint(format!("{}/api/v1/chat/completions", srv.url()))
-            .api_key("test-key")
-            .build()
-            .expect("build provider"),
-    );
+    let (events, verifier) =
+        build_verifier(&srv.url(), kay_verifier::VerifierMode::Benchmark, 0.01);
+    let outcome = verifier.verify("summary", "context").await;
 
-    let events: Arc<Mutex<Vec<AgentEvent>>> = Arc::new(Mutex::new(Vec::new()));
-    let events_cl = Arc::clone(&events);
-    let sink =
-        Arc::new(move |ev: AgentEvent| { events_cl.lock().unwrap().push(ev); })
-            as Arc<dyn Fn(AgentEvent) + Send + Sync>;
-
-    let verifier = kay_verifier::MultiPerspectiveVerifier::new(
-        Arc::clone(&provider),
-        Arc::new(kay_provider_openrouter::CostCap::uncapped()),
-        kay_verifier::VerifierConfig {
-            mode: kay_verifier::VerifierMode::Interactive,
-            max_retries: 3,
-            cost_ceiling_usd: 1.0,
-            model: "openai/gpt-4o-mini".into(),
-        },
-        sink,
-    );
-
-    // Act
-    let _outcome = verifier.verify("summary", "context").await;
-
-    // Assert: the cost_usd in Verification events should equal the
-    // verifier's internal accumulated cost. Since we can't access internal
-    // state directly, we verify that all Verification events have the same
-    // cost_usd (one critic = one event = one cost).
     let guard = events.lock().unwrap();
-    let verification_costs: Vec<f64> = guard
+    let verification_count =
+        guard.iter().filter(|e| matches!(e, AgentEvent::Verification { .. })).count();
+    let disabled_count =
+        guard.iter().filter(|e| matches!(e, AgentEvent::VerifierDisabled { .. })).count();
+
+    assert_eq!(
+        verification_count,
+        1,
+        "T2-02a: expected 1 Verification event (critic 1 ran before ceiling check), \
+         got {verification_count}. Events: {guard:?}"
+    );
+    assert!(
+        disabled_count >= 1,
+        "T2-02a: expected >=1 VerifierDisabled (ceiling breached after critic 1), \
+         got {disabled_count}. Events: {guard:?}"
+    );
+    assert!(
+        matches!(
+            outcome,
+            kay_tools::seams::verifier::VerificationOutcome::Pass { .. }
+        ),
+        "T2-02a: expected Pass on ceiling breach (graceful degradation), got {outcome:?}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T2-02b: Benchmark mode, ceiling $0.10, 3 critics at $0.02 each = $0.06 total.
+// All 3 run. 3 Verification events, 0 VerifierDisabled.
+// ---------------------------------------------------------------------------
+
+#[tokio::test]
+async fn t2_02b_all_critics_run_when_under_ceiling() {
+    let mut srv = Server::new_async().await;
+    let body = critic_pass_sse(0.02);
+    let _m = srv
+        .mock("POST", "/api/v1/chat/completions")
+        .with_status(200)
+        .with_header("content-type", "text/event-stream")
+        .with_body(&body)
+        .create_async()
+        .await;
+
+    let (events, verifier) =
+        build_verifier(&srv.url(), kay_verifier::VerifierMode::Benchmark, 0.10);
+    let outcome = verifier.verify("summary", "context").await;
+
+    let guard = events.lock().unwrap();
+    let verification_count =
+        guard.iter().filter(|e| matches!(e, AgentEvent::Verification { .. })).count();
+    let disabled_count =
+        guard.iter().filter(|e| matches!(e, AgentEvent::VerifierDisabled { .. })).count();
+
+    assert_eq!(
+        verification_count,
+        3,
+        "T2-02b: expected 3 Verification events (3 x $0.02 = $0.06 < $0.10 ceiling), \
+         got {verification_count}. Events: {guard:?}"
+    );
+    assert_eq!(
+        disabled_count,
+        0,
+        "T2-02b: expected 0 VerifierDisabled events (all under ceiling), \
+         got {disabled_count}. Events: {guard:?}"
+    );
+    assert!(
+        matches!(
+            outcome,
+            kay_tools::seams::verifier::VerificationOutcome::Pass { .. }
+        ),
+        "T2-02b: expected Pass when all critics pass, got {outcome:?}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T2-02c: Benchmark mode, ceiling $0.05, critics at $0.03 each.
+// After critic 1: $0.03. After critic 2: $0.06 > $0.05.
+// Before critic 3: VerifierDisabled fires. Result: 2 Verification + >=1 VerifierDisabled.
+// ---------------------------------------------------------------------------
+
+#[tokio::test]
+async fn t2_02c_ceiling_breached_after_critic_2() {
+    let mut srv = Server::new_async().await;
+    let body = critic_pass_sse(0.03);
+    let _m = srv
+        .mock("POST", "/api/v1/chat/completions")
+        .with_status(200)
+        .with_header("content-type", "text/event-stream")
+        .with_body(&body)
+        .create_async()
+        .await;
+
+    let (events, verifier) =
+        build_verifier(&srv.url(), kay_verifier::VerifierMode::Benchmark, 0.05);
+    let outcome = verifier.verify("summary", "context").await;
+
+    let guard = events.lock().unwrap();
+    let verification_count =
+        guard.iter().filter(|e| matches!(e, AgentEvent::Verification { .. })).count();
+    let disabled_count =
+        guard.iter().filter(|e| matches!(e, AgentEvent::VerifierDisabled { .. })).count();
+
+    assert_eq!(
+        verification_count,
+        2,
+        "T2-02c: expected 2 Verification events (critics 1 and 2 ran), \
+         got {verification_count}. Events: {guard:?}"
+    );
+    assert!(
+        disabled_count >= 1,
+        "T2-02c: expected >=1 VerifierDisabled event (ceiling breached after critic 2), \
+         got {disabled_count}. Events: {guard:?}"
+    );
+    assert!(
+        matches!(
+            outcome,
+            kay_tools::seams::verifier::VerificationOutcome::Pass { .. }
+        ),
+        "T2-02c: expected Pass on ceiling breach, got {outcome:?}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T2-02d: Interactive mode, ceiling $1.0, 1 critic at $0.01.
+// Verification event has positive cost_usd.
+// ---------------------------------------------------------------------------
+
+#[tokio::test]
+async fn t2_02d_verification_event_has_positive_cost() {
+    let mut srv = Server::new_async().await;
+    let body = critic_pass_sse(0.01);
+    let _m = srv
+        .mock("POST", "/api/v1/chat/completions")
+        .with_status(200)
+        .with_header("content-type", "text/event-stream")
+        .with_body(&body)
+        .create_async()
+        .await;
+
+    let (events, verifier) =
+        build_verifier(&srv.url(), kay_verifier::VerifierMode::Interactive, 1.0);
+    verifier.verify("summary", "context").await;
+
+    let guard = events.lock().unwrap();
+    let costs: Vec<f64> = guard
         .iter()
         .filter_map(|e| match e {
             AgentEvent::Verification { cost_usd, .. } => Some(*cost_usd),
@@ -345,118 +243,58 @@ async fn t2_02d_verifier_cost_matches_event_costs() {
         })
         .collect();
 
-    if verification_costs.len() == 1 {
-        // If only one critic ran, costs match trivially
-        assert!(
-            verification_costs[0] > 0.0,
-            "T2-02d FAILED: verification cost_usd should be positive, got {}",
-            verification_costs[0]
-        );
-    } else {
-        // Multiple critics: all costs should be positive and sum should be
-        // reflected in the last event (or in a disabled event if ceiling hit)
-        let total_cost: f64 = verification_costs.iter().sum();
-        assert!(
-            total_cost > 0.0,
-            "T2-02d FAILED: total verifier cost should be positive, got {}",
-            total_cost
-        );
-        // Verify no duplicate costs (each event should have distinct cost contribution)
-        assert!(
-            verification_costs.windows(2).all(|w| w[0] > 0.0),
-            "T2-02d FAILED: all costs must be positive: {verification_costs:?}"
-        );
-    }
+    assert_eq!(
+        costs.len(),
+        1,
+        "T2-02d: expected 1 Verification event (Interactive = 1 critic), \
+         got {}. Events: {guard:?}",
+        costs.len()
+    );
+    assert!(
+        costs[0] > 0.0,
+        "T2-02d: cost_usd in Verification event should be positive, got {}",
+        costs[0]
+    );
 }
 
 // ---------------------------------------------------------------------------
-// T2-02e: After ceiling breach, zero additional critics run
+// T2-02e: After VerifierDisabled fires, no Verification events appear.
+// Benchmark, ceiling $0.05, critics at $0.03 each.
 // ---------------------------------------------------------------------------
 
 #[tokio::test]
-async fn t2_02e_no_verification_events_after_ceiling_breach() {
-    // Arrange: 4 critics registered in Benchmark mode, but ceiling set so that
-    // only the first 2 run, then VerifierDisabled fires.
-    // Critiques 3 and 4 must NOT produce Verification events.
+async fn t2_02e_no_verification_after_ceiling_breach() {
     let mut srv = Server::new_async().await;
-
-    // Critics 1 and 2: run and pass
-    let _m1 = srv
+    let body = critic_pass_sse(0.03);
+    let _m = srv
         .mock("POST", "/api/v1/chat/completions")
         .with_status(200)
         .with_header("content-type", "text/event-stream")
-        .with_body(&critic_pass_sse(15_000))
-        .expect_at_least(1)
+        .with_body(&body)
         .create_async()
         .await;
 
-    let _m2 = srv
-        .mock("POST", "/api/v1/chat/completions")
-        .with_status(200)
-        .with_header("content-type", "text/event-stream")
-        .with_body(&critic_pass_sse(15_000))
-        .expect_at_least(1)
-        .create_async()
-        .await;
+    let (events, verifier) =
+        build_verifier(&srv.url(), kay_verifier::VerifierMode::Benchmark, 0.05);
+    verifier.verify("summary", "context").await;
 
-    // Critics 3 and 4: not registered — unmatched requests return 404.
-    // Test verifies via assertions that only 2 Verification events occurred.
-
-    let provider = Arc::new(
-        OpenRouterProvider::builder()
-            .endpoint(format!("{}/api/v1/chat/completions", srv.url()))
-            .api_key("test-key")
-            .build()
-            .expect("build provider"),
-    );
-
-    let events: Arc<Mutex<Vec<AgentEvent>>> = Arc::new(Mutex::new(Vec::new()));
-    let events_cl = Arc::clone(&events);
-    let sink =
-        Arc::new(move |ev: AgentEvent| { events_cl.lock().unwrap().push(ev); })
-            as Arc<dyn Fn(AgentEvent) + Send + Sync>;
-
-    let verifier = kay_verifier::MultiPerspectiveVerifier::new(
-        Arc::clone(&provider),
-        Arc::new(kay_provider_openrouter::CostCap::uncapped()),
-        kay_verifier::VerifierConfig {
-            mode: kay_verifier::VerifierMode::Benchmark,
-            max_retries: 3,
-            // 2 × $0.03 = $0.06. Check before critic 3: $0.06 > $0.05? Yes.
-            // So critics 1 and 2 run, critic 3 triggers VerifierDisabled.
-            cost_ceiling_usd: 0.05,
-            model: "openai/gpt-4o-mini".into(),
-        },
-        sink,
-    );
-
-    // Act
-    let outcome = verifier.verify("summary", "context").await;
-
-    // Assert
     let guard = events.lock().unwrap();
-    let _verification_events: Vec<&AgentEvent> =
-        guard.iter().filter(|e| matches!(e, AgentEvent::Verification { .. })).collect();
-    let _disabled_events: Vec<&AgentEvent> =
-        guard.iter().filter(|e| matches!(e, AgentEvent::VerifierDisabled { .. })).collect();
-
-    // After VerifierDisabled, no more Verification events should be emitted
-    if let Some(first_disabled_idx) = guard.iter().position(|e| {
-        matches!(e, AgentEvent::VerifierDisabled { .. })
-    }) {
-        let events_after_disabled = &guard[first_disabled_idx + 1..];
-        let verification_after_disabled = events_after_disabled
-            .iter()
-            .filter(|e| matches!(e, AgentEvent::Verification { .. }))
-            .count();
+    if let Some(disabled_pos) =
+        guard.iter().position(|e| matches!(e, AgentEvent::VerifierDisabled { .. }))
+    {
+        let after = &guard[disabled_pos + 1..];
+        let verification_after =
+            after.iter().filter(|e| matches!(e, AgentEvent::Verification { .. })).count();
         assert_eq!(
-            verification_after_disabled, 0,
-            "T2-02e FAILED: expected 0 Verification events after VerifierDisabled, got {verification_after_disabled}. Events: {guard:?}"
+            verification_after,
+            0,
+            "T2-02e: expected 0 Verification events after VerifierDisabled, \
+             got {verification_after}. Events: {guard:?}"
+        );
+    } else {
+        panic!(
+            "T2-02e: expected VerifierDisabled event (ceiling breached after 2 critics \
+             at $0.03 each = $0.06 > $0.05 ceiling). Events: {guard:?}"
         );
     }
-
-    assert!(
-        matches!(outcome, kay_tools::seams::verifier::VerificationOutcome::Pass { .. }),
-        "T2-02e FAILED: expected Pass on ceiling breach, got {outcome:?}"
-    );
 }

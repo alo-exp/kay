@@ -4781,6 +4781,7 @@ dependencies = [
  "kay-provider-errors",
  "kay-provider-openrouter",
  "kay-tools",
+ "mockito",
  "proptest",
  "serde",
  "serde_json",

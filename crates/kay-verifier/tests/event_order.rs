@@ -4,112 +4,82 @@
 //! - Verification events are emitted in the correct critic order (VERIFY-04)
 //! - In Benchmark mode: test_engineer → qa_engineer → end_user
 //! - VerifierDisabled follows Verification events when ceiling is breached
-//!
-//! These tests use mockito to mock the OpenRouterProvider HTTP responses.
-//! They will FAIL in RED because the current stub verify() doesn't call
-//! the provider or emit events.
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use std::sync::{Arc, Mutex};
 
-use kay_provider_openrouter::OpenRouterProvider;
+use kay_provider_openrouter::{Allowlist, CostCap, OpenRouterProvider};
 use kay_tools::events::AgentEvent;
 use kay_tools::seams::verifier::TaskVerifier;
 use mockito::Server;
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-fn critic_pass_sse(role: &str) -> String {
-    format!(
-        "data: {{\"choices\":[{{\"delta\":{{\"content\":\"{{\\\"verdict\\\":\\\"pass\\\",\\\"reason\\\":\\\"{role} approved\\\"}}\"}}}}],\"usage\":{{\"prompt_tokens\":10,\"completion_tokens\":5,\"total_tokens\":15}}}}\n\ndata: [DONE]\n\n"
-    )
+fn critic_pass_sse(cost_usd: f64) -> String {
+    let chunk = serde_json::json!({
+        "choices": [{"delta": {"content": r#"{"verdict":"pass","reason":"looks good"}"#}}],
+        "usage": {
+            "prompt_tokens": 10,
+            "completion_tokens": 5,
+            "total_tokens": 15,
+            "cost": cost_usd
+        }
+    });
+    format!("data: {chunk}\n\ndata: [DONE]")
 }
 
-fn build_sink_and_verifier(
-    srv: &str,
+fn build_verifier(
+    server_url: &str,
     mode: kay_verifier::VerifierMode,
-    cost_ceiling: f64,
+    cost_ceiling_usd: f64,
 ) -> (Arc<Mutex<Vec<AgentEvent>>>, kay_verifier::MultiPerspectiveVerifier) {
     let provider = Arc::new(
         OpenRouterProvider::builder()
-            .endpoint(format!("{}/api/v1/chat/completions", srv))
+            .endpoint(format!("{}/api/v1/chat/completions", server_url))
             .api_key("test-key")
+            .allowlist(Allowlist::from_models(vec!["openai/gpt-4o-mini".into()]))
             .build()
             .expect("build provider"),
     );
-
     let events: Arc<Mutex<Vec<AgentEvent>>> = Arc::new(Mutex::new(Vec::new()));
     let events_cl = Arc::clone(&events);
     let sink = Arc::new(move |ev: AgentEvent| {
         events_cl.lock().unwrap().push(ev);
     }) as Arc<dyn Fn(AgentEvent) + Send + Sync>;
-
     let verifier = kay_verifier::MultiPerspectiveVerifier::new(
         provider,
-        Arc::new(kay_provider_openrouter::CostCap::uncapped()),
+        Arc::new(CostCap::uncapped()),
         kay_verifier::VerifierConfig {
             mode,
             max_retries: 3,
-            cost_ceiling_usd: cost_ceiling,
+            cost_ceiling_usd,
             model: "openai/gpt-4o-mini".into(),
         },
         sink,
     );
-
     (events, verifier)
 }
 
 // ---------------------------------------------------------------------------
 // T2-03a: Benchmark mode event order: TestEngineer → QAEngineer → EndUser
+// Ceiling $1.00, critics cost $0.01 each — all three run.
 // ---------------------------------------------------------------------------
 
 #[tokio::test]
 async fn t2_03a_benchmark_mode_emits_events_in_role_order() {
-    // Arrange: three mock endpoints, one per critic role, returning pass.
-    // Each returns a response with the role name embedded so we can verify
-    // which critic was called by checking the event's critic_role field.
     let mut srv = Server::new_async().await;
-
-    let _m_test_engineer = srv
+    let body = critic_pass_sse(0.01);
+    let _m = srv
         .mock("POST", "/api/v1/chat/completions")
         .with_status(200)
         .with_header("content-type", "text/event-stream")
-        .with_body(&critic_pass_sse("test_engineer"))
-        .expect_at_least(1)
+        .with_body(&body)
         .create_async()
         .await;
 
-    let _m_qa_engineer = srv
-        .mock("POST", "/api/v1/chat/completions")
-        .with_status(200)
-        .with_header("content-type", "text/event-stream")
-        .with_body(&critic_pass_sse("qa_engineer"))
-        .expect_at_least(1)
-        .create_async()
-        .await;
-
-    let _m_end_user = srv
-        .mock("POST", "/api/v1/chat/completions")
-        .with_status(200)
-        .with_header("content-type", "text/event-stream")
-        .with_body(&critic_pass_sse("end_user"))
-        .expect_at_least(1)
-        .create_async()
-        .await;
-
-    let (events, verifier) = build_sink_and_verifier(
-        &srv.url(),
-        kay_verifier::VerifierMode::Benchmark,
-        1.0, // High enough ceiling that all three run
-    );
-
-    // Act
+    let (events, verifier) =
+        build_verifier(&srv.url(), kay_verifier::VerifierMode::Benchmark, 1.0);
     let outcome = verifier.verify("summary", "context").await;
 
-    // Assert: three Verification events, in order test_engineer → qa_engineer → end_user
     let guard = events.lock().unwrap();
     let verification_events: Vec<&AgentEvent> = guard
         .iter()
@@ -119,11 +89,11 @@ async fn t2_03a_benchmark_mode_emits_events_in_role_order() {
     assert_eq!(
         verification_events.len(),
         3,
-        "T2-03a FAILED: expected 3 Verification events (Benchmark mode), got {}. Events: {guard:?}",
+        "T2-03a: expected 3 Verification events (Benchmark mode), got {}. Events: {guard:?}",
         verification_events.len()
     );
 
-    let ordered_roles: Vec<String> = verification_events
+    let roles: Vec<String> = verification_events
         .iter()
         .filter_map(|e| match e {
             AgentEvent::Verification { critic_role, .. } => Some(critic_role.clone()),
@@ -132,113 +102,81 @@ async fn t2_03a_benchmark_mode_emits_events_in_role_order() {
         .collect();
 
     assert_eq!(
-        ordered_roles[0], "test_engineer",
-        "T2-03a FAILED: first Verification event should be test_engineer, got {}. Events: {guard:?}",
-        ordered_roles[0]
+        roles[0], "test_engineer",
+        "T2-03a: first event should be test_engineer. Events: {guard:?}"
     );
     assert_eq!(
-        ordered_roles[1], "qa_engineer",
-        "T2-03a FAILED: second Verification event should be qa_engineer, got {}. Events: {guard:?}",
-        ordered_roles[1]
+        roles[1], "qa_engineer",
+        "T2-03a: second event should be qa_engineer. Events: {guard:?}"
     );
     assert_eq!(
-        ordered_roles[2], "end_user",
-        "T2-03a FAILED: third Verification event should be end_user, got {}. Events: {guard:?}",
-        ordered_roles[2]
+        roles[2], "end_user",
+        "T2-03a: third event should be end_user. Events: {guard:?}"
     );
 
-    // Outcome should be Pass (all critics returned pass verdict)
     assert!(
         matches!(outcome, kay_tools::seams::verifier::VerificationOutcome::Pass { .. }),
-        "T2-03a FAILED: expected Pass (all critics passed), got {outcome:?}"
+        "T2-03a: expected Pass (all critics passed), got {outcome:?}"
     );
 }
 
 // ---------------------------------------------------------------------------
-// T2-03b: Verification events precede any VerifierDisabled event
+// T2-03b: VerifierDisabled follows all Verification events (ordering).
+// Benchmark, ceiling $0.05, critics at $0.03 each.
+// After critic 2: accumulated $0.06 > $0.05 → VerifierDisabled.
 // ---------------------------------------------------------------------------
 
 #[tokio::test]
 async fn t2_03b_verifier_disabled_follows_all_verification_events() {
-    // Arrange: ceiling set so that after 2 critics the ceiling is breached.
-    // We expect: Verification(test_engineer), Verification(qa_engineer),
-    //            VerifierDisabled(cost_ceiling_exceeded)
     let mut srv = Server::new_async().await;
-
-    let _m1 = srv
+    let body = critic_pass_sse(0.03);
+    let _m = srv
         .mock("POST", "/api/v1/chat/completions")
         .with_status(200)
         .with_header("content-type", "text/event-stream")
-        .with_body(&critic_pass_sse("test_engineer"))
-        .expect_at_least(1)
+        .with_body(&body)
         .create_async()
         .await;
 
-    let _m2 = srv
-        .mock("POST", "/api/v1/chat/completions")
-        .with_status(200)
-        .with_header("content-type", "text/event-stream")
-        .with_body(&critic_pass_sse("qa_engineer"))
-        .expect_at_least(1)
-        .create_async()
-        .await;
-
-    // Critic 3 (end_user): not registered — unmatched requests return 404.
-    // Test verifies via assertions that only 2 Verification events occurred.
-
-    let (events, verifier) = build_sink_and_verifier(
-        &srv.url(),
-        kay_verifier::VerifierMode::Benchmark,
-        0.05, // Low ceiling: after 2 critics at ~$0.03 each = $0.06 > $0.05
-    );
-
-    // Act
+    let (events, verifier) =
+        build_verifier(&srv.url(), kay_verifier::VerifierMode::Benchmark, 0.05);
     let outcome = verifier.verify("summary", "context").await;
 
-    // Assert
     let guard = events.lock().unwrap();
-    let verification_events: Vec<&AgentEvent> = guard
-        .iter()
-        .filter(|e| matches!(e, AgentEvent::Verification { .. }))
-        .collect();
-    let disabled_events: Vec<&AgentEvent> = guard
-        .iter()
-        .filter(|e| matches!(e, AgentEvent::VerifierDisabled { .. }))
-        .collect();
 
-    // Verification events come before VerifierDisabled
-    if !verification_events.is_empty() && !disabled_events.is_empty() {
-        let last_verification_pos = guard.iter().position(|e| {
-            matches!(e, AgentEvent::Verification { .. })
-        }).unwrap_or(0);
-        let first_disabled_pos = guard.iter().position(|e| {
-            matches!(e, AgentEvent::VerifierDisabled { .. })
-        }).unwrap_or(guard.len());
+    let last_verification_pos =
+        guard.iter().rposition(|e| matches!(e, AgentEvent::Verification { .. }));
+    let first_disabled_pos =
+        guard.iter().position(|e| matches!(e, AgentEvent::VerifierDisabled { .. }));
+
+    assert!(
+        first_disabled_pos.is_some(),
+        "T2-03b: expected VerifierDisabled (ceiling $0.05, critics cost $0.03 each). \
+         Events: {guard:?}"
+    );
+
+    if let (Some(last_v), Some(first_d)) = (last_verification_pos, first_disabled_pos) {
         assert!(
-            last_verification_pos < first_disabled_pos,
-            "T2-03b FAILED: Verification events must precede VerifierDisabled. \
-             Last Verification at idx {}, first VerifierDisabled at idx {}. Events: {guard:?}",
-            last_verification_pos, first_disabled_pos
+            last_v < first_d,
+            "T2-03b: Verification events must precede VerifierDisabled. \
+             Last Verification at {last_v}, first VerifierDisabled at {first_d}. \
+             Events: {guard:?}"
         );
     }
 
-    // VerifierDisabled should have reason = "cost_ceiling_exceeded"
-    if let Some(AgentEvent::VerifierDisabled { reason, cost_usd }) = disabled_events.first() {
+    if let Some(AgentEvent::VerifierDisabled { reason, cost_usd }) =
+        guard.iter().find(|e| matches!(e, AgentEvent::VerifierDisabled { .. }))
+    {
         assert_eq!(
-            reason.as_str(), "cost_ceiling_exceeded",
-            "T2-03b FAILED: VerifierDisabled reason should be 'cost_ceiling_exceeded', got '{}'",
-            reason
+            reason.as_str(),
+            "cost_ceiling_exceeded",
+            "T2-03b: VerifierDisabled reason must be 'cost_ceiling_exceeded', got '{reason}'"
         );
-        assert!(
-            *cost_usd >= 0.0,
-            "T2-03b FAILED: VerifierDisabled cost_usd should be non-negative, got {}",
-            cost_usd
-        );
+        assert!(*cost_usd >= 0.0, "T2-03b: cost_usd must be non-negative, got {cost_usd}");
     }
 
-    // Outcome is Pass (verifier gracefully degrades)
     assert!(
         matches!(outcome, kay_tools::seams::verifier::VerificationOutcome::Pass { .. }),
-        "T2-03b FAILED: expected Pass on ceiling breach, got {outcome:?}"
+        "T2-03b: expected Pass on ceiling breach, got {outcome:?}"
     );
 }
