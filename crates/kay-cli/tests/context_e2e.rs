@@ -6,8 +6,7 @@ use std::sync::Arc;
 #[test]
 fn noop_engine_backward_compat() {
     // Verify that NoOpContextEngine::default() implements ContextEngine
-    let _engine: Arc<dyn kay_context::engine::ContextEngine> =
-        Arc::new(NoOpContextEngine);
+    let _engine: Arc<dyn kay_context::engine::ContextEngine> = Arc::new(NoOpContextEngine);
     let _budget = ContextBudget::default();
     // If this compiles, the DI seam is wired correctly
     // compilation success is the assertion — no runtime check needed
