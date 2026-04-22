@@ -107,6 +107,7 @@ impl ToolCallContext {
     /// Top-level callers pass `Arc::new(Mutex::new(String::new()))`;
     /// `sage_query`'s inner context passes a fresh empty string (each
     /// sub-turn accumulates its own independent context).
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         services: Arc<dyn ServicesHandle>,
         stream_sink: Arc<dyn Fn(AgentEvent) + Send + Sync>,
