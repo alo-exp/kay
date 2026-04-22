@@ -346,9 +346,18 @@ Plans:
 Plans:
 - [ ] TBD (promote with /gsd-review-backlog when ready; natural slot: during Phase 9.5 TUI work or Phase 10 settings UI)
 
+### Phase 999.4: Watcher debounce event-driven test coordination (BACKLOG)
+
+**Goal:** [Captured 2026-04-22 via /silver-quality-gates Phase 7 design-time review, Testability dim advisory] — W-7 integration tests in `crates/kay-context/tests/watcher.rs` use `tokio::time::sleep(500ms+buffer)` to wait for the 500ms debounce window before asserting `invalidate()` call counts. This is correct but slow and timing-sensitive in resource-constrained CI. Convert to event-driven coordination: thread a `oneshot` channel through the `invalidation_callback` so tests await the actual callback rather than sleeping. Eliminates ~600ms of sleep per watcher test and removes the CI flakiness risk.
+**Requirements:** TBD (quality improvement to Phase 7 test suite)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready; natural slot: post-Phase 7 merge if watcher tests cause CI flakiness)
+
 ---
 *Roadmap created: 2026-04-19*
-*Last backlog update: 2026-04-20 — added 999.2 + 999.3 from Phase 2 quality-gates advisory*
+*Last backlog update: 2026-04-22 — added 999.4 from Phase 7 quality-gates advisory*
 *Phase 2.5 plans authored: 2026-04-20 — 4 plans created (02.5-01 through 02.5-04)*
 *Phase 3 plans authored: 2026-04-20 — 5 plans created (03-01 through 03-05)*
 
