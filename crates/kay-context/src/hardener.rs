@@ -11,7 +11,7 @@ impl SchemaHardener {
         todo!("W-6 implementation")
     }
 
-    pub fn harden_all(&self, schemas: &mut Vec<Value>) {
+    pub fn harden_all(&self, schemas: &mut [Value]) {
         for s in schemas.iter_mut() {
             self.harden(s);
         }
