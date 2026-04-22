@@ -68,7 +68,7 @@ impl TreeSitterIndexer {
 
         let sym_count = symbols.len();
         for sym in symbols {
-            store.upsert_symbol(&sym)?;
+            store.insert_symbol(&sym)?;
         }
 
         Ok(IndexStats {

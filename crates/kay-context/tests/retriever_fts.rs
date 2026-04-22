@@ -9,7 +9,7 @@ fn make_store() -> (SymbolStore, TempDir) {
 }
 
 fn insert_sym(store: &SymbolStore, name: &str, sig: &str, file: &str) {
-    store.upsert_symbol(&Symbol {
+    store.insert_symbol(&Symbol {
         id: 0,
         name: name.to_string(),
         kind: SymbolKind::Function,

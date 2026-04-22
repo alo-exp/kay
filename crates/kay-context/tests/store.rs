@@ -36,7 +36,7 @@ fn insert_and_query_by_name() {
         end_line: 3,
         sig: "fn fn_foo() -> i32".to_string(),
     };
-    store.upsert_symbol(&sym).unwrap();
+    store.insert_symbol(&sym).unwrap();
     let results = store.search_fts("fn_foo", 10).unwrap();
     assert_eq!(results.len(), 1);
     assert_eq!(results[0].name, "fn_foo");
@@ -51,7 +51,7 @@ fn delete_clears_fts() {
         file_path: "src/bar.rs".to_string(),
         start_line: 1, end_line: 5, sig: "struct bar {}".to_string(),
     };
-    store.upsert_symbol(&sym).unwrap();
+    store.insert_symbol(&sym).unwrap();
     store.delete_file("src/bar.rs").unwrap();
     let results = store.search_fts("bar", 10).unwrap();
     assert!(results.is_empty(), "FTS should be empty after delete_file");
@@ -79,7 +79,7 @@ fn index_state_updates_on_hash_change() {
         file_path: "main.rs".to_string(),
         start_line: 1, end_line: 2, sig: "fn old_fn()".to_string(),
     };
-    store.upsert_symbol(&sym).unwrap();
+    store.insert_symbol(&sym).unwrap();
     // Different hash — should NOT skip, and old symbols for file should be deleted
     let should_skip = store.check_and_set_index_state("main.rs", "hash_v2").unwrap();
     assert!(!should_skip, "should NOT skip when hash changes");

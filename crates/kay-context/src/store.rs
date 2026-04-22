@@ -145,7 +145,7 @@ impl SymbolStore {
         Ok(())
     }
 
-    pub fn upsert_symbol(&self, sym: &Symbol) -> Result<(), ContextError> {
+    pub fn insert_symbol(&self, sym: &Symbol) -> Result<(), ContextError> {
         self.conn.execute(
             "INSERT INTO symbols (name, kind, file_path, start_line, end_line, sig)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6)",

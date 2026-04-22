@@ -42,7 +42,7 @@ async fn fake_embedder_insert_and_ann() {
     // Insert 3 symbols with vectors
     for i in 0i64..3 {
         let sym = make_sym(i + 1, &format!("fn_{}", i));
-        store.upsert_symbol(&sym).unwrap();
+        store.insert_symbol(&sym).unwrap();
         let vec = embedder.embed_sync(&sym.sig);
         store.upsert_vector(sym.id.max(1), &vec).unwrap_or_else(|_| {
             // id may be auto-assigned; re-query
