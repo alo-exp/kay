@@ -1,7 +1,7 @@
 use crate::error::ContextError;
 use notify_debouncer_mini::{new_debouncer, DebouncedEventKind, DebounceEventResult};
 use std::path::Path;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::time::Duration;
 
 const DEBOUNCE_MS: u64 = 500;
@@ -25,9 +25,13 @@ impl FileWatcher {
     /// debounce window.
     pub fn new(
         root: &Path,
-        on_invalidate: impl Fn() + Send + 'static,
+        on_invalidate: impl Fn() + Send + Sync + 'static,
     ) -> Result<Self, ContextError> {
-        let callback = Arc::new(Mutex::new(on_invalidate));
+        // Use Arc<dyn Fn() + Send + Sync> rather than Arc<Mutex<_>>.
+        // A Mutex is unnecessary here because the callback is never replaced —
+        // only called — and Mutex::lock() would be permanently poisoned if the
+        // callback ever panicked, silently killing the watcher.
+        let callback: Arc<dyn Fn() + Send + Sync> = Arc::new(on_invalidate);
 
         let mut debouncer = new_debouncer(
             Duration::from_millis(DEBOUNCE_MS),
@@ -45,7 +49,7 @@ impl FileWatcher {
                     ) && is_source_file(&e.path)
                         && !should_ignore(&e.path)
                 });
-                if triggered && let Ok(cb) = callback.lock() { cb(); }
+                if triggered { callback(); }
             },
         )
         .map_err(|e| {
