@@ -344,6 +344,7 @@ async fn run_async(
         context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt,
+        verifier_config: Default::default(),
     }));
 
     // ── Drain the event channel to stdout as JSONL ──────────────
