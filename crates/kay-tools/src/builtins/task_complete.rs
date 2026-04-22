@@ -144,4 +144,9 @@ mod tests {
             outcome_body(&VerificationOutcome::Fail { reason: "bad".into() }).contains("failed")
         );
     }
+
+    #[tokio::test]
+    async fn task_complete_passes_task_context_to_verifier() {
+        todo!("RED: task_complete does not yet snapshot ctx.task_context — W-4 GREEN will implement")
+    }
 }

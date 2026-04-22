@@ -157,3 +157,21 @@ impl ToolCallContext {
         )
     }
 }
+
+#[cfg(test)]
+mod phase8_ctx_tests {
+    #[test]
+    fn fresh_task_context_is_empty() {
+        todo!("RED: task_context field not yet added — W-4 GREEN will implement")
+    }
+
+    #[test]
+    fn append_task_context_accumulates() {
+        todo!("RED: task_context field not yet added — W-4 GREEN will implement")
+    }
+
+    #[test]
+    fn snapshot_is_independent() {
+        todo!("RED: task_context field not yet added — W-4 GREEN will implement")
+    }
+}
