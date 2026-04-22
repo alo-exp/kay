@@ -199,6 +199,12 @@ impl SymbolStore {
                 self.delete_file(file_path)?;
                 let now = std::time::SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)
+                    // unwrap_or_default() yields Duration::ZERO (epoch 0) when the
+                    // system clock is set before the Unix epoch — a real possibility
+                    // in containers or CI environments with broken/slewed clocks.
+                    // Epoch 0 is an acceptable sentinel: it causes the file to appear
+                    // "indexed at 1970-01-01", which is harmless today. If indexed_at
+                    // is ever used for cache-invalidation logic, revisit this.
                     .unwrap_or_default()
                     .as_secs();
                 self.conn.execute(
@@ -211,6 +217,12 @@ impl SymbolStore {
             None => {
                 let now = std::time::SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)
+                    // unwrap_or_default() yields Duration::ZERO (epoch 0) when the
+                    // system clock is set before the Unix epoch — a real possibility
+                    // in containers or CI environments with broken/slewed clocks.
+                    // Epoch 0 is an acceptable sentinel: it causes the file to appear
+                    // "indexed at 1970-01-01", which is harmless today. If indexed_at
+                    // is ever used for cache-invalidation logic, revisit this.
                     .unwrap_or_default()
                     .as_secs();
                 self.conn.execute(
