@@ -223,6 +223,96 @@ impl SymbolStore {
         }
     }
 
+    /// Create a `symbols_vec` table for storing dense vector embeddings.
+    ///
+    /// Stored as JSON-serialised `f32` arrays in a TEXT column.  The `_embedder`
+    /// argument is accepted so callers can pass a typed embedder reference;
+    /// only `dimensions` is used at runtime.  This keeps the API symmetric with
+    /// the full sqlite-vec vec0 virtual-table path that may be enabled in a
+    /// future milestone.
+    pub fn enable_vector_search<E: crate::embedder::EmbeddingProvider>(
+        &self,
+        _embedder: &E,
+        _dimensions: usize,
+    ) -> Result<(), ContextError> {
+        self.conn.execute_batch(
+            "CREATE TABLE IF NOT EXISTS symbols_vec (
+                symbol_id INTEGER NOT NULL,
+                embedding TEXT NOT NULL,
+                PRIMARY KEY (symbol_id)
+            );",
+        )?;
+        Ok(())
+    }
+
+    /// Insert or replace the dense-vector embedding for a symbol.
+    ///
+    /// `vector` is serialised to a JSON array and stored in `symbols_vec`.
+    pub fn upsert_vector(&self, symbol_id: i64, vector: &[f32]) -> Result<(), ContextError> {
+        let json = serde_json::to_string(vector)?;
+        self.conn.execute(
+            "INSERT OR REPLACE INTO symbols_vec (symbol_id, embedding) VALUES (?1, ?2)",
+            params![symbol_id, json],
+        )?;
+        Ok(())
+    }
+
+    /// Approximate-nearest-neighbour search by Euclidean distance.
+    ///
+    /// Performs a full table-scan of `symbols_vec`, computes L2 distance to
+    /// `query_vec` in Rust, and returns the `limit` closest symbols ordered by
+    /// distance ascending.
+    ///
+    /// For FakeEmbedder / test use, all vectors are zero-vectors so every row
+    /// ties at distance 0.0 and the result is non-empty as long as rows exist.
+    pub fn ann_search(
+        &self,
+        query_vec: &[f32],
+        limit: usize,
+    ) -> Result<Vec<Symbol>, ContextError> {
+        // Collect all (symbol_id, embedding) rows.
+        let mut stmt = self.conn.prepare(
+            "SELECT sv.symbol_id, s.name, s.kind, s.file_path, s.start_line, s.end_line, s.sig, sv.embedding
+             FROM symbols_vec sv
+             JOIN symbols s ON s.id = sv.symbol_id",
+        )?;
+
+        let mut candidates: Vec<(f64, Symbol)> = stmt
+            .query_map([], |r| {
+                let symbol_id: i64 = r.get(0)?;
+                let name: String = r.get(1)?;
+                let kind_str: String = r.get(2)?;
+                let file_path: String = r.get(3)?;
+                let start_line: u32 = r.get(4)?;
+                let end_line: u32 = r.get(5)?;
+                let sig: String = r.get(6)?;
+                let embedding_json: String = r.get(7)?;
+                Ok((symbol_id, name, kind_str, file_path, start_line, end_line, sig, embedding_json))
+            })?
+            .filter_map(|r| r.ok())
+            .map(|(sid, name, kind_str, file_path, start_line, end_line, sig, embedding_json)| {
+                let sym = Symbol {
+                    id: sid,
+                    name,
+                    kind: SymbolKind::from_kind_str(&kind_str),
+                    file_path,
+                    start_line,
+                    end_line,
+                    sig,
+                };
+                // Deserialise embedding; fall back to empty vec on parse error.
+                let embedding: Vec<f32> =
+                    serde_json::from_str(&embedding_json).unwrap_or_default();
+                let dist = l2_distance(query_vec, &embedding);
+                (dist, sym)
+            })
+            .collect();
+
+        candidates.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+        candidates.truncate(limit);
+        Ok(candidates.into_iter().map(|(_, sym)| sym).collect())
+    }
+
     pub fn search_fts(&self, query: &str, limit: usize) -> Result<Vec<Symbol>, ContextError> {
         let mut stmt = self.conn.prepare(
             "SELECT s.id, s.name, s.kind, s.file_path, s.start_line, s.end_line, s.sig
@@ -245,4 +335,20 @@ impl SymbolStore {
         })?;
         rows.collect::<Result<Vec<_>, _>>().map_err(ContextError::from)
     }
+}
+
+/// Euclidean (L2) distance between two `f32` slices.
+///
+/// If the slices differ in length, the shorter one is implicitly zero-padded —
+/// extra dimensions in the longer slice contribute their full squared value.
+fn l2_distance(a: &[f32], b: &[f32]) -> f64 {
+    let max_len = a.len().max(b.len());
+    let mut sum = 0f64;
+    for i in 0..max_len {
+        let ai = a.get(i).copied().unwrap_or(0.0) as f64;
+        let bi = b.get(i).copied().unwrap_or(0.0) as f64;
+        let diff = ai - bi;
+        sum += diff * diff;
+    }
+    sum.sqrt()
 }
