@@ -51,3 +51,4 @@ proptest = "1"
 # Phase 5: wire-schema snapshot lock for AgentEvent → AgentEventWire JSONL
 # (see .planning/phases/05-agent-loop/05-PLAN.md Wave 1 T1.1 + T1.5 + T6b.4).
 insta = { workspace = true }
+static_assertions = "1"

@@ -365,3 +365,53 @@ mod phase3_additions {
         assert_eq!(format!("{original:?}"), format!("{cloned:?}"));
     }
 }
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::expect_used)]
+mod phase8_event_tests {
+    use super::*;
+
+    #[test]
+    fn verification_event_has_expected_fields() {
+        // Will fail to compile until Verification variant is added (W-1 RED)
+        let ev = AgentEvent::Verification {
+            critic_role: "test_engineer".into(),
+            verdict: "pass".into(),
+            reason: "all tests pass".into(),
+            cost_usd: 0.001,
+        };
+        match ev {
+            AgentEvent::Verification { critic_role, verdict, reason, cost_usd } => {
+                assert_eq!(critic_role, "test_engineer");
+                assert_eq!(verdict, "pass");
+                assert!(!reason.is_empty());
+                assert!(cost_usd >= 0.0);
+            }
+            _ => panic!("expected Verification variant"),
+        }
+    }
+
+    #[test]
+    fn verifier_disabled_event_has_expected_fields() {
+        // Will fail to compile until VerifierDisabled variant is added (W-1 RED)
+        let ev = AgentEvent::VerifierDisabled {
+            reason: "cost_ceiling_exceeded".into(),
+            cost_usd: 1.05,
+        };
+        match ev {
+            AgentEvent::VerifierDisabled { reason, cost_usd } => {
+                assert!(!reason.is_empty());
+                assert!(cost_usd > 0.0);
+            }
+            _ => panic!("expected VerifierDisabled variant"),
+        }
+    }
+
+    #[test]
+    fn agent_event_not_clone_static_assertion() {
+        // T1-02f: AgentEvent MUST NOT implement Clone.
+        // Sink emit is a MOVE — Clone would allow implementors to
+        // silently retain copies after emission, breaking the contract.
+        static_assertions::assert_not_impl_any!(super::AgentEvent: Clone);
+    }
+}
