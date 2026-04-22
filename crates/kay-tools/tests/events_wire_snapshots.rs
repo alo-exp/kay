@@ -232,6 +232,19 @@ fn snap_aborted_sandbox_violation_propagated() {
     insta::assert_json_snapshot!(wire_value(&ev));
 }
 
+// Phase 7 additions (DL-12) — snap these AFTER adding variants to events.rs
+#[test]
+fn snap_context_truncated_wire() {
+    let ev = AgentEvent::ContextTruncated { dropped_symbols: 3, budget_tokens: 7168 };
+    insta::assert_json_snapshot!(wire_value(&ev));
+}
+
+#[test]
+fn snap_index_progress_wire() {
+    let ev = AgentEvent::IndexProgress { indexed: 10, total: 100 };
+    insta::assert_json_snapshot!(wire_value(&ev));
+}
+
 #[test]
 fn snap_jsonl_line_format() {
     // T1.3/T1.4: Display impl produces a valid JSONL line — single-line

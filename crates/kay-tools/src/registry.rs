@@ -167,4 +167,19 @@ mod tests {
         r.register(dummy("same"));
         assert_eq!(r.len(), 1, "second register with same name overwrites");
     }
+
+    #[test]
+    fn schemas_returns_one_per_tool() {
+        let mut r = ToolRegistry::new();
+        r.register(dummy("alpha"));
+        r.register(dummy("beta"));
+        let schemas = r.schemas();
+        assert_eq!(schemas.len(), 2);
+        for s in &schemas {
+            assert!(
+                s.get("type").is_some() || s.get("properties").is_some(),
+                "schema must be a JSON object: {s}"
+            );
+        }
+    }
 }
