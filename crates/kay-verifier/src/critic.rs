@@ -13,11 +13,20 @@ pub(crate) struct CriticResponse {
     pub reason: String,
 }
 
+// Wire DTO — strict: deny_unknown_fields enforces ForgeCode hardening
+// schema: "required" before "properties", additionalProperties: false
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CriticResponseWire {
+    verdict: CriticVerdict,
+    reason: String,
+}
+
 impl CriticResponse {
     pub(crate) fn from_json(s: &str) -> Result<Self, String> {
-        // TODO: implement in W-1 GREEN
-        let _ = s;
-        Err("not implemented".into())
+        let wire: CriticResponseWire =
+            serde_json::from_str(s).map_err(|e| format!("critic parse error: {e}"))?;
+        Ok(Self { verdict: wire.verdict, reason: wire.reason })
     }
 
     pub(crate) fn is_pass(&self) -> bool {

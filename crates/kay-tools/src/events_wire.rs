@@ -186,6 +186,22 @@ impl<'a> Serialize for AgentEventWire<'a> {
                 m.serialize_entry("total", total)?;
                 m.end()
             }
+            AgentEvent::Verification { critic_role, verdict, reason, cost_usd } => {
+                let mut m = serializer.serialize_map(Some(5))?;
+                m.serialize_entry("type", "verification")?;
+                m.serialize_entry("critic_role", critic_role)?;
+                m.serialize_entry("verdict", verdict)?;
+                m.serialize_entry("reason", reason)?;
+                m.serialize_entry("cost_usd", cost_usd)?;
+                m.end()
+            }
+            AgentEvent::VerifierDisabled { reason, cost_usd } => {
+                let mut m = serializer.serialize_map(Some(3))?;
+                m.serialize_entry("type", "verifier_disabled")?;
+                m.serialize_entry("reason", reason)?;
+                m.serialize_entry("cost_usd", cost_usd)?;
+                m.end()
+            }
         }
     }
 }

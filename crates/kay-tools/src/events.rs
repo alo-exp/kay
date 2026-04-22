@@ -150,6 +150,23 @@ pub enum AgentEvent {
     /// `--version` per LOOP-02 drift policy).
     Aborted { reason: String },
 
+    // -- Phase 8 additive variants (VERIFY-03, VERIFY-04) --------------------
+    /// Emitted once per critic verdict during MultiPerspectiveVerifier.verify().
+    /// Emit is a MOVE — AgentEvent is non-Clone by design. VERIFY-04.
+    Verification {
+        critic_role: String,
+        verdict: String,   // "pass" | "fail"
+        reason: String,
+        cost_usd: f64,
+    },
+
+    /// Emitted when the verifier disables itself due to cost or retry ceiling.
+    /// VERIFY-03.
+    VerifierDisabled {
+        reason: String,    // "cost_ceiling_exceeded" | "max_retries_exhausted"
+        cost_usd: f64,
+    },
+
     // -- Phase 7 additive variants (DL-12 — context engine signals) ----------
     /// Emitted by ContextBudget when context assembly drops symbols to fit
     /// the token budget. Consumers may surface this as a "context truncated"
