@@ -355,9 +355,18 @@ Plans:
 Plans:
 - [ ] TBD (promote with /gsd-review-backlog when ready; natural slot: post-Phase 7 merge if watcher tests cause CI flakiness)
 
+### Phase 999.5: Tighten SymbolStore field visibility — conn pub → pub(crate) (BACKLOG)
+
+**Goal:** [Captured 2026-04-22 via /silver-quality-gates Phase 7 adversarial review, Modularity/Reusability dim — IN-02] — `SymbolStore::conn` is `pub`, leaking `rusqlite::Connection` to all downstream callers including integration tests that call `store.conn.query_row()` directly. Once tests migrate to using accessor methods, `conn` should be changed to `pub(crate)` and `db_path` should remain `pub`. This enforces the storage-layer abstraction and allows switching to a connection pool (r2d2) without callers needing to change.
+**Requirements:** TBD (quality improvement to Phase 7 public API)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready; natural slot: during Phase 8 integration work or post-v1 API hardening)
+
 ---
 *Roadmap created: 2026-04-19*
-*Last backlog update: 2026-04-22 — added 999.4 from Phase 7 quality-gates advisory*
+*Last backlog update: 2026-04-22 — added 999.5 from Phase 7 adversarial quality-gates review*
 *Phase 2.5 plans authored: 2026-04-20 — 4 plans created (02.5-01 through 02.5-04)*
 *Phase 3 plans authored: 2026-04-20 — 5 plans created (03-01 through 03-05)*
 
