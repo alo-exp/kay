@@ -8,7 +8,7 @@ use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
 use forge_domain::{FSRead, FSSearch, FSWrite, NetFetch, ToolOutput};
-use kay_core::control::{ControlMsg, control_channel};
+use kay_core::control::control_channel;
 use kay_core::r#loop::{RunTurnArgs, run_with_rework, TurnResult};
 use kay_core::persona::Persona;
 use kay_provider_errors::ProviderError;
@@ -114,7 +114,7 @@ async fn send_task_complete(
             outcome,
         }))
         .await;
-    drop(tx);
+    let _ = tx;
 }
 
 // ───────────────────────────────────────────────────────────────────────
