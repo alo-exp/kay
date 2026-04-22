@@ -30,6 +30,11 @@ ignore = [
     "RUSTSEC-2026-0098",
     "RUSTSEC-2026-0099",
 
+    # rustls-webpki 0.101.7: reachable panic in CRL parsing (2026-04-22).
+    # Transitive via rmcp/reqwest; Kay does not parse CRLs directly.
+    # Patched in >=0.103.13; blocked on rmcp upgrading its rustls chain.
+    "RUSTSEC-2026-0104",
+
     # Unmaintained warnings (informational in strict mode; listed here so
     # the audit is fully deterministic across local + CI runs):
     "RUSTSEC-2025-0141",  # bincode unmaintained

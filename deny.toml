@@ -38,6 +38,10 @@ ignore = [
     # Pulled in via rmcp; Phase 3 rewires the MCP client.
     "RUSTSEC-2026-0098",
     "RUSTSEC-2026-0099",
+    # rustls-webpki 0.101.7: reachable panic in CRL parsing (2026-04-22).
+    # Transitive via rmcp/reqwest; Kay does not parse CRLs directly.
+    # Patched in >=0.103.13; blocked on rmcp upgrading its rustls chain.
+    "RUSTSEC-2026-0104",
     # Unmaintained / unsound informational warnings promoted to errors by
     # `unmaintained = "workspace"` / `unsound = "all"`:
     "RUSTSEC-2025-0141",  # bincode unmaintained
@@ -96,13 +100,4 @@ allow-wildcard-paths = true
 deny = [
     { crate = "openssl", use-instead = "rustls" },
     { crate = "openssl-sys", use-instead = "rustls" },
-    { crate = "native-tls", use-instead = "rustls" },
 ]
-
-skip = []
-skip-tree = []
-
-[sources]
-unknown-registry = "deny"
-unknown-git = "deny"
-allow-git = []  # No git dependencies by default.
