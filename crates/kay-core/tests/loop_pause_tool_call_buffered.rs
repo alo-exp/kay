@@ -89,8 +89,8 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use async_trait::async_trait;
@@ -247,7 +247,12 @@ fn spawn_turn_with_counting_tool(tool_name: &'static str) -> TurnHarness {
         context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt: String::new(),
-        verifier_config: kay_verifier::VerifierConfig { mode: kay_verifier::VerifierMode::Disabled, max_retries: 0, cost_ceiling_usd: 0.0, model: String::new() },
+        verifier_config: kay_verifier::VerifierConfig {
+            mode: kay_verifier::VerifierMode::Disabled,
+            max_retries: 0,
+            cost_ceiling_usd: 0.0,
+            model: String::new(),
+        },
     }));
 
     (handle, model_tx, ctl_tx, event_rx, dispatch_count)

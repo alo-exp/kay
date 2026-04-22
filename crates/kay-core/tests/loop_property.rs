@@ -120,7 +120,10 @@ impl ServicesHandle for NullServices {
 fn drive_loop(
     event_contents: Vec<String>,
     close_control_before_model: bool,
-) -> (Vec<AgentEvent>, Result<TurnResult, kay_core::r#loop::LoopError>) {
+) -> (
+    Vec<AgentEvent>,
+    Result<TurnResult, kay_core::r#loop::LoopError>,
+) {
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
@@ -178,7 +181,12 @@ fn drive_loop(
             context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
             context_budget: kay_context::budget::ContextBudget::default(),
             initial_prompt: String::new(),
-            verifier_config: kay_verifier::VerifierConfig { mode: kay_verifier::VerifierMode::Disabled, max_retries: 0, cost_ceiling_usd: 0.0, model: String::new() },
+            verifier_config: kay_verifier::VerifierConfig {
+                mode: kay_verifier::VerifierMode::Disabled,
+                max_retries: 0,
+                cost_ceiling_usd: 0.0,
+                model: String::new(),
+            },
         }));
 
         // 2 s bound is far more than enough for 8 events + two drops

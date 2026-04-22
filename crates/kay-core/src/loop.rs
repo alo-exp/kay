@@ -88,9 +88,9 @@ use tokio::sync::mpsc;
 use crate::control::ControlMsg;
 use crate::persona::Persona;
 use kay_provider_errors::ProviderError;
+use kay_tools::events::ToolOutputChunk;
 use kay_tools::runtime::dispatcher::dispatch;
 use kay_tools::{AgentEvent, ToolCallContext, ToolRegistry, VerificationOutcome};
-use kay_tools::events::ToolOutputChunk;
 
 /// Input bundle for [`run_turn`]. Constructed by callers via
 /// struct-literal so later tasks (T4.5+) can add fields — the
@@ -366,9 +366,11 @@ async fn handle_model_event(
     // Phase 8 W-5: Detect Fail outcome for re-work loop.
     // Extract fail_reason BEFORE the event is moved into send().
     let fail_reason: Option<String> = match &ev {
-        AgentEvent::TaskComplete { verified: false, outcome: VerificationOutcome::Fail { reason }, .. } => {
-            Some(reason.clone())
-        }
+        AgentEvent::TaskComplete {
+            verified: false,
+            outcome: VerificationOutcome::Fail { reason },
+            ..
+        } => Some(reason.clone()),
         _ => None,
     };
 
@@ -384,9 +386,18 @@ async fn handle_model_event(
     // the UI can render the final verdict before the stream closes.
     // Exiting without forwarding would drop the signal the whole
     // turn exists to produce.
+    //
+    // If the consumer has hung up (send fails), we still honour the
+    // lifecycle gates — the TurnResult must reflect the event that
+    // was received, not the delivery failure. Tool dispatch is
+    // skipped (no one to receive its output anyway).
     if event_tx.send(ev).await.is_err() {
-        // Consumer hung up — no point executing the tool if no one
-        // will see its output.
+        if fail_reason.is_some() {
+            return ModelOutcome::ExitVerificationFailed;
+        }
+        if terminates_turn {
+            return ModelOutcome::ExitVerified;
+        }
         return ModelOutcome::ExitCompleted;
     }
 
@@ -411,11 +422,7 @@ async fn handle_model_event(
     //
     // Phase 8 W-5: Also exit with VerificationFailed on Fail outcome
     // so run_with_rework can retry.
-    if let Some(reason) = fail_reason {
-        // Store the fail reason in a thread-local or pass it through
-        // the return type. For now, we'll handle this in run_turn's
-        // return value mapping.
-        let _ = reason; // Suppress unused warning
+    if fail_reason.is_some() {
         return ModelOutcome::ExitVerificationFailed;
     }
 
@@ -578,9 +585,8 @@ pub enum LoopError {}
 /// - Returns `TurnResult::Completed` when model stream closes naturally
 /// - Returns `TurnResult::Aborted` on control abort
 ///
-/// Note: Actual retry loop (re-running turn with new channels) is handled
-/// by the CLI layer when it receives `VerificationFailed` and decides
-/// whether to retry based on remaining budget.
+/// When `verifier_config.mode` is `Disabled`, any `VerificationFailed` outcome
+/// is treated as `Verified` — the verifier is opted out entirely.
 ///
 /// # Errors
 ///
@@ -590,6 +596,14 @@ pub async fn run_with_rework(mut args: RunTurnArgs) -> Result<TurnResult, LoopEr
     // persona fields. Wave 7 wires `persona.tool_filter` and
     // `persona.model` into tool dispatch and the OpenRouter client.
     let _persona = args.persona;
+
+    // When the verifier is disabled, treat any VerificationFailed as Verified.
+    // This lets callers opt out of the re-work loop without special-casing
+    // every call site.
+    let verifier_disabled = matches!(
+        args.verifier_config.mode,
+        kay_verifier::VerifierMode::Disabled
+    );
 
     // `control_open` gates the control-channel select arm.
     let mut control_open = true;
@@ -641,9 +655,12 @@ pub async fn run_with_rework(mut args: RunTurnArgs) -> Result<TurnResult, LoopEr
                                 return Ok(TurnResult::Verified);
                             }
                             ModelOutcome::ExitVerificationFailed => {
+                                if verifier_disabled {
+                                    return Ok(TurnResult::Verified);
+                                }
+
                                 // Emit feedback for the failure
                                 let feedback = "Verification failed: please review the critic feedback and address the issues.";
-
                                 let _ = args.event_tx
                                     .send(AgentEvent::ToolOutput {
                                         call_id: "rework-feedback".to_string(),
@@ -652,7 +669,6 @@ pub async fn run_with_rework(mut args: RunTurnArgs) -> Result<TurnResult, LoopEr
                                     .await;
 
                                 tracing::info!("Verification failed in single turn");
-
                                 return Ok(TurnResult::VerificationFailed);
                             }
                             ModelOutcome::ExitCompleted => return Ok(TurnResult::Completed),

@@ -9,12 +9,12 @@ use std::sync::{Arc, Mutex};
 use async_trait::async_trait;
 use forge_domain::{FSRead, FSSearch, FSWrite, NetFetch, ToolOutput};
 use kay_core::control::control_channel;
-use kay_core::r#loop::{RunTurnArgs, run_with_rework, TurnResult};
+use kay_core::r#loop::{RunTurnArgs, TurnResult, run_with_rework};
 use kay_core::persona::Persona;
 use kay_provider_errors::ProviderError;
 use kay_tools::{
-    AgentEvent, ImageQuota, NoOpSandbox, ServicesHandle, ToolCallContext,
-    ToolRegistry, VerificationOutcome,
+    AgentEvent, ImageQuota, NoOpSandbox, ServicesHandle, ToolCallContext, ToolRegistry,
+    VerificationOutcome,
 };
 use kay_verifier::{VerifierConfig, VerifierMode};
 
@@ -24,9 +24,7 @@ struct PassVerifier;
 #[async_trait::async_trait]
 impl kay_tools::seams::verifier::TaskVerifier for PassVerifier {
     async fn verify(&self, _: &str, _: &str) -> VerificationOutcome {
-        VerificationOutcome::Pass {
-            note: "PassVerifier: always passing".into(),
-        }
+        VerificationOutcome::Pass { note: "PassVerifier: always passing".into() }
     }
 }
 
@@ -36,9 +34,7 @@ struct FailingVerifier;
 #[async_trait::async_trait]
 impl kay_tools::seams::verifier::TaskVerifier for FailingVerifier {
     async fn verify(&self, _: &str, _: &str) -> VerificationOutcome {
-        VerificationOutcome::Fail {
-            reason: "FailingVerifier: always failing".into(),
-        }
+        VerificationOutcome::Fail { reason: "FailingVerifier: always failing".into() }
     }
 }
 

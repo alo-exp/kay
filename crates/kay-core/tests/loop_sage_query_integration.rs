@@ -255,7 +255,12 @@ async fn forge_calls_sage_via_sage_query_end_to_end() {
         context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt: String::new(),
-        verifier_config: kay_verifier::VerifierConfig { mode: kay_verifier::VerifierMode::Disabled, max_retries: 0, cost_ceiling_usd: 0.0, model: String::new() },
+        verifier_config: kay_verifier::VerifierConfig {
+            mode: kay_verifier::VerifierMode::Disabled,
+            max_retries: 0,
+            cost_ceiling_usd: 0.0,
+            model: String::new(),
+        },
     }));
 
     // ── Drain events until the loop drops `event_tx` ────────────────

@@ -134,7 +134,12 @@ async fn run_turn_single_turn_happy_path() {
         context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt: String::new(),
-        verifier_config: kay_verifier::VerifierConfig { mode: kay_verifier::VerifierMode::Disabled, max_retries: 0, cost_ceiling_usd: 0.0, model: String::new() },
+        verifier_config: kay_verifier::VerifierConfig {
+            mode: kay_verifier::VerifierMode::Disabled,
+            max_retries: 0,
+            cost_ceiling_usd: 0.0,
+            model: String::new(),
+        },
     }));
 
     // ── Drain events until the loop drops `event_tx` ────────────
@@ -258,7 +263,12 @@ async fn task_complete_does_not_terminate_on_pending_verification() {
         context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt: String::new(),
-        verifier_config: kay_verifier::VerifierConfig { mode: kay_verifier::VerifierMode::Disabled, max_retries: 0, cost_ceiling_usd: 0.0, model: String::new() },
+        verifier_config: kay_verifier::VerifierConfig {
+            mode: kay_verifier::VerifierMode::Disabled,
+            max_retries: 0,
+            cost_ceiling_usd: 0.0,
+            model: String::new(),
+        },
     }));
 
     let mut events = Vec::new();
@@ -371,7 +381,12 @@ async fn task_complete_on_verifier_pass_terminates_loop() {
         context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt: String::new(),
-        verifier_config: kay_verifier::VerifierConfig { mode: kay_verifier::VerifierMode::Disabled, max_retries: 0, cost_ceiling_usd: 0.0, model: String::new() },
+        verifier_config: kay_verifier::VerifierConfig {
+            mode: kay_verifier::VerifierMode::Disabled,
+            max_retries: 0,
+            cost_ceiling_usd: 0.0,
+            model: String::new(),
+        },
     }));
 
     // Drain events concurrently with the loop. On GREEN: `run_turn`
@@ -511,7 +526,12 @@ async fn control_pause_buffers_then_resume_replays() {
         context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt: String::new(),
-        verifier_config: kay_verifier::VerifierConfig { mode: kay_verifier::VerifierMode::Disabled, max_retries: 0, cost_ceiling_usd: 0.0, model: String::new() },
+        verifier_config: kay_verifier::VerifierConfig {
+            mode: kay_verifier::VerifierMode::Disabled,
+            max_retries: 0,
+            cost_ceiling_usd: 0.0,
+            model: String::new(),
+        },
     }));
 
     // ── Phase 1: pre-pause — event forwards normally ────────────────
@@ -611,10 +631,9 @@ async fn control_pause_buffers_then_resume_replays() {
     // ── Phase 6: clean close → loop exits Ok ───────────────────────
     drop(model_tx);
     drop(ctl_tx);
-    handle
-        .await
-        .expect("run_turn task joined cleanly")
-        .expect("run_turn returned Ok(TurnResult::Completed) on clean close after pause/resume cycle");
+    handle.await.expect("run_turn task joined cleanly").expect(
+        "run_turn returned Ok(TurnResult::Completed) on clean close after pause/resume cycle",
+    );
 }
 
 /// Abort emits `AgentEvent::Aborted { reason: "user_abort" }` and
@@ -656,7 +675,12 @@ async fn control_abort_emits_aborted_event_and_exits() {
         context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt: String::new(),
-        verifier_config: kay_verifier::VerifierConfig { mode: kay_verifier::VerifierMode::Disabled, max_retries: 0, cost_ceiling_usd: 0.0, model: String::new() },
+        verifier_config: kay_verifier::VerifierConfig {
+            mode: kay_verifier::VerifierMode::Disabled,
+            max_retries: 0,
+            cost_ceiling_usd: 0.0,
+            model: String::new(),
+        },
     }));
 
     // One pre-abort event to prove the loop is responsive before the
@@ -760,7 +784,12 @@ async fn control_double_abort_is_idempotent() {
         context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt: String::new(),
-        verifier_config: kay_verifier::VerifierConfig { mode: kay_verifier::VerifierMode::Disabled, max_retries: 0, cost_ceiling_usd: 0.0, model: String::new() },
+        verifier_config: kay_verifier::VerifierConfig {
+            mode: kay_verifier::VerifierMode::Disabled,
+            max_retries: 0,
+            cost_ceiling_usd: 0.0,
+            model: String::new(),
+        },
     }));
 
     // First abort: expected to emit exactly one Aborted and trigger
