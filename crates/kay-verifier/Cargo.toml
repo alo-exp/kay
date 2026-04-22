@@ -26,3 +26,4 @@ proptest = "1"
 trybuild = { version = "1", features = ["diff"] }
 static_assertions = "1"
 wiremock = "0.6"
+mockito = { workspace = true }

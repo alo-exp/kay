@@ -88,6 +88,7 @@ pub(crate) struct CriticPrompt {
 #[allow(clippy::unwrap_used, clippy::expect_used)]
 mod tests {
     use super::*;
+    use proptest::proptest;
 
     // --- CriticResponse parse tests (RED: from_json returns Err for all inputs) ---
 
@@ -167,5 +168,15 @@ mod tests {
         assert!(!CriticRole::TestEngineer.system_prompt().is_empty());
         assert!(!CriticRole::QAEngineer.system_prompt().is_empty());
         assert!(!CriticRole::EndUser.system_prompt().is_empty());
+    }
+
+    // T4-01: CriticResponse::from_json must never panic on any input.
+    // Uses proptest to test 10,000 random byte sequences. A panic here
+    // would crash the agent loop during verification — catastrophic.
+    proptest! {
+        #[test]
+        fn critic_response_parser_never_panics(s in "\\PC*") {
+            let _ = CriticResponse::from_json(&s);
+        }
     }
 }
