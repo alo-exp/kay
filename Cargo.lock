@@ -4542,6 +4542,7 @@ dependencies = [
  "kay-provider-errors",
  "kay-session",
  "kay-tools",
+ "kay-verifier",
  "nu-ansi-term",
  "predicates",
  "pretty_assertions",
