@@ -49,11 +49,7 @@ async fn fake_embedder_insert_and_ann() {
         let sym = make_sym(i + 1, &format!("fn_{}", i));
         store.insert_symbol(&sym).unwrap();
         let vec = embedder.embed_sync(&sym.sig);
-        store
-            .upsert_vector(sym.id.max(1), &vec)
-            .unwrap_or_else(|_| {
-                // id may be auto-assigned; re-query
-            });
+        let _ = store.upsert_vector(sym.id.max(1), &vec);
     }
     // ANN search with a zero-vector should return results
     let query_vec = vec![0.0f32; 4];
@@ -130,10 +126,9 @@ fn rrf_k60_score_formula() {
 
 #[test]
 fn noop_embedder_skips_vec() {
-    use kay_context::embedder::NoOpEmbedder;
     use kay_context::engine::{ContextEngine, NoOpContextEngine};
 
-    let engine = NoOpContextEngine::default();
+    let engine = NoOpContextEngine;
     // NoOpContextEngine::retrieve must complete without accessing symbols_vec
     // (which doesn't exist in this test store)
     let rt = tokio::runtime::Runtime::new().unwrap();

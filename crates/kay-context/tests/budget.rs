@@ -1,4 +1,4 @@
-use kay_context::budget::{ContextBudget, ContextPacket, estimate_tokens};
+use kay_context::budget::{ContextBudget, estimate_tokens};
 use kay_context::store::{Symbol, SymbolKind};
 
 fn make_symbol(name: &str, sig: &str) -> Symbol {
