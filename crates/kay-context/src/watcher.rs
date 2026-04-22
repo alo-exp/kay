@@ -45,11 +45,7 @@ impl FileWatcher {
                     ) && is_source_file(&e.path)
                         && !should_ignore(&e.path)
                 });
-                if triggered {
-                    if let Ok(cb) = callback.lock() {
-                        cb();
-                    }
-                }
+                if triggered && let Ok(cb) = callback.lock() { cb(); }
             },
         )
         .map_err(|e| {
@@ -87,10 +83,8 @@ fn should_ignore(path: &std::path::Path) -> bool {
     if IGNORED_SEGMENTS.iter().any(|seg| path_str.contains(seg)) {
         return true;
     }
-    if let Some(ext) = path.extension().and_then(|e| e.to_str()) {
-        if IGNORED_EXTS.contains(&ext) {
-            return true;
-        }
+    if path.extension().and_then(|e| e.to_str()).map(|ext| IGNORED_EXTS.contains(&ext)).unwrap_or(false) {
+        return true;
     }
     false
 }
