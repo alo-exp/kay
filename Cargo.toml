@@ -25,6 +25,7 @@ members = [
     "crates/forge_ci",
     "crates/forge_walker",
     "crates/kay-context",
+    "crates/kay-verifier",
     "crates/forge_markdown_stream",
     "crates/forge_select",
     "crates/forge_display",

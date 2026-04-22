@@ -85,7 +85,7 @@
 
 use std::io::Write;
 use std::path::PathBuf;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
 use clap::Args;
@@ -323,6 +323,7 @@ async fn run_async(
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
         0, // nesting_depth: top-level turn (sage_query depth is per-call)
+        Arc::new(Mutex::new(String::new())),
     );
 
     // ── Spawn the agent loop ────────────────────────────────────
@@ -343,6 +344,7 @@ async fn run_async(
         context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt,
+        verifier_config: Default::default(),
     }));
 
     // ── Drain the event channel to stdout as JSONL ──────────────

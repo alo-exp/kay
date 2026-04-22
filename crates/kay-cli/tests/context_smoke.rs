@@ -29,16 +29,21 @@ fn context_injected_into_system_prompt() {
     assert_eq!(budget.available(), 7168, "default available should be 7168");
 }
 
-/// Verify ContextTruncated event emits with correct field values.
+/// Phase 8 smoke: VerifierConfig::default() wires into the CLI without panic.
+/// Real verifier behavioral tests live in crates/kay-verifier/tests/ and
+/// crates/kay-core/tests/rework_loop.rs.
 #[test]
-fn truncated_event_emitted() {
-    use kay_tools::events::AgentEvent;
-    let ev = AgentEvent::ContextTruncated { dropped_symbols: 5, budget_tokens: 7168 };
-    match ev {
-        AgentEvent::ContextTruncated { dropped_symbols, budget_tokens } => {
-            assert_eq!(dropped_symbols, 5);
-            assert_eq!(budget_tokens, 7168);
-        }
-        _ => panic!("wrong variant"),
-    }
+fn verifier_config_default_is_interactive() {
+    // Ensures the Default impl is stable and the Interactive mode is the
+    // CLI default (VERIFY-02: bounded re-work loop, opt-in benchmark trio).
+    let cfg = kay_verifier::VerifierConfig::default();
+    assert!(
+        matches!(cfg.mode, kay_verifier::VerifierMode::Interactive),
+        "default mode should be Interactive for CLI use"
+    );
+    assert_eq!(cfg.max_retries, 3, "default max_retries should be 3");
+    assert!(
+        cfg.cost_ceiling_usd > 0.0,
+        "default cost ceiling should be positive"
+    );
 }

@@ -38,7 +38,7 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
 use forge_domain::{FSRead, FSSearch, FSWrite, NetFetch, ToolOutput};
@@ -118,6 +118,7 @@ async fn run_turn_single_turn_happy_path() {
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
         0,
+        Arc::new(Mutex::new(String::new())),
     );
 
     // ── Spawn the loop ──────────────────────────────────────────
@@ -133,6 +134,12 @@ async fn run_turn_single_turn_happy_path() {
         context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt: String::new(),
+        verifier_config: kay_verifier::VerifierConfig {
+            mode: kay_verifier::VerifierMode::Disabled,
+            max_retries: 0,
+            cost_ceiling_usd: 0.0,
+            model: String::new(),
+        },
     }));
 
     // ── Drain events until the loop drops `event_tx` ────────────
@@ -144,11 +151,11 @@ async fn run_turn_single_turn_happy_path() {
         events.push(ev);
     }
 
-    // ── Assert: loop returned Ok(()) ────────────────────────────
+    // ── Assert: loop returned Ok(TurnResult::Completed) ───────────
     handle
         .await
         .expect("run_turn task joined cleanly")
-        .expect("run_turn returned Ok on stream close");
+        .expect("run_turn returned Ok(TurnResult::Completed) on stream close");
 
     // ── Assert: exactly one forwarded TextDelta ─────────────────
     assert_eq!(
@@ -243,6 +250,7 @@ async fn task_complete_does_not_terminate_on_pending_verification() {
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
         0,
+        Arc::new(Mutex::new(String::new())),
     );
 
     let handle = tokio::spawn(run_turn(RunTurnArgs {
@@ -255,6 +263,12 @@ async fn task_complete_does_not_terminate_on_pending_verification() {
         context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt: String::new(),
+        verifier_config: kay_verifier::VerifierConfig {
+            mode: kay_verifier::VerifierMode::Disabled,
+            max_retries: 0,
+            cost_ceiling_usd: 0.0,
+            model: String::new(),
+        },
     }));
 
     let mut events = Vec::new();
@@ -265,7 +279,7 @@ async fn task_complete_does_not_terminate_on_pending_verification() {
     handle
         .await
         .expect("run_turn task joined cleanly")
-        .expect("run_turn returned Ok on stream close");
+        .expect("run_turn returned Ok(TurnResult::Completed) on stream close");
 
     assert_eq!(
         events.len(),
@@ -354,6 +368,7 @@ async fn task_complete_on_verifier_pass_terminates_loop() {
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
         0,
+        Arc::new(Mutex::new(String::new())),
     );
 
     let handle = tokio::spawn(run_turn(RunTurnArgs {
@@ -366,6 +381,12 @@ async fn task_complete_on_verifier_pass_terminates_loop() {
         context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt: String::new(),
+        verifier_config: kay_verifier::VerifierConfig {
+            mode: kay_verifier::VerifierMode::Disabled,
+            max_retries: 0,
+            cost_ceiling_usd: 0.0,
+            model: String::new(),
+        },
     }));
 
     // Drain events concurrently with the loop. On GREEN: `run_turn`
@@ -391,7 +412,7 @@ async fn task_complete_on_verifier_pass_terminates_loop() {
     handle
         .await
         .expect("run_turn task joined cleanly")
-        .expect("run_turn returned Ok on verified TaskComplete");
+        .expect("run_turn returned Ok(TurnResult::Completed) on verified TaskComplete");
 
     assert!(
         events
@@ -492,6 +513,7 @@ async fn control_pause_buffers_then_resume_replays() {
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
         0,
+        Arc::new(Mutex::new(String::new())),
     );
 
     let handle = tokio::spawn(run_turn(RunTurnArgs {
@@ -504,6 +526,12 @@ async fn control_pause_buffers_then_resume_replays() {
         context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt: String::new(),
+        verifier_config: kay_verifier::VerifierConfig {
+            mode: kay_verifier::VerifierMode::Disabled,
+            max_retries: 0,
+            cost_ceiling_usd: 0.0,
+            model: String::new(),
+        },
     }));
 
     // ── Phase 1: pre-pause — event forwards normally ────────────────
@@ -603,10 +631,9 @@ async fn control_pause_buffers_then_resume_replays() {
     // ── Phase 6: clean close → loop exits Ok ───────────────────────
     drop(model_tx);
     drop(ctl_tx);
-    handle
-        .await
-        .expect("run_turn task joined cleanly")
-        .expect("run_turn returned Ok on clean close after pause/resume cycle");
+    handle.await.expect("run_turn task joined cleanly").expect(
+        "run_turn returned Ok(TurnResult::Completed) on clean close after pause/resume cycle",
+    );
 }
 
 /// Abort emits `AgentEvent::Aborted { reason: "user_abort" }` and
@@ -635,6 +662,7 @@ async fn control_abort_emits_aborted_event_and_exits() {
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
         0,
+        Arc::new(Mutex::new(String::new())),
     );
 
     let handle = tokio::spawn(run_turn(RunTurnArgs {
@@ -647,6 +675,12 @@ async fn control_abort_emits_aborted_event_and_exits() {
         context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt: String::new(),
+        verifier_config: kay_verifier::VerifierConfig {
+            mode: kay_verifier::VerifierMode::Disabled,
+            max_retries: 0,
+            cost_ceiling_usd: 0.0,
+            model: String::new(),
+        },
     }));
 
     // One pre-abort event to prove the loop is responsive before the
@@ -696,7 +730,7 @@ async fn control_abort_emits_aborted_event_and_exits() {
         .await
         .expect("run_turn must return within 500ms of Abort");
     join.expect("run_turn task joined cleanly")
-        .expect("run_turn returned Ok after Abort");
+        .expect("run_turn returned Ok(TurnResult::Completed) after Abort");
 
     // Keep model_tx alive until here — proves the exit was Abort-
     // driven, not close-driven.
@@ -737,6 +771,7 @@ async fn control_double_abort_is_idempotent() {
         Arc::new(NoOpSandbox),
         Arc::new(NoOpVerifier),
         0,
+        Arc::new(Mutex::new(String::new())),
     );
 
     let handle = tokio::spawn(run_turn(RunTurnArgs {
@@ -749,6 +784,12 @@ async fn control_double_abort_is_idempotent() {
         context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt: String::new(),
+        verifier_config: kay_verifier::VerifierConfig {
+            mode: kay_verifier::VerifierMode::Disabled,
+            max_retries: 0,
+            cost_ceiling_usd: 0.0,
+            model: String::new(),
+        },
     }));
 
     // First abort: expected to emit exactly one Aborted and trigger
@@ -772,7 +813,7 @@ async fn control_double_abort_is_idempotent() {
         .await
         .expect("run_turn must exit within 500ms even under double-Abort");
     join.expect("run_turn task joined cleanly")
-        .expect("run_turn returned Ok after double-Abort");
+        .expect("run_turn returned Ok(TurnResult::Completed) after double-Abort");
 
     // Drain any remaining events (`event_tx` is now dropped by the
     // loop's return, so the channel is closed and `recv()` will

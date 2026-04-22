@@ -1,0 +1,19 @@
+$schema = "https://forgecode.dev/schema.json"
+max_tokens = 16384
+
+# Raise tool execution timeout to 20 minutes so cargo check/build/clippy on
+# large crates (kay-cli, full workspace) don't time out mid-run.
+# NOTE: the key is tool_timeout_secs (not tool_timeout — that is silently ignored).
+tool_timeout_secs = 1200
+
+# Allow up to 80 LLM requests per turn for long agentic Rust compilation tasks.
+max_requests_per_turn = 80
+
+# Tolerate up to 5 tool failures per turn (cargo commands can fail transiently
+# while waiting for file locks or network deps).
+max_tool_failure_per_turn = 5
+
+[compact]
+token_threshold = 80000
+eviction_window = 0.20
+retention_window = 6

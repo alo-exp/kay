@@ -104,3 +104,5 @@ predicates = { workspace = true }
 tempfile = { workspace = true }
 insta = { workspace = true }
 pretty_assertions = { workspace = true }
+# Phase 8 smoke test (context_smoke.rs): VerifierConfig/VerifierMode type access
+kay-verifier = { path = "../kay-verifier" }

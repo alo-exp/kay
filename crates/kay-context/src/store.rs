@@ -51,7 +51,13 @@ impl SymbolKind {
             "enum" => Self::Enum,
             "module" => Self::Module,
             "class" => Self::Class,
-            _ => Self::FileBoundary,
+            _ => {
+                tracing::warn!(
+                    kind = s,
+                    "unknown SymbolKind — falling back to FileBoundary"
+                );
+                Self::FileBoundary
+            }
         }
     }
 }

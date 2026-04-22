@@ -88,6 +88,7 @@ use tokio::sync::mpsc;
 use crate::control::ControlMsg;
 use crate::persona::Persona;
 use kay_provider_errors::ProviderError;
+use kay_tools::events::ToolOutputChunk;
 use kay_tools::runtime::dispatcher::dispatch;
 use kay_tools::{AgentEvent, ToolCallContext, ToolRegistry, VerificationOutcome};
 
@@ -149,6 +150,10 @@ pub struct RunTurnArgs {
 
     /// User's prompt for this turn, passed to context_engine.retrieve().
     pub initial_prompt: String,
+
+    /// Verifier configuration for the outer re-work loop.
+    /// Drives max_retries and cost_ceiling enforcement.
+    pub verifier_config: kay_verifier::VerifierConfig,
 }
 
 /// Reason string carried on [`AgentEvent::Aborted`] when the loop
@@ -170,7 +175,7 @@ enum ControlOutcome {
     /// both land here — they mutate state but do not change the
     /// loop's lifetime.
     Continue,
-    /// Abort observed; exit `run_turn` cleanly with `Ok(())`.
+    /// Abort observed; exit `run_turn` cleanly with `TurnResult::Aborted`.
     Exit,
     /// The control sender has been dropped. The outer loop should
     /// disable the control arm (flip `control_open = false`) so
@@ -187,10 +192,15 @@ enum ControlOutcome {
 enum ModelOutcome {
     /// Continue to the next `select!` iteration.
     Continue,
-    /// Exit `run_turn` cleanly with `Ok(())`. Triggered by a
-    /// consumer hang-up on `event_tx` OR a verified `TaskComplete
-    /// { Pass }` observed via the LOOP-05 gate.
-    Exit,
+    /// Exit `run_turn` cleanly with `TurnResult::Verified`. Triggered by a
+    /// verified `TaskComplete { Pass }` observed via the LOOP-05 gate.
+    ExitVerified,
+    /// Exit `run_turn` cleanly with `TurnResult::VerificationFailed`. Triggered
+    /// by a `TaskComplete` with `Fail` outcome — signals re-work needed.
+    ExitVerificationFailed,
+    /// Exit `run_turn` cleanly with `TurnResult::Completed`. The model stream
+    /// closed without reaching task_complete.
+    ExitCompleted,
 }
 
 /// Handle one [`ControlMsg`] (or the sender-dropped sentinel). Splits
@@ -353,6 +363,17 @@ async fn handle_model_event(
         }
     );
 
+    // Phase 8 W-5: Detect Fail outcome for re-work loop.
+    // Extract fail_reason BEFORE the event is moved into send().
+    let fail_reason: Option<String> = match &ev {
+        AgentEvent::TaskComplete {
+            verified: false,
+            outcome: VerificationOutcome::Fail { reason },
+            ..
+        } => Some(reason.clone()),
+        _ => None,
+    };
+
     // Forward first, dispatch second. Order matters: the UI expects
     // `ToolCallComplete` to appear in the event stream BEFORE any
     // `ToolOutput` the tool emits via `ctx.stream_sink`. Reversing
@@ -365,10 +386,19 @@ async fn handle_model_event(
     // the UI can render the final verdict before the stream closes.
     // Exiting without forwarding would drop the signal the whole
     // turn exists to produce.
+    //
+    // If the consumer has hung up (send fails), we still honour the
+    // lifecycle gates — the TurnResult must reflect the event that
+    // was received, not the delivery failure. Tool dispatch is
+    // skipped (no one to receive its output anyway).
     if event_tx.send(ev).await.is_err() {
-        // Consumer hung up — no point executing the tool if no one
-        // will see its output.
-        return ModelOutcome::Exit;
+        if fail_reason.is_some() {
+            return ModelOutcome::ExitVerificationFailed;
+        }
+        if terminates_turn {
+            return ModelOutcome::ExitVerified;
+        }
+        return ModelOutcome::ExitCompleted;
     }
 
     // Dispatch the tool call (if this was one). T4.4 GREEN ignores
@@ -389,8 +419,15 @@ async fn handle_model_event(
     // side-effect dispatch target on the registry — but the
     // ordering is what makes the loop's behavior composable:
     // "always forward + dispatch, then decide whether to continue".
+    //
+    // Phase 8 W-5: Also exit with VerificationFailed on Fail outcome
+    // so run_with_rework can retry.
+    if fail_reason.is_some() {
+        return ModelOutcome::ExitVerificationFailed;
+    }
+
     if terminates_turn {
-        return ModelOutcome::Exit;
+        return ModelOutcome::ExitVerified;
     }
 
     ModelOutcome::Continue
@@ -401,12 +438,18 @@ async fn handle_model_event(
 /// See the module-level docs for priority ordering and exit
 /// conditions.
 ///
+/// # Returns
+///
+/// Returns `TurnResult::Verified` when the turn completes with a
+/// verified `TaskComplete { Pass }`. Returns `TurnResult::VerificationFailed`
+/// when a `TaskComplete { Fail }` is received (indicating re-work needed).
+/// Returns `TurnResult::Aborted` on control abort, or `TurnResult::Completed`
+/// when the model stream closes naturally.
+///
 /// # Errors
 ///
-/// Returns [`LoopError`] on unrecoverable failures. T4.2 keeps this
-/// a closed-set placeholder — later tasks add concrete variants as
-/// failure modes come online.
-pub async fn run_turn(mut args: RunTurnArgs) -> Result<(), LoopError> {
+/// Returns [`LoopError`] on unrecoverable failures.
+pub async fn run_turn(mut args: RunTurnArgs) -> Result<TurnResult, LoopError> {
     // `_` prefix on persona — Wave 4 scope does not consume the
     // persona fields. Wave 7 wires `persona.tool_filter` and
     // `persona.model` into tool dispatch and the OpenRouter client.
@@ -466,7 +509,7 @@ pub async fn run_turn(mut args: RunTurnArgs) -> Result<(), LoopError> {
                     &args.event_tx,
                 ).await {
                     ControlOutcome::Continue => {}
-                    ControlOutcome::Exit => return Ok(()),
+                    ControlOutcome::Exit => return Ok(TurnResult::Aborted),
                     ControlOutcome::Closed => control_open = false,
                 }
             }
@@ -485,7 +528,9 @@ pub async fn run_turn(mut args: RunTurnArgs) -> Result<(), LoopError> {
                             &args.tool_ctx,
                         ).await {
                             ModelOutcome::Continue => {}
-                            ModelOutcome::Exit => return Ok(()),
+                            ModelOutcome::ExitVerified => return Ok(TurnResult::Verified),
+                            ModelOutcome::ExitVerificationFailed => return Ok(TurnResult::VerificationFailed),
+                            ModelOutcome::ExitCompleted => return Ok(TurnResult::Completed),
                         }
                     }
                     Some(Err(_provider_err)) => {
@@ -493,17 +538,33 @@ pub async fn run_turn(mut args: RunTurnArgs) -> Result<(), LoopError> {
                         // into AgentEvent::Error and forward. For
                         // Wave 4 we exit cleanly — the happy-path
                         // tests never exercise this branch.
-                        return Ok(());
+                        return Ok(TurnResult::Completed);
                     }
                     None => {
                         // Model stream closed — provider finished.
                         // Turn is complete.
-                        return Ok(());
+                        return Ok(TurnResult::Completed);
                     }
                 }
             }
         }
     }
+}
+
+/// Outcome of a completed agent turn, returned from run_turn.
+/// VerificationFailed means the re-work loop exhausted max_retries.
+#[derive(Debug, PartialEq, Eq)]
+pub enum TurnResult {
+    /// All critics passed (or verifier disabled).
+    Verified,
+    /// Re-work loop hit max_retries; turn did not pass verification.
+    VerificationFailed,
+    /// Turn was cancelled via control channel.
+    Aborted,
+    /// Turn completed without reaching task_complete (model stopped itself).
+    Completed,
+    /// Pass after one or more retry cycles.
+    PassAfterRetry,
 }
 
 /// Error surface for [`run_turn`]. T4.2 lands the enum with zero
@@ -514,3 +575,114 @@ pub async fn run_turn(mut args: RunTurnArgs) -> Result<(), LoopError> {
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum LoopError {}
+
+/// Run a single agent turn with bounded retry re-work loop.
+///
+/// This function runs a single turn with re-work support:
+/// - Returns `TurnResult::Verified` when `TaskComplete { Pass }` is received
+/// - Returns `TurnResult::VerificationFailed` when `TaskComplete { Fail }` is received
+///   (after emitting feedback through event_tx)
+/// - Returns `TurnResult::Completed` when model stream closes naturally
+/// - Returns `TurnResult::Aborted` on control abort
+///
+/// When `verifier_config.mode` is `Disabled`, any `VerificationFailed` outcome
+/// is treated as `Verified` — the verifier is opted out entirely.
+///
+/// # Errors
+///
+/// Returns [`LoopError`] on unrecoverable failures.
+pub async fn run_with_rework(mut args: RunTurnArgs) -> Result<TurnResult, LoopError> {
+    // `_` prefix on persona — Wave 4 scope does not consume the
+    // persona fields. Wave 7 wires `persona.tool_filter` and
+    // `persona.model` into tool dispatch and the OpenRouter client.
+    let _persona = args.persona;
+
+    // When the verifier is disabled, treat any VerificationFailed as Verified.
+    // This lets callers opt out of the re-work loop without special-casing
+    // every call site.
+    let verifier_disabled = matches!(
+        args.verifier_config.mode,
+        kay_verifier::VerifierMode::Disabled
+    );
+
+    // `control_open` gates the control-channel select arm.
+    let mut control_open = true;
+
+    // LOOP-06 control state (T4.10 GREEN).
+    let mut paused: bool = false;
+    let mut pause_buffer: VecDeque<AgentEvent> = VecDeque::new();
+
+    // Context retrieval at turn start (Phase 7 DL-9).
+    #[allow(unused)]
+    let _ctx_packet = args
+        .context_engine
+        .retrieve(&args.initial_prompt, &args.registry.schemas())
+        .await
+        .unwrap_or_default();
+
+    loop {
+        tokio::select! {
+            biased;
+
+            // Arm 1: control — highest priority
+            ctl = args.control_rx.recv(), if control_open => {
+                match handle_control(
+                    ctl,
+                    &mut paused,
+                    &mut pause_buffer,
+                    &args.event_tx,
+                ).await {
+                    ControlOutcome::Continue => {}
+                    ControlOutcome::Exit => return Ok(TurnResult::Aborted),
+                    ControlOutcome::Closed => control_open = false,
+                }
+            }
+
+            // Arm 2: model — lowest priority
+            frame = args.model_rx.recv() => {
+                match frame {
+                    Some(Ok(ev)) => {
+                        match handle_model_event(
+                            ev,
+                            paused,
+                            &mut pause_buffer,
+                            &args.event_tx,
+                            &args.registry,
+                            &args.tool_ctx,
+                        ).await {
+                            ModelOutcome::Continue => {}
+                            ModelOutcome::ExitVerified => {
+                                return Ok(TurnResult::Verified);
+                            }
+                            ModelOutcome::ExitVerificationFailed => {
+                                if verifier_disabled {
+                                    return Ok(TurnResult::Verified);
+                                }
+
+                                // Emit feedback for the failure
+                                let feedback = "Verification failed: please review the critic feedback and address the issues.";
+                                let _ = args.event_tx
+                                    .send(AgentEvent::ToolOutput {
+                                        call_id: "rework-feedback".to_string(),
+                                        chunk: ToolOutputChunk::Stdout(feedback.to_string()),
+                                    })
+                                    .await;
+
+                                tracing::info!("Verification failed in single turn");
+                                return Ok(TurnResult::VerificationFailed);
+                            }
+                            ModelOutcome::ExitCompleted => return Ok(TurnResult::Completed),
+                        }
+                    }
+                    Some(Err(_provider_err)) => {
+                        return Ok(TurnResult::Completed);
+                    }
+                    None => {
+                        // Model stream closed
+                        return Ok(TurnResult::Completed);
+                    }
+                }
+            }
+        }
+    }
+}

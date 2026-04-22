@@ -94,7 +94,11 @@ impl Tool for TaskCompleteTool {
             ToolError::InvalidArgs { tool: self.name.clone(), reason: e.to_string() }
         })?;
 
-        let outcome = ctx.verifier.verify(&input.summary).await;
+        let task_ctx_snapshot = ctx.snapshot_task_context();
+        let outcome = ctx
+            .verifier
+            .verify(&input.summary, &task_ctx_snapshot)
+            .await;
         let verified = matches!(outcome, VerificationOutcome::Pass { .. });
         let body = outcome_body(&outcome);
 
@@ -141,6 +145,71 @@ mod tests {
         );
         assert!(
             outcome_body(&VerificationOutcome::Fail { reason: "bad".into() }).contains("failed")
+        );
+    }
+
+    #[tokio::test]
+    async fn task_complete_passes_task_context_to_verifier() {
+        use crate::quota::ImageQuota;
+        use crate::runtime::context::{ServicesHandle, ToolCallContext};
+        use crate::seams::sandbox::NoOpSandbox;
+        use crate::seams::verifier::{TaskVerifier, VerificationOutcome};
+        use async_trait::async_trait;
+        use forge_domain::{FSRead, FSSearch, FSWrite, NetFetch, ToolOutput};
+        use std::sync::{Arc, Mutex};
+        use tokio_util::sync::CancellationToken;
+
+        struct CapturingVerifier {
+            captured_ctx: Arc<Mutex<String>>,
+        }
+        #[async_trait]
+        impl TaskVerifier for CapturingVerifier {
+            async fn verify(&self, _summary: &str, task_context: &str) -> VerificationOutcome {
+                *self.captured_ctx.lock().unwrap() = task_context.to_string();
+                VerificationOutcome::Pass { note: "captured".into() }
+            }
+        }
+
+        struct NullSvc;
+        #[async_trait]
+        impl ServicesHandle for NullSvc {
+            async fn fs_read(&self, _: FSRead) -> anyhow::Result<ToolOutput> {
+                Ok(ToolOutput::text(""))
+            }
+            async fn fs_write(&self, _: FSWrite) -> anyhow::Result<ToolOutput> {
+                Ok(ToolOutput::text(""))
+            }
+            async fn fs_search(&self, _: FSSearch) -> anyhow::Result<ToolOutput> {
+                Ok(ToolOutput::text(""))
+            }
+            async fn net_fetch(&self, _: NetFetch) -> anyhow::Result<ToolOutput> {
+                Ok(ToolOutput::text(""))
+            }
+        }
+
+        let captured_ctx = Arc::new(Mutex::new(String::new()));
+        let verifier = Arc::new(CapturingVerifier { captured_ctx: captured_ctx.clone() });
+        let task_ctx = Arc::new(Mutex::new("tool: fs_read → ok\n".to_string()));
+
+        let ctx = ToolCallContext::new(
+            Arc::new(NullSvc),
+            Arc::new(|_| {}),
+            Arc::new(ImageQuota::new(u32::MAX, u32::MAX)),
+            CancellationToken::new(),
+            Arc::new(NoOpSandbox),
+            verifier,
+            0,
+            task_ctx,
+        );
+
+        let tool = TaskCompleteTool::new();
+        let args = serde_json::json!({ "summary": "done" });
+        let _ = tool.invoke(args, &ctx, "call-1").await.expect("invoke");
+
+        let got = captured_ctx.lock().unwrap().clone();
+        assert!(
+            got.contains("fs_read"),
+            "verifier must receive task_context snapshot; got: {got:?}"
         );
     }
 }

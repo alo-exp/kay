@@ -37,13 +37,30 @@ Codex-rs (OpenAI) is the closest reference shape. The harness is compiled into t
 7. **Fail loud, never silent** — sandbox escapes, schema errors, and provider variance surface as typed events and `AgentEvent` frames; never swallowed.
 8. **Extension-point discipline** — all core traits are object-safe and async; `#[non_exhaustive]` on public enums. v2 wedges (ACE / dynamic routing / verification-first depth / multi-agent orchestration) slot in additively without breaking v1 consumers.
 
-## Current State (Phase 1 complete, 2026-04-19)
+## Current State (Phase 8 in progress, 2026-04-22)
 
-- Workspace scaffold present; 8 crates recognized by `cargo metadata`.
-- `kay-core` holds imported ForgeCode source at `022ecd994eaec30b519b13348c64ef314f825e21` (unmodified; tagged `forgecode-parity-baseline`, annotated, UNSIGNED per amendment D-OP-04).
-- `kay-cli`, `kay-tui`, `kay-tauri`, `kay-provider-openrouter`, `kay-sandbox-*` are skeletons (compile clean individually via `cargo check -p <crate>`).
-- `kay-core` has 23 × `E0583` structural integration errors from ForgeCode's `forge_*/lib.rs` naming — deliberately not fixed in Phase 1 (would corrupt parity baseline). Fix lands in Phase 2.
-- Scaffold `kay eval tb2 --dry-run` present; actual parity run is follow-on task `EVAL-01a`.
+**Completed phases (1–7):**
+- Phase 1: Fork, governance, CI infrastructure. `forgecode-parity-baseline` tag set.
+- Phase 2: Provider HAL (`kay-provider-openrouter`) — OpenRouter HTTP+SSE client, tolerant JSON parser, streaming events.
+- Phase 2.5: Kay-core sub-crate split — ForgeCode source integrated, E0583 naming fixed, `cargo check -p kay-core` clean.
+- Phase 3: Tool registry + KIRA core tools — `ToolRegistry`, `Tool` trait, `kay-tools` crate, built-in tools (fs_read, fs_write, fs_search, net_fetch, execute_command, image_read, task_complete, sage_query), `NoOpSandbox`, `ServicesHandle` seam.
+- Phase 4: Sandbox — `Sandbox` trait, `NoOpSandbox` (tests), macOS `sandbox-exec` impl.
+- Phase 5: Agent loop — `run_turn` in `kay-core/src/loop.rs` with `tokio::select!` biased priority over control/model/tool channels; `ControlMsg` (Pause/Resume/Abort); `TurnResult` enum; `TaskComplete` verify gate; `AgentEvent` streaming; `RunTurnArgs` struct.
+- Phase 6: Session store — `kay-context` crate, `SessionStore` (SQLite/rusqlite), event persistence.
+- Phase 7: Context engine — `ContextEngine` trait, `NoOpContextEngine` stub, `ContextBudget`, tree-sitter indexing scaffold.
+
+**In progress (Phase 8 — Multi-Perspective Verification):**
+- New crate `crates/kay-verifier/` with `TaskVerifier` impl (`MultiPerspectiveVerifier`) and critic types.
+- `AgentEvent::Verification` variant added (non-exhaustive, additive).
+- `VerifierConfig` / `VerifierMode` (Interactive / Disabled) in `RunTurnArgs`.
+- `run_with_rework` outer wrapper in `kay-core/src/loop.rs` — single-pass, returns `TurnResult`.
+- W-5 GREEN committed (`14f9367`). W-6 (cost ceiling + VerifierDisabled) pending.
+
+**Not yet started:**
+- Phase 9: TUI (`kay-tui`, ratatui multi-pane).
+- Phase 10: Tauri GUI (`kay-tauri`, React 19 + TypeScript).
+- Phase 11: Code signing + release infrastructure.
+- Phase 12: Terminal-Bench 2.0 run + leaderboard submission.
 
 ## Technology Choices
 

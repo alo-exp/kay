@@ -61,7 +61,7 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use async_trait::async_trait;
@@ -71,7 +71,7 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use kay_core::control::control_channel;
-use kay_core::r#loop::{RunTurnArgs, run_turn};
+use kay_core::r#loop::{RunTurnArgs, TurnResult, run_turn};
 use kay_core::persona::Persona;
 use kay_provider_errors::ProviderError;
 use kay_tools::{
@@ -120,7 +120,10 @@ impl ServicesHandle for NullServices {
 fn drive_loop(
     event_contents: Vec<String>,
     close_control_before_model: bool,
-) -> (Vec<AgentEvent>, Result<(), kay_core::r#loop::LoopError>) {
+) -> (
+    Vec<AgentEvent>,
+    Result<TurnResult, kay_core::r#loop::LoopError>,
+) {
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
@@ -165,6 +168,7 @@ fn drive_loop(
             Arc::new(NoOpSandbox),
             Arc::new(NoOpVerifier),
             0,
+            Arc::new(Mutex::new(String::new())),
         );
 
         let handle = tokio::spawn(run_turn(RunTurnArgs {
@@ -177,6 +181,12 @@ fn drive_loop(
             context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
             context_budget: kay_context::budget::ContextBudget::default(),
             initial_prompt: String::new(),
+            verifier_config: kay_verifier::VerifierConfig {
+                mode: kay_verifier::VerifierMode::Disabled,
+                max_retries: 0,
+                cost_ceiling_usd: 0.0,
+                model: String::new(),
+            },
         }));
 
         // 2 s bound is far more than enough for 8 events + two drops
@@ -228,7 +238,7 @@ proptest! {
 
         prop_assert!(
             loop_result.is_ok(),
-            "run_turn must return Ok(()) regardless of close order; got {:?}",
+            "run_turn must return Ok(_) regardless of close order; got {:?}",
             loop_result,
         );
 

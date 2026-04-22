@@ -27,6 +27,7 @@ forge_services = { path = "../forge_services" }
 # - thiserror: persona + loop error types
 kay-tools = { path = "../kay-tools" }
 kay-context = { path = "../kay-context" }
+kay-verifier = { path = "../kay-verifier" }
 # Phase 5 Wave 4 T4.2 promoted kay-provider-errors from dev-dep to runtime
 # dep because `kay_core::r#loop::RunTurnArgs::model_rx` carries
 # `Result<AgentEvent, ProviderError>` in its public API. Kept out of the
