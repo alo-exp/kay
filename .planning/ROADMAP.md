@@ -186,7 +186,7 @@ Plans:
 ### Phase 7: Context Engine
 
 **Goal**: Kay prompts are built from ForgeCode-grade structured context — function signatures and module boundaries from tree-sitter, retrieved via hybrid structural + vector search with an explicit per-turn budget — not raw file dumps.
-**Depends on**: Phase 5 (parallelizable with Phase 6)
+**Depends on**: Phase 5, Phase 6
 **Requirements**: CTX-01, CTX-02, CTX-03, CTX-04, CTX-05
 **Success Criteria** (what must be TRUE):
   1. Opening a new project triggers a lazy tree-sitter index that extracts function signatures and module boundaries into the symbol store, not full file bodies.
