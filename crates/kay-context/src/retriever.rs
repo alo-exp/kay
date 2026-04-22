@@ -7,15 +7,15 @@ pub fn rrf_score(rank: usize) -> f64 {
 
 /// Apply name-bonus of +0.5 when query term exactly matches symbol name (DL-10).
 pub fn apply_name_bonus(score: f64, symbol_name: &str, query: &str) -> f64 {
-    if symbol_name == query { score + 0.5 } else { score }
+    if symbol_name == query {
+        score + 0.5
+    } else {
+        score
+    }
 }
 
 /// Merge FTS5 results and ANN results using RRF (DL-10).
-pub fn rrf_merge(
-    fts_results: Vec<Symbol>,
-    ann_results: Vec<Symbol>,
-    query: &str,
-) -> Vec<Symbol> {
+pub fn rrf_merge(fts_results: Vec<Symbol>, ann_results: Vec<Symbol>, query: &str) -> Vec<Symbol> {
     use std::collections::HashMap;
 
     // Map symbol id → cumulative RRF score + symbol
@@ -38,9 +38,13 @@ pub fn rrf_merge(
 pub struct Retriever;
 
 impl Retriever {
-    pub fn new() -> Self { Self }
+    pub fn new() -> Self {
+        Self
+    }
 }
 
 impl Default for Retriever {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

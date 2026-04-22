@@ -1,6 +1,6 @@
-use kay_context::store::{Symbol, SymbolKind, SymbolStore};
 use kay_context::embedder::FakeEmbedder;
 use kay_context::retriever::rrf_merge;
+use kay_context::store::{Symbol, SymbolKind, SymbolStore};
 use tempfile::TempDir;
 
 fn make_store() -> (SymbolStore, TempDir) {
@@ -15,7 +15,8 @@ fn make_sym(id: i64, name: &str) -> Symbol {
         name: name.to_string(),
         kind: SymbolKind::Function,
         file_path: "a.rs".to_string(),
-        start_line: 1, end_line: 2,
+        start_line: 1,
+        end_line: 2,
         sig: format!("fn {}()", name),
     }
 }
@@ -26,10 +27,14 @@ async fn vec_table_created_with_fake_embedder() {
     let embedder = FakeEmbedder { dimensions: 4 };
     store.enable_vector_search(&embedder, 4).unwrap();
     // symbols_vec table should exist
-    let count: i64 = store.conn.query_row(
-        "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='symbols_vec'",
-        [], |r| r.get(0)
-    ).unwrap();
+    let count: i64 = store
+        .conn
+        .query_row(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='symbols_vec'",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap();
     assert_eq!(count, 1, "symbols_vec table should be created");
 }
 
@@ -44,9 +49,11 @@ async fn fake_embedder_insert_and_ann() {
         let sym = make_sym(i + 1, &format!("fn_{}", i));
         store.insert_symbol(&sym).unwrap();
         let vec = embedder.embed_sync(&sym.sig);
-        store.upsert_vector(sym.id.max(1), &vec).unwrap_or_else(|_| {
-            // id may be auto-assigned; re-query
-        });
+        store
+            .upsert_vector(sym.id.max(1), &vec)
+            .unwrap_or_else(|_| {
+                // id may be auto-assigned; re-query
+            });
     }
     // ANN search with a zero-vector should return results
     let query_vec = vec![0.0f32; 4];
@@ -66,8 +73,11 @@ fn rrf_merge_prefers_fts_winner() {
     let merged = rrf_merge(fts_results, ann_results, "alpha_winner");
     assert!(!merged.is_empty());
     // With name-bonus of +0.5 on FTS for alpha_winner, A should rank first
-    assert_eq!(merged[0].name, "alpha_winner",
-        "FTS winner with name-bonus should rank first, got: {:?}", merged[0].name);
+    assert_eq!(
+        merged[0].name, "alpha_winner",
+        "FTS winner with name-bonus should rank first, got: {:?}",
+        merged[0].name
+    );
 }
 
 #[test]
@@ -81,8 +91,10 @@ fn rrf_merge_prefers_vec_winner() {
 
     let merged = rrf_merge(fts_results, ann_results, "unrelated_query");
     assert!(!merged.is_empty());
-    assert_eq!(merged[0].name, "vec_winner",
-        "ANN winner should rank first when no FTS signal");
+    assert_eq!(
+        merged[0].name, "vec_winner",
+        "ANN winner should rank first when no FTS signal"
+    );
 }
 
 #[test]
@@ -91,18 +103,28 @@ fn rrf_k60_score_formula() {
     use kay_context::retriever::rrf_score;
     let score_r0 = rrf_score(0);
     let expected_r0 = 1.0 / 60.0;
-    assert!((score_r0 - expected_r0).abs() < 1e-10,
-        "rrf_score(0) should be 1/60, got {}", score_r0);
+    assert!(
+        (score_r0 - expected_r0).abs() < 1e-10,
+        "rrf_score(0) should be 1/60, got {}",
+        score_r0
+    );
 
     let score_r1 = rrf_score(1);
     let expected_r1 = 1.0 / 61.0;
-    assert!((score_r1 - expected_r1).abs() < 1e-10,
-        "rrf_score(1) should be 1/61, got {}", score_r1);
+    assert!(
+        (score_r1 - expected_r1).abs() < 1e-10,
+        "rrf_score(1) should be 1/61, got {}",
+        score_r1
+    );
 
     // Verify symbol appearing in both lists gets both scores
     let sym = make_sym(1, "double_hit");
     let merged = rrf_merge(vec![sym.clone()], vec![sym.clone()], "x");
-    assert_eq!(merged.len(), 1, "same symbol from both lists → merged into 1");
+    assert_eq!(
+        merged.len(),
+        1,
+        "same symbol from both lists → merged into 1"
+    );
     // Score should be rrf_score(0) + rrf_score(0) = 1/60 + 1/60
 }
 

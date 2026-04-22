@@ -1,5 +1,5 @@
-use kay_context::hardener::SchemaHardener;
 use kay_context::engine::{ContextEngine, NoOpContextEngine};
+use kay_context::hardener::SchemaHardener;
 use serde_json::json;
 
 fn make_schema(with_properties_first: bool) -> serde_json::Value {
@@ -32,17 +32,25 @@ fn harden_moves_required_before_properties() {
     let hardener = SchemaHardener::default();
     let mut schema = make_schema(true); // properties BEFORE required (input order)
     hardener.harden(&mut schema);
-    let obj = schema.as_object().expect("hardened schema should be an object");
+    let obj = schema
+        .as_object()
+        .expect("hardened schema should be an object");
     // required must be present after hardening
-    let required = obj.get("required").expect("required should be present after hardening");
+    let required = obj
+        .get("required")
+        .expect("required should be present after hardening");
     let required_arr = required.as_array().expect("required should be an array");
     // "input" property must appear in required
     assert!(
         required_arr.iter().any(|v| v.as_str() == Some("input")),
-        "required should contain 'input' after hardening, got: {:?}", required_arr
+        "required should contain 'input' after hardening, got: {:?}",
+        required_arr
     );
     // properties must still be present
-    assert!(obj.contains_key("properties"), "properties key must still be present");
+    assert!(
+        obj.contains_key("properties"),
+        "properties key must still be present"
+    );
     // additionalProperties: false must be set (strict mode)
     assert_eq!(
         obj.get("additionalProperties"),
@@ -74,7 +82,10 @@ fn harden_adds_truncation_reminder() {
     // After hardening, the schema should have a truncation reminder
     // (from TruncationHints) — just verify it's still a valid JSON object
     let hardened_str = serde_json::to_string(&schema).unwrap();
-    assert!(hardened_str.contains("type"), "hardened schema should still be valid JSON object");
+    assert!(
+        hardened_str.contains("type"),
+        "hardened schema should still be valid JSON object"
+    );
 }
 
 #[tokio::test]
@@ -92,11 +103,11 @@ async fn noop_engine_hardens_schemas() {
 
 #[test]
 fn tool_registry_schemas_method() {
-    use kay_tools::registry::ToolRegistry;
+    use forge_domain::{ToolName, ToolOutput};
     use kay_tools::contract::Tool;
     use kay_tools::error::ToolError;
+    use kay_tools::registry::ToolRegistry;
     use kay_tools::runtime::context::ToolCallContext;
-    use forge_domain::{ToolName, ToolOutput};
     use serde_json::Value;
     use std::sync::Arc;
 
@@ -106,8 +117,12 @@ fn tool_registry_schemas_method() {
 
     #[async_trait::async_trait]
     impl Tool for TestTool {
-        fn name(&self) -> &ToolName { &self.name }
-        fn description(&self) -> &str { "test tool" }
+        fn name(&self) -> &ToolName {
+            &self.name
+        }
+        fn description(&self) -> &str {
+            "test tool"
+        }
         fn input_schema(&self) -> Value {
             json!({
                 "type": "object",
@@ -130,12 +145,19 @@ fn tool_registry_schemas_method() {
     // Empty registry returns empty vec
     let registry = ToolRegistry::new();
     let schemas = registry.schemas();
-    assert!(schemas.is_empty(), "empty registry should return empty schemas vec");
+    assert!(
+        schemas.is_empty(),
+        "empty registry should return empty schemas vec"
+    );
 
     // Registry with a tool returns its schema
     let mut registry2 = ToolRegistry::new();
     registry2.register(Arc::new(TestTool { name: ToolName::new("test-tool") }));
     let schemas2 = registry2.schemas();
-    assert_eq!(schemas2.len(), 1, "registry with 1 tool should return 1 schema");
+    assert_eq!(
+        schemas2.len(),
+        1,
+        "registry with 1 tool should return 1 schema"
+    );
     assert!(schemas2[0].is_object(), "schema should be a JSON object");
 }

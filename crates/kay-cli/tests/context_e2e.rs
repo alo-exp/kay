@@ -19,7 +19,10 @@ fn context_injected_into_system_prompt() {
     // Phase 7: _ctx_packet is assembled but not injected into OpenRouter request.
     // This test verifies the budget defaults are correct (Phase 8+ injects the packet).
     let budget = ContextBudget::default();
-    assert_eq!(budget.max_tokens, 8192, "default max_tokens should be 8192 (DL-7)");
+    assert_eq!(
+        budget.max_tokens, 8192,
+        "default max_tokens should be 8192 (DL-7)"
+    );
     assert_eq!(
         budget.reserve_tokens, 1024,
         "default reserve_tokens should be 1024 (DL-7)"

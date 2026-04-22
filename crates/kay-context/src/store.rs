@@ -122,24 +122,13 @@ impl SymbolStore {
             ",
         )?;
 
-        let count: i64 = conn.query_row(
-            "SELECT COUNT(*) FROM schema_version",
-            [],
-            |r| r.get(0),
-        )?;
+        let count: i64 = conn.query_row("SELECT COUNT(*) FROM schema_version", [], |r| r.get(0))?;
         if count == 0 {
             conn.execute("INSERT INTO schema_version VALUES (1)", [])?;
         } else {
-            let v: i64 = conn.query_row(
-                "SELECT version FROM schema_version",
-                [],
-                |r| r.get(0),
-            )?;
+            let v: i64 = conn.query_row("SELECT version FROM schema_version", [], |r| r.get(0))?;
             if v != 1 {
-                return Err(ContextError::SchemaVersionMismatch {
-                    found: v as u32,
-                    expected: 1,
-                });
+                return Err(ContextError::SchemaVersionMismatch { found: v as u32, expected: 1 });
             }
         }
         Ok(())
@@ -277,11 +266,7 @@ impl SymbolStore {
     ///
     /// For FakeEmbedder / test use, all vectors are zero-vectors so every row
     /// ties at distance 0.0 and the result is non-empty as long as rows exist.
-    pub fn ann_search(
-        &self,
-        query_vec: &[f32],
-        limit: usize,
-    ) -> Result<Vec<Symbol>, ContextError> {
+    pub fn ann_search(&self, query_vec: &[f32], limit: usize) -> Result<Vec<Symbol>, ContextError> {
         // Collect all (symbol_id, embedding) rows.
         let mut stmt = self.conn.prepare(
             "SELECT sv.symbol_id, s.name, s.kind, s.file_path, s.start_line, s.end_line, s.sig, sv.embedding
@@ -299,32 +284,46 @@ impl SymbolStore {
                 let end_line: u32 = r.get(5)?;
                 let sig: String = r.get(6)?;
                 let embedding_json: String = r.get(7)?;
-                Ok((symbol_id, name, kind_str, file_path, start_line, end_line, sig, embedding_json))
-            })?
-            .filter_map(|r| r.ok())
-            .filter_map(|(sid, name, kind_str, file_path, start_line, end_line, sig, embedding_json)| {
-                let sym = Symbol {
-                    id: sid,
+                Ok((
+                    symbol_id,
                     name,
-                    kind: SymbolKind::from_kind_str(&kind_str),
+                    kind_str,
                     file_path,
                     start_line,
                     end_line,
                     sig,
-                };
-                // Deserialise embedding; skip corrupt rows rather than silently
-                // treating a parse failure as a zero-vector (which would make
-                // corrupt rows appear at maximum distance instead of being surfaced).
-                let embedding: Vec<f32> = match serde_json::from_str(&embedding_json) {
-                    Ok(v) => v,
-                    Err(_e) => {
-                        tracing::warn!(symbol_id = sym.id, "embedding parse failed; skipping row");
-                        return None; // filter_map drops this row
-                    }
-                };
-                let dist = l2_distance(query_vec, &embedding);
-                Some((dist, sym))
-            })
+                    embedding_json,
+                ))
+            })?
+            .filter_map(|r| r.ok())
+            .filter_map(
+                |(sid, name, kind_str, file_path, start_line, end_line, sig, embedding_json)| {
+                    let sym = Symbol {
+                        id: sid,
+                        name,
+                        kind: SymbolKind::from_kind_str(&kind_str),
+                        file_path,
+                        start_line,
+                        end_line,
+                        sig,
+                    };
+                    // Deserialise embedding; skip corrupt rows rather than silently
+                    // treating a parse failure as a zero-vector (which would make
+                    // corrupt rows appear at maximum distance instead of being surfaced).
+                    let embedding: Vec<f32> = match serde_json::from_str(&embedding_json) {
+                        Ok(v) => v,
+                        Err(_e) => {
+                            tracing::warn!(
+                                symbol_id = sym.id,
+                                "embedding parse failed; skipping row"
+                            );
+                            return None; // filter_map drops this row
+                        }
+                    };
+                    let dist = l2_distance(query_vec, &embedding);
+                    Some((dist, sym))
+                },
+            )
             .collect();
 
         candidates.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
@@ -352,7 +351,8 @@ impl SymbolStore {
                 sig: r.get(6)?,
             })
         })?;
-        rows.collect::<Result<Vec<_>, _>>().map_err(ContextError::from)
+        rows.collect::<Result<Vec<_>, _>>()
+            .map_err(ContextError::from)
     }
 }
 

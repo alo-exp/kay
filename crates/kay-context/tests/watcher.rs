@@ -1,7 +1,7 @@
 use kay_context::watcher::FileWatcher;
 use std::sync::{
-    atomic::{AtomicUsize, Ordering},
     Arc,
+    atomic::{AtomicUsize, Ordering},
 };
 use std::time::Duration;
 use tempfile::TempDir;
@@ -11,8 +11,10 @@ async fn watcher_triggers_on_create() {
     let dir = TempDir::new().unwrap();
     let counter = Arc::new(AtomicUsize::new(0));
     let c = counter.clone();
-    let _watcher =
-        FileWatcher::new(dir.path(), move || { c.fetch_add(1, Ordering::SeqCst); }).unwrap();
+    let _watcher = FileWatcher::new(dir.path(), move || {
+        c.fetch_add(1, Ordering::SeqCst);
+    })
+    .unwrap();
 
     tokio::time::sleep(Duration::from_millis(100)).await; // let watcher settle
     std::fs::write(dir.path().join("new_file.rs"), "fn foo() {}").unwrap();
@@ -31,8 +33,10 @@ async fn watcher_triggers_on_modify() {
 
     let counter = Arc::new(AtomicUsize::new(0));
     let c = counter.clone();
-    let _watcher =
-        FileWatcher::new(dir.path(), move || { c.fetch_add(1, Ordering::SeqCst); }).unwrap();
+    let _watcher = FileWatcher::new(dir.path(), move || {
+        c.fetch_add(1, Ordering::SeqCst);
+    })
+    .unwrap();
 
     tokio::time::sleep(Duration::from_millis(100)).await;
     std::fs::write(&path, "fn modified() {}").unwrap();
@@ -51,8 +55,10 @@ async fn watcher_triggers_on_remove() {
 
     let counter = Arc::new(AtomicUsize::new(0));
     let c = counter.clone();
-    let _watcher =
-        FileWatcher::new(dir.path(), move || { c.fetch_add(1, Ordering::SeqCst); }).unwrap();
+    let _watcher = FileWatcher::new(dir.path(), move || {
+        c.fetch_add(1, Ordering::SeqCst);
+    })
+    .unwrap();
 
     tokio::time::sleep(Duration::from_millis(100)).await;
     std::fs::remove_file(&path).unwrap();
@@ -68,8 +74,10 @@ async fn watcher_ignores_non_source() {
     let dir = TempDir::new().unwrap();
     let counter = Arc::new(AtomicUsize::new(0));
     let c = counter.clone();
-    let _watcher =
-        FileWatcher::new(dir.path(), move || { c.fetch_add(1, Ordering::SeqCst); }).unwrap();
+    let _watcher = FileWatcher::new(dir.path(), move || {
+        c.fetch_add(1, Ordering::SeqCst);
+    })
+    .unwrap();
 
     tokio::time::sleep(Duration::from_millis(100)).await;
     std::fs::write(dir.path().join("Cargo.lock"), "# lock file").unwrap();
@@ -86,8 +94,10 @@ async fn watcher_debounce_coalesces_events() {
     let dir = TempDir::new().unwrap();
     let counter = Arc::new(AtomicUsize::new(0));
     let c = counter.clone();
-    let _watcher =
-        FileWatcher::new(dir.path(), move || { c.fetch_add(1, Ordering::SeqCst); }).unwrap();
+    let _watcher = FileWatcher::new(dir.path(), move || {
+        c.fetch_add(1, Ordering::SeqCst);
+    })
+    .unwrap();
 
     tokio::time::sleep(Duration::from_millis(100)).await;
     // Write 3 times within 100ms window — should coalesce to 1 event

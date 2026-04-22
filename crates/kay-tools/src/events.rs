@@ -164,10 +164,7 @@ pub enum AgentEvent {
     /// is the count of files processed so far; `total` is the total file
     /// count in the watch scope. Consumers may use this to render a progress
     /// bar. Final emission has `indexed == total`.
-    IndexProgress {
-        indexed: usize,
-        total: usize,
-    },
+    IndexProgress { indexed: usize, total: usize },
 }
 
 /// A single streamed output frame from a tool. Phase 3 SHELL-03.
