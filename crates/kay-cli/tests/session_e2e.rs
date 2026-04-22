@@ -28,7 +28,7 @@ fn session_list_empty() {
 fn session_list_table_format() {
     let dir = TempDir::new().unwrap();
     // First run to create a session via the event-tap in run_async
-    with_home(&dir)
+    let _ = with_home(&dir)
         .args(["run", "--prompt", "TEST:done", "--offline"])
         .env("KAY_HOME", dir.path())
         .assert(); // may succeed or fail — session creation is best-effort in offline mode

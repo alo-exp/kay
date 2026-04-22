@@ -214,7 +214,7 @@ async fn loop_plus_dispatcher_invokes_registered_tool() {
         event_tx,
         registry,
         tool_ctx,
-        context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine::default()),
+        context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt: String::new(),
     }));

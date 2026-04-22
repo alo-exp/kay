@@ -130,7 +130,7 @@ async fn run_turn_single_turn_happy_path() {
         event_tx,
         registry,
         tool_ctx,
-        context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine::default()),
+        context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt: String::new(),
     }));
@@ -252,7 +252,7 @@ async fn task_complete_does_not_terminate_on_pending_verification() {
         event_tx,
         registry,
         tool_ctx,
-        context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine::default()),
+        context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt: String::new(),
     }));
@@ -363,7 +363,7 @@ async fn task_complete_on_verifier_pass_terminates_loop() {
         event_tx,
         registry,
         tool_ctx,
-        context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine::default()),
+        context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt: String::new(),
     }));
@@ -501,7 +501,7 @@ async fn control_pause_buffers_then_resume_replays() {
         event_tx,
         registry,
         tool_ctx,
-        context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine::default()),
+        context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt: String::new(),
     }));
@@ -644,7 +644,7 @@ async fn control_abort_emits_aborted_event_and_exits() {
         event_tx,
         registry,
         tool_ctx,
-        context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine::default()),
+        context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt: String::new(),
     }));
@@ -746,7 +746,7 @@ async fn control_double_abort_is_idempotent() {
         event_tx,
         registry,
         tool_ctx,
-        context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine::default()),
+        context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt: String::new(),
     }));
