@@ -95,7 +95,10 @@ impl Tool for TaskCompleteTool {
         })?;
 
         let task_ctx_snapshot = ctx.snapshot_task_context();
-        let outcome = ctx.verifier.verify(&input.summary, &task_ctx_snapshot).await;
+        let outcome = ctx
+            .verifier
+            .verify(&input.summary, &task_ctx_snapshot)
+            .await;
         let verified = matches!(outcome, VerificationOutcome::Pass { .. });
         let body = outcome_body(&outcome);
 
@@ -147,13 +150,13 @@ mod tests {
 
     #[tokio::test]
     async fn task_complete_passes_task_context_to_verifier() {
-        use std::sync::{Arc, Mutex};
-        use crate::runtime::context::{ServicesHandle, ToolCallContext};
         use crate::quota::ImageQuota;
+        use crate::runtime::context::{ServicesHandle, ToolCallContext};
         use crate::seams::sandbox::NoOpSandbox;
         use crate::seams::verifier::{TaskVerifier, VerificationOutcome};
         use async_trait::async_trait;
         use forge_domain::{FSRead, FSSearch, FSWrite, NetFetch, ToolOutput};
+        use std::sync::{Arc, Mutex};
         use tokio_util::sync::CancellationToken;
 
         struct CapturingVerifier {
@@ -204,6 +207,9 @@ mod tests {
         let _ = tool.invoke(args, &ctx, "call-1").await.expect("invoke");
 
         let got = captured_ctx.lock().unwrap().clone();
-        assert!(got.contains("fs_read"), "verifier must receive task_context snapshot; got: {got:?}");
+        assert!(
+            got.contains("fs_read"),
+            "verifier must receive task_context snapshot; got: {got:?}"
+        );
     }
 }

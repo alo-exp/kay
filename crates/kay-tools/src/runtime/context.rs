@@ -141,7 +141,10 @@ impl ToolCallContext {
     /// Return an independent snapshot of the current task_context.
     /// Called by `task_complete` before handing to the verifier.
     pub fn snapshot_task_context(&self) -> String {
-        self.task_context.lock().map(|g| g.clone()).unwrap_or_default()
+        self.task_context
+            .lock()
+            .map(|g| g.clone())
+            .unwrap_or_default()
     }
 
     /// Minimal context for unit tests. Uses no-op impls for all seams
@@ -204,6 +207,9 @@ mod phase8_ctx_tests {
         ctx.append_task_context("line1");
         let snap = ctx.snapshot_task_context();
         ctx.append_task_context("line2");
-        assert!(!snap.contains("line2"), "snapshot must be independent of later appends");
+        assert!(
+            !snap.contains("line2"),
+            "snapshot must be independent of later appends"
+        );
     }
 }

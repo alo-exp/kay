@@ -155,7 +155,7 @@ pub enum AgentEvent {
     /// Emit is a MOVE — AgentEvent is non-Clone by design. VERIFY-04.
     Verification {
         critic_role: String,
-        verdict: String,   // "pass" | "fail"
+        verdict: String, // "pass" | "fail"
         reason: String,
         cost_usd: f64,
     },
@@ -163,7 +163,7 @@ pub enum AgentEvent {
     /// Emitted when the verifier disables itself due to cost or retry ceiling.
     /// VERIFY-03.
     VerifierDisabled {
-        reason: String,    // "cost_ceiling_exceeded" | "max_retries_exhausted"
+        reason: String, // "cost_ceiling_exceeded" | "max_retries_exhausted"
         cost_usd: f64,
     },
 
@@ -411,10 +411,8 @@ mod phase8_event_tests {
     #[test]
     fn verifier_disabled_event_has_expected_fields() {
         // Will fail to compile until VerifierDisabled variant is added (W-1 RED)
-        let ev = AgentEvent::VerifierDisabled {
-            reason: "cost_ceiling_exceeded".into(),
-            cost_usd: 1.05,
-        };
+        let ev =
+            AgentEvent::VerifierDisabled { reason: "cost_ceiling_exceeded".into(), cost_usd: 1.05 };
         match ev {
             AgentEvent::VerifierDisabled { reason, cost_usd } => {
                 assert!(!reason.is_empty());

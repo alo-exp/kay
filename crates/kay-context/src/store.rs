@@ -52,7 +52,10 @@ impl SymbolKind {
             "module" => Self::Module,
             "class" => Self::Class,
             _ => {
-                tracing::warn!(kind = s, "unknown SymbolKind — falling back to FileBoundary");
+                tracing::warn!(
+                    kind = s,
+                    "unknown SymbolKind — falling back to FileBoundary"
+                );
                 Self::FileBoundary
             }
         }
