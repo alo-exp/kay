@@ -75,4 +75,15 @@ mod tests {
             "NoOpVerifier must never emit Fail in Phase 3"
         );
     }
+
+    #[tokio::test]
+    async fn noop_verifier_accepts_task_context_arg() {
+        // Phase 8 expanded signature — will fail to compile until verifier.rs updated (W-3 RED)
+        let v = NoOpVerifier;
+        let outcome = v.verify("summary", "tool context string").await;
+        match outcome {
+            VerificationOutcome::Pending { .. } => {}
+            other => panic!("expected Pending, got: {other:?}"),
+        }
+    }
 }
