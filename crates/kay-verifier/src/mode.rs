@@ -18,8 +18,12 @@ pub struct VerifierConfig {
 
 impl Default for VerifierConfig {
     fn default() -> Self {
-        // TODO: fill in W-2 GREEN
-        todo!()
+        Self {
+            mode: VerifierMode::Interactive,
+            max_retries: 3,
+            cost_ceiling_usd: 1.0,
+            model: "openai/gpt-4o-mini".into(),
+        }
     }
 }
 

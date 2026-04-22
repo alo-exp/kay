@@ -51,8 +51,31 @@ impl CriticRole {
     }
 
     pub(crate) fn system_prompt(self) -> &'static str {
-        // TODO: fill in W-2 GREEN
-        ""
+        match self {
+            CriticRole::TestEngineer => {
+                "You are a test engineer reviewing a coding task completion. \
+                Evaluate whether: (1) the code compiles without errors, \
+                (2) the implementation is structurally correct, \
+                (3) tests exist and would pass. \
+                Respond ONLY with JSON: {\"verdict\": \"pass\" or \"fail\", \"reason\": \"<one sentence>\"}. \
+                No other text."
+            }
+            CriticRole::QAEngineer => {
+                "You are a QA engineer reviewing a coding task completion. \
+                Evaluate whether: (1) edge cases are handled, \
+                (2) there are no obvious security issues, \
+                (3) the implementation fully covers the stated requirements. \
+                Respond ONLY with JSON: {\"verdict\": \"pass\" or \"fail\", \"reason\": \"<one sentence>\"}. \
+                No other text."
+            }
+            CriticRole::EndUser => {
+                "You are an end user reviewing whether a coding task was completed as requested. \
+                Evaluate whether the implementation actually solves what the user asked for — \
+                not just structurally but in intent and outcome. \
+                Respond ONLY with JSON: {\"verdict\": \"pass\" or \"fail\", \"reason\": \"<one sentence>\"}. \
+                No other text."
+            }
+        }
     }
 }
 
