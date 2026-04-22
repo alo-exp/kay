@@ -1,0 +1,28 @@
+[package]
+name = "kay-verifier"
+publish = false
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Multi-perspective task verifier (KIRA critics) for Phase 8"
+
+[dependencies]
+kay-tools = { path = "../kay-tools" }
+kay-provider-openrouter = { path = "../kay-provider-openrouter" }
+kay-provider-errors = { path = "../kay-provider-errors" }
+async-trait = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+futures = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt", "macros"] }
+proptest = "1"
+trybuild = { version = "1", features = ["diff"] }
+static_assertions = "1"
+wiremock = "0.6"
