@@ -149,6 +149,10 @@ pub struct RunTurnArgs {
 
     /// User's prompt for this turn, passed to context_engine.retrieve().
     pub initial_prompt: String,
+
+    /// Verifier configuration for the outer re-work loop.
+    /// Drives max_retries and cost_ceiling enforcement.
+    pub verifier_config: kay_verifier::VerifierConfig,
 }
 
 /// Reason string carried on [`AgentEvent::Aborted`] when the loop
@@ -506,6 +510,22 @@ pub async fn run_turn(mut args: RunTurnArgs) -> Result<(), LoopError> {
     }
 }
 
+/// Outcome of a completed agent turn, returned from run_turn.
+/// VerificationFailed means the re-work loop exhausted max_retries.
+#[derive(Debug, PartialEq, Eq)]
+pub enum TurnResult {
+    /// All critics passed (or verifier disabled).
+    Verified,
+    /// Re-work loop hit max_retries; turn did not pass verification.
+    VerificationFailed,
+    /// Turn was cancelled via control channel.
+    Aborted,
+    /// Turn completed without reaching task_complete (model stopped itself).
+    Completed,
+    /// Pass after one or more retry cycles.
+    PassAfterRetry,
+}
+
 /// Error surface for [`run_turn`]. T4.2 lands the enum with zero
 /// variants so callers' `Result<(), LoopError>` typing is stable
 /// even before any concrete failure mode is implemented. Later
@@ -514,3 +534,17 @@ pub async fn run_turn(mut args: RunTurnArgs) -> Result<(), LoopError> {
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum LoopError {}
+
+/// Run a single agent turn with bounded retry re-work loop.
+///
+/// This function wraps `run_turn` with an outer retry loop that:
+/// - Checks for `TaskComplete` with `verified: true` and `Pass` outcome → returns `TurnResult::Verified`
+/// - On `Fail` outcome: injects feedback as user message and retries up to `max_retries` times
+/// - On max_retries exhausted: emits `VerifierDisabled { max_retries_exhausted }` and returns `TurnResult::VerificationFailed`
+///
+/// # Errors
+///
+/// Returns [`LoopError`] on unrecoverable failures.
+pub async fn run_with_rework(args: RunTurnArgs) -> Result<TurnResult, LoopError> {
+    todo!("W-5 RED: run_with_rework not yet implemented")
+}
