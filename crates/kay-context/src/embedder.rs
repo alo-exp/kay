@@ -15,12 +15,12 @@ impl EmbeddingProvider for NoOpEmbedder {
     }
 }
 
-#[cfg(any(test, feature = "testing"))]
+/// Deterministic test double — returns zero-vectors of length `dimensions`.
+/// Always compiled so integration tests (tests/) can import it without feature flags.
 pub struct FakeEmbedder {
     pub dimensions: usize,
 }
 
-#[cfg(any(test, feature = "testing"))]
 #[async_trait]
 impl EmbeddingProvider for FakeEmbedder {
     async fn embed(&self, _text: &str) -> Result<Vec<f32>, ContextError> {
@@ -28,7 +28,6 @@ impl EmbeddingProvider for FakeEmbedder {
     }
 }
 
-#[cfg(any(test, feature = "testing"))]
 impl FakeEmbedder {
     pub fn embed_sync(&self, _text: &str) -> Vec<f32> {
         vec![0.0f32; self.dimensions]
