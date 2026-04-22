@@ -136,4 +136,12 @@ mod tests {
     fn role_as_str_end_user() {
         assert_eq!(CriticRole::EndUser.as_str(), "end_user");
     }
+
+    #[test]
+    fn system_prompt_nonempty() {
+        // Will fail until W-2 GREEN fills in the prompts
+        assert!(!CriticRole::TestEngineer.system_prompt().is_empty());
+        assert!(!CriticRole::QAEngineer.system_prompt().is_empty());
+        assert!(!CriticRole::EndUser.system_prompt().is_empty());
+    }
 }
