@@ -290,7 +290,7 @@ impl SymbolStore {
                 Ok((symbol_id, name, kind_str, file_path, start_line, end_line, sig, embedding_json))
             })?
             .filter_map(|r| r.ok())
-            .map(|(sid, name, kind_str, file_path, start_line, end_line, sig, embedding_json)| {
+            .filter_map(|(sid, name, kind_str, file_path, start_line, end_line, sig, embedding_json)| {
                 let sym = Symbol {
                     id: sid,
                     name,
@@ -300,11 +300,18 @@ impl SymbolStore {
                     end_line,
                     sig,
                 };
-                // Deserialise embedding; fall back to empty vec on parse error.
-                let embedding: Vec<f32> =
-                    serde_json::from_str(&embedding_json).unwrap_or_default();
+                // Deserialise embedding; skip corrupt rows rather than silently
+                // treating a parse failure as a zero-vector (which would make
+                // corrupt rows appear at maximum distance instead of being surfaced).
+                let embedding: Vec<f32> = match serde_json::from_str(&embedding_json) {
+                    Ok(v) => v,
+                    Err(_e) => {
+                        tracing::warn!(symbol_id = sym.id, "embedding parse failed; skipping row");
+                        return None; // filter_map drops this row
+                    }
+                };
                 let dist = l2_distance(query_vec, &embedding);
-                (dist, sym)
+                Some((dist, sym))
             })
             .collect();
 
