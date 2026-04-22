@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v0.3.0
 milestone_name: Agent Loop + Canonical CLI
 status: in_progress
-stopped_at: "Phase 7 shipped — PR #13 open (https://github.com/alo-exp/kay/pull/13), branch phase/07-context-engine, 70 tests green, clippy -D warnings clean. Ready for Phase 8."
-last_updated: "2026-04-22T12:00:00Z"
-next_phase: 8
-next_action: "/silver:feature Phase 8: Multi-Perspective Verification (KIRA Critics)"
+stopped_at: "Phase 8 shipped — PR #17 squash-merged (b21897a2). KIRA Critics (test-engineer + QA + end-user) live. VERIFY-01..04 closed. Ready for Phase 9: Tauri Desktop Shell."
+last_updated: "2026-04-23T00:00:00Z"
+next_phase: 9
+next_action: "/silver:feature Phase 9: Tauri Desktop Shell"
 last_activity: "2026-04-22 -- Phase 7 SHIPPED. kay-context crate (10 modules): tree-sitter symbol store + SQLite FTS5 + sqlite-vec hybrid retrieval, per-turn ContextBudget, SchemaHardener (ForgeCode hardening), FileWatcher 500ms debounce. 39 commits, 70 tests green. PR #13 open against main. 5 REQs closed: CTX-01..05. Key decisions: sqlite-vec =0.1.10-alpha.3 exact pin, FakeEmbedder always-compiled, Arc<dyn Fn()> watcher, insert_symbol (not upsert), KayContextEngine pub-removed until Phase 8, _ctx_packet unused Phase 7. Full /silver:feature pipeline executed. Security: 7/7 SECURED. Nyquist: 6/6 COVERED. Quality gates: 9/9 adversarial PASS. Code review: 5/5 warnings fixed."
 progress:
   total_phases: 17
