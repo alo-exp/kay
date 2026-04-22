@@ -4605,6 +4605,7 @@ dependencies = [
  "kay-context",
  "kay-provider-errors",
  "kay-tools",
+ "kay-verifier",
  "pretty_assertions",
  "proptest",
  "serde",

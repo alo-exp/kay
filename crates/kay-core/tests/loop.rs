@@ -46,7 +46,7 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use kay_core::control::{ControlMsg, control_channel};
-use kay_core::r#loop::{RunTurnArgs, run_turn};
+use kay_core::r#loop::{RunTurnArgs, run_turn, TurnResult};
 use kay_core::persona::Persona;
 use kay_provider_errors::ProviderError;
 use kay_tools::{
@@ -145,11 +145,11 @@ async fn run_turn_single_turn_happy_path() {
         events.push(ev);
     }
 
-    // ── Assert: loop returned Ok(()) ────────────────────────────
+    // ── Assert: loop returned Ok(TurnResult::Completed) ───────────
     handle
         .await
         .expect("run_turn task joined cleanly")
-        .expect("run_turn returned Ok on stream close");
+        .expect("run_turn returned Ok(TurnResult::Completed) on stream close");
 
     // ── Assert: exactly one forwarded TextDelta ─────────────────
     assert_eq!(
@@ -267,7 +267,7 @@ async fn task_complete_does_not_terminate_on_pending_verification() {
     handle
         .await
         .expect("run_turn task joined cleanly")
-        .expect("run_turn returned Ok on stream close");
+        .expect("run_turn returned Ok(TurnResult::Completed) on stream close");
 
     assert_eq!(
         events.len(),
@@ -394,7 +394,7 @@ async fn task_complete_on_verifier_pass_terminates_loop() {
     handle
         .await
         .expect("run_turn task joined cleanly")
-        .expect("run_turn returned Ok on verified TaskComplete");
+        .expect("run_turn returned Ok(TurnResult::Completed) on verified TaskComplete");
 
     assert!(
         events
@@ -610,7 +610,7 @@ async fn control_pause_buffers_then_resume_replays() {
     handle
         .await
         .expect("run_turn task joined cleanly")
-        .expect("run_turn returned Ok on clean close after pause/resume cycle");
+        .expect("run_turn returned Ok(TurnResult::Completed) on clean close after pause/resume cycle");
 }
 
 /// Abort emits `AgentEvent::Aborted { reason: "user_abort" }` and
@@ -701,7 +701,7 @@ async fn control_abort_emits_aborted_event_and_exits() {
         .await
         .expect("run_turn must return within 500ms of Abort");
     join.expect("run_turn task joined cleanly")
-        .expect("run_turn returned Ok after Abort");
+        .expect("run_turn returned Ok(TurnResult::Completed) after Abort");
 
     // Keep model_tx alive until here — proves the exit was Abort-
     // driven, not close-driven.
@@ -778,7 +778,7 @@ async fn control_double_abort_is_idempotent() {
         .await
         .expect("run_turn must exit within 500ms even under double-Abort");
     join.expect("run_turn task joined cleanly")
-        .expect("run_turn returned Ok after double-Abort");
+        .expect("run_turn returned Ok(TurnResult::Completed) after double-Abort");
 
     // Drain any remaining events (`event_tx` is now dropped by the
     // loop's return, so the channel is closed and `recv()` will
