@@ -301,6 +301,8 @@ async fn run_async(
     // of a biased select.
     // Pre-compute session title from prompt before prompt is moved into the provider task.
     let session_title: String = prompt.chars().take(120).collect();
+    // Save a copy for RunTurnArgs::initial_prompt before prompt is moved.
+    let initial_prompt = prompt.clone();
     tokio::spawn(offline_provider(prompt, model_tx));
 
     // ── Empty registry + minimal context ────────────────────────
@@ -338,6 +340,9 @@ async fn run_async(
         event_tx,
         registry,
         tool_ctx,
+        context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine::default()),
+        context_budget: kay_context::budget::ContextBudget::default(),
+        initial_prompt,
     }));
 
     // ── Drain the event channel to stdout as JSONL ──────────────

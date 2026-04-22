@@ -130,6 +130,9 @@ async fn run_turn_single_turn_happy_path() {
         event_tx,
         registry,
         tool_ctx,
+        context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine::default()),
+        context_budget: kay_context::budget::ContextBudget::default(),
+        initial_prompt: String::new(),
     }));
 
     // ── Drain events until the loop drops `event_tx` ────────────
@@ -249,6 +252,9 @@ async fn task_complete_does_not_terminate_on_pending_verification() {
         event_tx,
         registry,
         tool_ctx,
+        context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine::default()),
+        context_budget: kay_context::budget::ContextBudget::default(),
+        initial_prompt: String::new(),
     }));
 
     let mut events = Vec::new();
@@ -357,6 +363,9 @@ async fn task_complete_on_verifier_pass_terminates_loop() {
         event_tx,
         registry,
         tool_ctx,
+        context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine::default()),
+        context_budget: kay_context::budget::ContextBudget::default(),
+        initial_prompt: String::new(),
     }));
 
     // Drain events concurrently with the loop. On GREEN: `run_turn`
@@ -492,6 +501,9 @@ async fn control_pause_buffers_then_resume_replays() {
         event_tx,
         registry,
         tool_ctx,
+        context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine::default()),
+        context_budget: kay_context::budget::ContextBudget::default(),
+        initial_prompt: String::new(),
     }));
 
     // ── Phase 1: pre-pause — event forwards normally ────────────────
@@ -632,6 +644,9 @@ async fn control_abort_emits_aborted_event_and_exits() {
         event_tx,
         registry,
         tool_ctx,
+        context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine::default()),
+        context_budget: kay_context::budget::ContextBudget::default(),
+        initial_prompt: String::new(),
     }));
 
     // One pre-abort event to prove the loop is responsive before the
@@ -731,6 +746,9 @@ async fn control_double_abort_is_idempotent() {
         event_tx,
         registry,
         tool_ctx,
+        context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine::default()),
+        context_budget: kay_context::budget::ContextBudget::default(),
+        initial_prompt: String::new(),
     }));
 
     // First abort: expected to emit exactly one Aborted and trigger

@@ -243,6 +243,9 @@ fn spawn_turn_with_counting_tool(tool_name: &'static str) -> TurnHarness {
         event_tx,
         registry,
         tool_ctx,
+        context_engine: std::sync::Arc::new(kay_context::engine::NoOpContextEngine::default()),
+        context_budget: kay_context::budget::ContextBudget::default(),
+        initial_prompt: String::new(),
     }));
 
     (handle, model_tx, ctl_tx, event_rx, dispatch_count)
