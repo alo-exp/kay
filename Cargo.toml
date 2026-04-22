@@ -201,7 +201,7 @@ tree-sitter-rust      = "0.23"
 tree-sitter-typescript = "0.23"
 tree-sitter-python    = "0.23"
 tree-sitter-go        = "0.23"
-sqlite-vec            = "=0.1.10-alpha.3"
+sqlite-vec            = "=0.1.9"
 notify                = "6.1"
 notify-debouncer-mini = "0.4"
 

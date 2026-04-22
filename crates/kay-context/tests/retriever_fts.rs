@@ -1,4 +1,4 @@
-use kay_context::retriever::{apply_name_bonus, rrf_merge, rrf_score};
+use kay_context::retriever::{apply_name_bonus, rrf_score};
 use kay_context::store::{Symbol, SymbolKind, SymbolStore};
 use tempfile::TempDir;
 

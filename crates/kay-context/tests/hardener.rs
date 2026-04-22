@@ -29,7 +29,7 @@ fn harden_moves_required_before_properties() {
     // invariant is a logical guarantee, not a key-ordering guarantee).
     // serde_json without preserve_order uses BTreeMap (alphabetical keys), so
     // we verify the semantic contract: required exists and contains all props.
-    let hardener = SchemaHardener::default();
+    let hardener = SchemaHardener;
     let mut schema = make_schema(true); // properties BEFORE required (input order)
     hardener.harden(&mut schema);
     let obj = schema
@@ -61,7 +61,7 @@ fn harden_moves_required_before_properties() {
 
 #[test]
 fn harden_is_idempotent() {
-    let hardener = SchemaHardener::default();
+    let hardener = SchemaHardener;
     let mut schema = make_schema(true);
     hardener.harden(&mut schema);
     let once = schema.clone();
@@ -76,7 +76,7 @@ fn harden_is_idempotent() {
 
 #[test]
 fn harden_adds_truncation_reminder() {
-    let hardener = SchemaHardener::default();
+    let hardener = SchemaHardener;
     let mut schema = make_schema(false);
     hardener.harden(&mut schema);
     // After hardening, the schema should have a truncation reminder
@@ -92,7 +92,7 @@ fn harden_adds_truncation_reminder() {
 async fn noop_engine_hardens_schemas() {
     // NoOpContextEngine::retrieve must return a ContextPacket
     // The schemas parameter is passed through (Phase 7 only assembles ContextPacket)
-    let engine = NoOpContextEngine::default();
+    let engine = NoOpContextEngine;
     let schemas = vec![make_schema(false)];
     let packet = engine.retrieve("query", &schemas).await.unwrap();
     // NoOp returns empty symbols but the call must succeed

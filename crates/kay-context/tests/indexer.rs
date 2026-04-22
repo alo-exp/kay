@@ -1,6 +1,5 @@
 use kay_context::indexer::TreeSitterIndexer;
-use kay_context::language::Language;
-use kay_context::store::{Symbol, SymbolKind, SymbolStore};
+use kay_context::store::{SymbolKind, SymbolStore};
 use std::path::Path;
 use tempfile::TempDir;
 
