@@ -15,13 +15,16 @@ export function SessionView({ events, totalCostUsd, totalTokensIn, totalTokensOu
   const toolCallEvents = events.filter(e => e.type === 'ToolCallComplete') as Extract<IpcAgentEvent, { type: 'ToolCallComplete' }>[];
 
   return (
-    <div style={{
-      flex: 1,
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden',
-      background: 'var(--bg-primary)',
-    }}>
+    <div
+      data-testid="session-view"
+      style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        background: 'var(--bg-primary)',
+      }}
+    >
       {/* Header */}
       <div style={{
         display: 'flex',
