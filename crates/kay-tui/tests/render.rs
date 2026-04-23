@@ -1,22 +1,30 @@
-//! kay-tui render tests — W-7.1 RED stubs
+//! kay-tui render tests — W-7.2 GREEN
 //!
 //! These tests verify that the TUI components render without panic
-//! using ratatui's TestBackend. The stubs use `todo!()` to ensure
-//! compilation succeeds but tests fail until the SessionView and
-//! ToolCallInspector widgets are implemented.
+//! using ratatui's TestBackend.
 
-/// W-7.1 RED: SessionView widget renders without panic
+use kay_tui::widgets::{SessionView, ToolCallInspector};
+
+/// W-7.2 GREEN: SessionView widget renders without panic
 #[test]
-fn session_view_renders_stub() {
-    // TODO: Implement render test with ratatui TestBackend
-    // once SessionView widget exists in kay_tui::widgets module
-    todo!()
+fn session_view_renders_without_panic() {
+    let backend = ratatui::backend::TestBackend::new(80, 24);
+    let mut terminal = ratatui::Terminal::new(backend).unwrap();
+    terminal.draw(|f| {
+        let widget = SessionView::new();
+        f.render_widget(widget, f.size());
+    }).unwrap();
+    // No panic = pass
 }
 
-/// W-7.1 RED: ToolCallInspector widget renders without panic
+/// W-7.2 GREEN: ToolCallInspector widget renders without panic
 #[test]
-fn tool_call_inspector_renders_stub() {
-    // TODO: Implement render test with ratatui TestBackend
-    // once ToolCallInspector widget exists in kay_tui::widgets module
-    todo!()
+fn tool_call_inspector_renders_without_panic() {
+    let backend = ratatui::backend::TestBackend::new(80, 24);
+    let mut terminal = ratatui::Terminal::new(backend).unwrap();
+    terminal.draw(|f| {
+        let widget = ToolCallInspector::new();
+        f.render_widget(widget, f.size());
+    }).unwrap();
+    // No panic = pass
 }
