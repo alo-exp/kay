@@ -15,3 +15,13 @@ serde_json = { workspace = true }
 gh-workflow = "0.8"
 indexmap = { workspace = true }
 derive_setters = { workspace = true }
+
+[dev-dependencies]
+proptest   = { workspace = true }
+insta      = { workspace = true }
+tempfile   = { workspace = true }
+assert_cmd = { workspace = true }
+
+[[test]]
+name = "ci_integration"
+path = "tests/ci.rs"

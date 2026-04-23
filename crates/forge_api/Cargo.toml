@@ -23,3 +23,13 @@ url = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
 serde_json = { workspace = true }
+
+[dev-dependencies]
+proptest   = { workspace = true }
+insta      = { workspace = true }
+tempfile   = { workspace = true }
+assert_cmd = { workspace = true }
+
+[[test]]
+name = "api_integration"
+path = "tests/api.rs"

@@ -16,3 +16,13 @@ serde_json = { workspace = true, optional = true }
 
 [features]
 json = ["serde", "serde_json"]
+
+[dev-dependencies]
+proptest   = { workspace = true }
+insta      = { workspace = true }
+tempfile   = { workspace = true }
+assert_cmd = { workspace = true }
+
+[[test]]
+name = "kit_integration"
+path = "tests/kit.rs"
