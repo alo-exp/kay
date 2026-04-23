@@ -363,6 +363,8 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          fetch-depth: 0
       - name: Check for archived parity run
         run: |
           ARCHIVE=".planning/phases/01-fork-governance-infrastructure/parity-baseline"
@@ -374,3 +376,14 @@ jobs:
           SCORE=$(grep -oP 'score:\s*\K[0-9.]+' "$ARCHIVE/summary.md")
           echo "Archived parity score: $SCORE"
           python3 -c "exit(0 if float('$SCORE') >= 80.0 else 1)"
+
+  coverage-gate:
+    # W-7.4: Phase 9.1 TEST-07 enforcement — every gap-list crate must
+    # have at least one #[test] function. A missing tests/ directory or
+    # zero #[test] functions is a revert-worthy regression.
+    name: Coverage gate (TEST-07, 28 gap-list crates)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - name: Run coverage gate
+        run: bash scripts/coverage-gate.sh
