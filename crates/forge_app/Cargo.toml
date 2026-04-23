@@ -59,3 +59,7 @@ insta             = { workspace = true }
 forge_test_kit    = { path = "../forge_test_kit" }
 tokio-stream      = { workspace = true }
 fake              = { workspace = true }
+
+[[test]]
+name = "app"
+path = "tests/app.rs"

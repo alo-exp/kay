@@ -16,3 +16,10 @@ regex = { workspace = true }
 serde = { workspace = true }
 schemars = { workspace = true }
 serde_json5 = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+
+[[test]]
+name = "repair"
+path = "tests/repair.rs"

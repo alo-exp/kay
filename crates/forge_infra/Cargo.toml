@@ -55,3 +55,7 @@ serde_urlencoded = { workspace = true }
 pretty_assertions = { workspace = true }
 tokio-stream      = { workspace = true }
 fake              = { workspace = true }
+
+[[test]]
+name = "infra"
+path = "tests/infra.rs"

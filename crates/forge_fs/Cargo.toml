@@ -22,3 +22,7 @@ thiserror = { workspace = true }
 [dev-dependencies]
 pretty_assertions = { workspace = true }
 tempfile          = { workspace = true }
+
+[[test]]
+name = "fs"
+path = "tests/fs.rs"

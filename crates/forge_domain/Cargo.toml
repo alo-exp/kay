@@ -48,3 +48,8 @@ fake = { workspace = true }
 pretty_assertions = { workspace = true }
 insta             = { workspace = true }
 forge_test_kit    = { path = "../forge_test_kit", features = ["json"] }
+proptest = { workspace = true }
+
+[[test]]
+name = "domain"
+path = "tests/domain.rs"

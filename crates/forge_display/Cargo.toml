@@ -23,3 +23,7 @@ two-face = { workspace = true }
 pretty_assertions = { workspace = true }
 insta             = { workspace = true }
 strip-ansi-escapes = { workspace = true }
+
+[[test]]
+name = "display"
+path = "tests/display.rs"
