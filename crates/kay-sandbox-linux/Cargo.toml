@@ -25,3 +25,7 @@ seccompiler = { workspace = true }
 [dev-dependencies]
 tempfile = { workspace = true }
 tokio    = { workspace = true, features = ["macros", "rt"] }
+
+[[test]]
+name = "escape"
+path = "tests/escape.rs"
