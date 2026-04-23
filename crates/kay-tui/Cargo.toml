@@ -9,4 +9,9 @@ license.workspace = true
 repository.workspace = true
 description = "Kay terminal UI frontend (full-screen ratatui) over kay-core and kay-cli contracts"
 
-[dependencies]
+[dev-dependencies]
+ratatui = { workspace = true, features = ["unstable-widget-ref"] }
+
+[[test]]
+name = "render"
+path = "tests/render.rs"

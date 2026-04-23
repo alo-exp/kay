@@ -107,6 +107,7 @@ rustyline = "15"
 terminal_size = "0.4"
 arboard = { version = "3.4", default-features = false }
 enable-ansi-support = "0.2"
+ratatui = "0.29"
 
 # Parsing/Text
 nom = "8.0.0"
