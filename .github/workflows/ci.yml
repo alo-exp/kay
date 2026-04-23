@@ -59,6 +59,19 @@ jobs:
           fi
           echo "DCO check passed: $count commit(s) all carry Signed-off-by trailers."
 
+  sandbox-tests:
+    name: Sandbox escape tests (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test -p kay-sandbox-linux -p kay-sandbox-macos -p kay-sandbox-windows
+        shell: bash
+
   lint:
     name: Lint (fmt + clippy + deny + audit)
     runs-on: ubuntu-latest
