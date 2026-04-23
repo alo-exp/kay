@@ -188,6 +188,7 @@ proc-macro2 = "1"
 pretty_assertions = "1"
 insta = { version = "1", features = ["yaml", "json"] }
 mockito = "1"
+proptest = "1"
 
 # Phase 3 (kay-tools) additions
 portable-pty = "0.9"
@@ -218,9 +219,9 @@ predicates = "3"
 # match exactly what tauri-specta declares in its own Cargo.toml.
 tauri             = { version = "2.3", features = ["rustls-tls"] }
 tauri-build       = { version = "2.3" }
-tauri-specta      = { version = "=2.0.0-rc.21", features = ["derive"] }
-specta            = { version = "=2.0.0-rc.20" }
-specta-typescript = "0.0.7"
+tauri-specta      = { version = "=2.0.0-rc.24", features = ["derive"] }
+specta            = { version = "=2.0.0-rc.24" }
+specta-typescript = "0.0.11"
 
 # Platform-specific
 windows-sys = { version = "0.61", features = ["Win32_System_Console", "Win32_System_Threading", "Win32_Security", "Win32_System_JobObjects"] }
