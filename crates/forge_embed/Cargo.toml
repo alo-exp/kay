@@ -13,3 +13,14 @@ description = "ForgeCode embedded asset utilities"
 include_dir = { workspace = true }
 handlebars = { workspace = true }
 anyhow = { workspace = true }
+
+[dev-dependencies]
+proptest   = { workspace = true }
+insta      = { workspace = true }
+tempfile   = { workspace = true }
+assert_cmd = { workspace = true }
+include_dir = { workspace = true }
+
+[[test]]
+name = "embed"
+path = "tests/embed.rs"

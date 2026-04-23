@@ -65,3 +65,8 @@ pretty_assertions = { workspace = true }
 forge_test_kit    = { path = "../forge_test_kit" }
 tempfile          = { workspace = true }
 fake              = { workspace = true }
+proptest          = { workspace = true }
+
+[[test]]
+name = "services"
+path = "tests/services.rs"

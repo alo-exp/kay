@@ -71,3 +71,8 @@ forge_test_kit    = { path = "../forge_test_kit" }
 mockito           = { workspace = true }
 tempfile          = { workspace = true }
 fake              = { workspace = true }
+proptest          = { workspace = true }
+
+[[test]]
+name = "repo"
+path = "tests/repo.rs"
