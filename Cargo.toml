@@ -196,6 +196,7 @@ proc-macro2 = "1"
 pretty_assertions = "1"
 insta = { version = "1", features = ["yaml", "json"] }
 mockito = "1"
+proptest = "1"
 
 # Phase 3 (kay-tools) additions
 portable-pty = "0.9"
