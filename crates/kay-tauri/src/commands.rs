@@ -18,7 +18,7 @@ use kay_core::control::{ControlMsg, control_channel};
 use kay_core::r#loop::{RunTurnArgs, run_turn};
 use kay_core::persona::Persona;
 use kay_provider_errors::ProviderError;
-use kay_tools::{AgentEvent, ImageQuota, NoOpSandbox, NoOpVerifier, ServicesHandle, ToolCallContext, ToolRegistry, VerificationOutcome};
+use kay_tools::{AgentEvent, ImageQuota, NoOpSandbox, NoOpVerifier, ServicesHandle, ToolCallContext, ToolRegistry};
 
 use crate::flush::flush_task;
 use crate::ipc_event::IpcAgentEvent;
