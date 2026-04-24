@@ -36,3 +36,23 @@
 | Execution | skip /gsd:discuss-phase | CONTEXT.md already exists from spec §3 architecture decisions; gray areas resolved in spec |
 | Execution | skip quality gates pre-planning | Plan already has 7-wave structure from prior planning phase; quality gates will run pre-ship |
 | Execution | Run /gsd:execute-phase directly | 09-PLAN.md exists and is the canonical execution artifact per GSD rules |
+
+### Wave 6-7 Results
+
+| Criterion | Status |
+|-----------|--------|
+| `cargo check -p kay-tauri` compiles | ✅ |
+| `cargo test -p kay-tauri --test gen_bindings` passes | ✅ |
+| `scripts/check-bindings.sh` exits 0 | ✅ |
+| `pnpm build` exits 0 | ✅ |
+| Memory canary compiles | ✅ |
+
+### Decisions Log (continued)
+
+| Time | Decision | Rationale |
+|------|----------|-----------|
+| UI fix | Use `void _never` pattern for exhaustiveness | `never` type already enforces compile-time exhaustiveness; `void` suppresses TS6133 |
+| bindings.ts | Add `export type Value` definition | specta::Value is recursive; TypeScript bindings need the type defined in the file |
+| App.tsx | Handle typedError<{status,data}\|{status,error}> | specta generates typedError wrapper, not raw return values |
+| commit 06763e5 | Phase 9 core: specta builder, agent_loop module, tests, CI scripts |
+| commit 2d595e1 | UI fixes: Value type, typedError handling, exhaustiveness pattern |
