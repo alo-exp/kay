@@ -8,7 +8,7 @@
 // - Unknown event types: logged at WARN, skipped (ERR-02)
 // - Partial lines: accumulated across read() calls (no line fragmentation)
 
-use std::io::{self, BufRead, Read};
+use std::io::{self, Read};
 use tracing::warn;
 
 use crate::events::TuiEvent;
@@ -299,13 +299,21 @@ mod tests {
     }
 
     #[test]
-    fn unknown_event_type_returns_error() {
+    fn unknown_event_type_routes_to_tui_event_unknown() {
+        // TuiEvent::Unknown is the catch-all variant — unknown event types
+        // (future wire additions) deserialize successfully to it. The
+        // UnknownEventType error was removed when the Unknown variant was added.
         let json = r#"{"type":"SomeNewFutureEvent","data":{"foo":123}}"#;
         let result = JsonlParser::parse_single(json);
-        assert!(result.is_err());
-        match result {
-            Err(ParseError::UnknownEventType(t)) => assert_eq!(t, "SomeNewFutureEvent"),
-            other => panic!("expected UnknownEventType, got {other:?}"),
+        assert!(
+            result.is_ok(),
+            "Unknown event types should deserialize to TuiEvent::Unknown, got: {result:?}"
+        );
+        match result.unwrap() {
+            TuiEvent::Unknown { ref event_type } => {
+                assert_eq!(event_type, "SomeNewFutureEvent");
+            }
+            other => panic!("expected TuiEvent::Unknown, got {other:?}"),
         }
     }
 

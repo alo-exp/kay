@@ -341,6 +341,11 @@ fn event_summary(event: &TuiEvent, _selected: bool) -> (&'static str, String, St
             format!("verifier disabled: {reason} (saved ${:.4})", cost_usd),
             Style::new().fg(Color::DarkGray),
         ),
+        Unknown { event_type } => (
+            "?",
+            format!("unknown event: {event_type}"),
+            Style::new().fg(Color::DarkGray),
+        ),
     }
 }
 

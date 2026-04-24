@@ -5,11 +5,19 @@
 // event wire format must be mirrored in both files. See Phase 9.5 spec §3.
 // serde rename attrs ensure wire compatibility (same JSON field names).
 
+use serde::de::{self, Visitor, Deserializer};
 use serde::{Deserialize, Serialize};
+use std::fmt;
 
 // TuiEvent: IPC-safe mirror of IpcAgentEvent. All fields are JSON-serializable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type", content = "data")]
+// Uses a custom deserializer to route unknown "type" values to an Unknown variant.
+// serde's built-in #[serde(tag = "type")] does not support catch-all — we implement
+// it manually via a custom Deserialize impl.
+#[derive(Debug, Clone, Serialize)]
+// NOTE: Deserialize is NOT derived — TuiEvent uses a custom Deserialize impl
+// below that routes unknown "type" values to the Unknown catch-all variant.
+// serde's #[serde(tag = "type")] does not support catch-all variants,
+// so we implement Deserialize manually.
 pub enum TuiEvent {
     // Phase 2 variants
     #[serde(rename = "TextDelta")]
@@ -93,11 +101,291 @@ pub enum TuiEvent {
     },
     #[serde(rename = "VerifierDisabled")]
     VerifierDisabled { reason: String, cost_usd: f64 },
-    // Catch-all: future variants are handled at the JSONL parsing layer
-    // (jsonl.rs WAVE 2), not in serde. serde with #[serde(tag)] does not
-    // support a catch-all variant — it fails on unknown tags rather than
-    // falling back. See: docs/superpowers/specs/2026-04-24-phase9.5-tui-frontend-design.md §3.
+    // Catch-all: future variants deserialize here. Custom Deserialize impl
+    // routes unknown "type" values here rather than failing.
+    #[serde(rename = "Unknown")]
+    Unknown { event_type: String },
 }
+
+// ─── Custom Deserialize impl for TuiEvent ──────────────────────────────
+// serde's #[serde(tag = "type")] does not support catch-all variants.
+// We implement Deserialize manually to route unknown type tags to the
+// Unknown variant instead of failing.
+
+impl<'de> Deserialize<'de> for TuiEvent {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct TuiEventVisitor;
+
+        impl<'de> Visitor<'de> for TuiEventVisitor {
+            type Value = TuiEvent;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                formatter.write_str("a TuiEvent JSON object")
+            }
+
+            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+            where
+                A: de::MapAccess<'de>,
+            {
+                // Collect all key-value pairs into a serde_json::Map.
+                // This avoids the type conflict when using next_value::<Value>() directly.
+                let mut fields = serde_json::Map::new();
+                while let Some(key) = map.next_key()? {
+                    let value: serde_json::Value = map.next_value()?;
+                    fields.insert(key, value);
+                }
+
+                let type_field = fields
+                    .get("type")
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| de::Error::missing_field("type"))?;
+
+                let data = fields.get("data").cloned().unwrap_or(serde_json::Value::Null);
+
+                // Route to the correct variant based on type tag
+                let type_str: &str = type_field;
+                match type_str {
+                    "TextDelta" => {
+                        let content = data.get("content")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing content field"))?;
+                        Ok(TuiEvent::TextDelta { content: content.to_string() })
+                    }
+                    "ToolCallStart" => {
+                        let id = data.get("id")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing id field"))?;
+                        let name = data.get("name")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing name field"))?;
+                        Ok(TuiEvent::ToolCallStart {
+                            id: id.to_string(),
+                            name: name.to_string(),
+                        })
+                    }
+                    "ToolCallDelta" => {
+                        let id = data.get("id")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing id field"))?;
+                        let arguments_delta = data.get("arguments_delta")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing arguments_delta field"))?;
+                        Ok(TuiEvent::ToolCallDelta {
+                            id: id.to_string(),
+                            arguments_delta: arguments_delta.to_string(),
+                        })
+                    }
+                    "ToolCallComplete" => {
+                        let id = data.get("id")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing id field"))?;
+                        let name = data.get("name")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing name field"))?;
+                        Ok(TuiEvent::ToolCallComplete {
+                            id: id.to_string(),
+                            name: name.to_string(),
+                            arguments: data.clone(),
+                        })
+                    }
+                    "ToolCallMalformed" => {
+                        let id = data.get("id")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing id field"))?;
+                        let raw = data.get("raw")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing raw field"))?;
+                        let error = data.get("error")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing error field"))?;
+                        Ok(TuiEvent::ToolCallMalformed {
+                            id: id.to_string(),
+                            raw: raw.to_string(),
+                            error: error.to_string(),
+                        })
+                    }
+                    "Usage" => {
+                        let prompt_tokens = data.get("prompt_tokens")
+                            .and_then(|v| v.as_u64())
+                            .ok_or_else(|| de::Error::custom("missing prompt_tokens"))?;
+                        let completion_tokens = data.get("completion_tokens")
+                            .and_then(|v| v.as_u64())
+                            .ok_or_else(|| de::Error::custom("missing completion_tokens"))?;
+                        let cost_usd = data.get("cost_usd")
+                            .and_then(|v| v.as_f64())
+                            .ok_or_else(|| de::Error::custom("missing cost_usd"))?;
+                        Ok(TuiEvent::Usage {
+                            prompt_tokens,
+                            completion_tokens,
+                            cost_usd,
+                        })
+                    }
+                    "Retry" => {
+                        let attempt = data.get("attempt")
+                            .and_then(|v| v.as_u64())
+                            .map(|v| v as u32)
+                            .ok_or_else(|| de::Error::custom("missing attempt"))?;
+                        let delay_ms = data.get("delay_ms")
+                            .and_then(|v| v.as_u64())
+                            .ok_or_else(|| de::Error::custom("missing delay_ms"))?;
+                        let reason = data.get("reason")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing reason"))?;
+                        Ok(TuiEvent::Retry {
+                            attempt,
+                            delay_ms,
+                            reason: reason.to_string(),
+                        })
+                    }
+                    "Error" => {
+                        let message = data.get("message")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing message field"))?;
+                        Ok(TuiEvent::Error { message: message.to_string() })
+                    }
+                    "ToolOutput" => {
+                        let call_id = data.get("call_id")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing call_id"))?;
+                        let chunk: TuiToolOutputChunk = serde_json::from_value(data.get("chunk").cloned().unwrap_or(serde_json::Value::Null))
+                            .map_err(|e| de::Error::custom(e))?;
+                        Ok(TuiEvent::ToolOutput {
+                            call_id: call_id.to_string(),
+                            chunk,
+                        })
+                    }
+                    "TaskComplete" => {
+                        let call_id = data.get("call_id")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing call_id"))?;
+                        let verified = data.get("verified")
+                            .and_then(|v| v.as_bool())
+                            .ok_or_else(|| de::Error::custom("missing verified"))?;
+                        let outcome: TuiVerificationOutcome = serde_json::from_value(data.get("outcome").cloned().unwrap_or(serde_json::Value::Null))
+                            .map_err(|e| de::Error::custom(e))?;
+                        Ok(TuiEvent::TaskComplete {
+                            call_id: call_id.to_string(),
+                            verified,
+                            outcome,
+                        })
+                    }
+                    "ImageRead" => {
+                        let path = data.get("path")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing path"))?;
+                        let data_url = data.get("data_url")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing data_url"))?;
+                        Ok(TuiEvent::ImageRead {
+                            path: path.to_string(),
+                            data_url: data_url.to_string(),
+                        })
+                    }
+                    "SandboxViolation" => {
+                        let call_id = data.get("call_id")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing call_id"))?;
+                        let tool_name = data.get("tool_name")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing tool_name"))?;
+                        let resource = data.get("resource")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing resource"))?;
+                        let policy_rule = data.get("policy_rule")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing policy_rule"))?;
+                        let os_error = data.get("os_error")
+                            .and_then(|v| v.as_i64())
+                            .map(|v| v as i32);
+                        Ok(TuiEvent::SandboxViolation {
+                            call_id: call_id.to_string(),
+                            tool_name: tool_name.to_string(),
+                            resource: resource.to_string(),
+                            policy_rule: policy_rule.to_string(),
+                            os_error,
+                        })
+                    }
+                    "Paused" => Ok(TuiEvent::Paused),
+                    "Aborted" => {
+                        let reason = data.get("reason")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing reason field"))?;
+                        Ok(TuiEvent::Aborted { reason: reason.to_string() })
+                    }
+                    "ContextTruncated" => {
+                        let dropped_symbols = data.get("dropped_symbols")
+                            .and_then(|v| v.as_u64())
+                            .map(|v| v as usize)
+                            .ok_or_else(|| de::Error::custom("missing dropped_symbols"))?;
+                        let budget_tokens = data.get("budget_tokens")
+                            .and_then(|v| v.as_u64())
+                            .map(|v| v as usize)
+                            .ok_or_else(|| de::Error::custom("missing budget_tokens"))?;
+                        Ok(TuiEvent::ContextTruncated {
+                            dropped_symbols,
+                            budget_tokens,
+                        })
+                    }
+                    "IndexProgress" => {
+                        let indexed = data.get("indexed")
+                            .and_then(|v| v.as_u64())
+                            .map(|v| v as usize)
+                            .ok_or_else(|| de::Error::custom("missing indexed"))?;
+                        let total = data.get("total")
+                            .and_then(|v| v.as_u64())
+                            .map(|v| v as usize)
+                            .ok_or_else(|| de::Error::custom("missing total"))?;
+                        Ok(TuiEvent::IndexProgress {
+                            indexed,
+                            total,
+                        })
+                    }
+                    "Verification" => {
+                        let critic_role = data.get("critic_role")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing critic_role"))?;
+                        let verdict = data.get("verdict")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing verdict"))?;
+                        let reason = data.get("reason")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing reason"))?;
+                        let cost_usd = data.get("cost_usd")
+                            .and_then(|v| v.as_f64())
+                            .ok_or_else(|| de::Error::custom("missing cost_usd"))?;
+                        Ok(TuiEvent::Verification {
+                            critic_role: critic_role.to_string(),
+                            verdict: verdict.to_string(),
+                            reason: reason.to_string(),
+                            cost_usd,
+                        })
+                    }
+                    "VerifierDisabled" => {
+                        let reason = data.get("reason")
+                            .and_then(|v| v.as_str())
+                            .ok_or_else(|| de::Error::custom("missing reason"))?;
+                        let cost_usd = data.get("cost_usd")
+                            .and_then(|v| v.as_f64())
+                            .ok_or_else(|| de::Error::custom("missing cost_usd"))?;
+                        Ok(TuiEvent::VerifierDisabled {
+                            reason: reason.to_string(),
+                            cost_usd,
+                        })
+                    }
+                    // Unknown event type → route to catch-all variant
+                    _ => Ok(TuiEvent::Unknown { event_type: type_field.to_string() }),
+                }
+            }
+        }
+
+        deserializer.deserialize_map(TuiEventVisitor)
+    }
+}
+
+// ─── End TuiEvent Deserialize impl ─────────────────────────────────────
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TuiToolOutputChunk {
@@ -145,7 +433,8 @@ mod tests {
                 assert_eq!(completion_tokens, 50);
                 assert!((cost_usd - 0.0021).abs() < 1e-6);
             }
-            other => panic!("expected Usage, got {other:?}"),
+            TuiEvent::Unknown { .. } => unreachable!("usage test should never hit Unknown"),
+            _ => unreachable!("usage test hit unexpected variant"),
         }
     }
 
@@ -162,15 +451,26 @@ mod tests {
     }
 
     #[test]
-    fn error_deserializes() {
-        let json = r#"{"type":"Error","data":{"message":"connection reset"}}"#;
+    fn unknown_variant_round_trips() {
+        // The Unknown variant is the catch-all for future events.
+        // Wire format: {"Unknown":{"event_type":"SomeNewFutureEvent","data":{"foo":123}}}
+        // Our serde derive uses #[serde(rename = "Unknown")] on the Unknown variant,
+        // so serialized output uses "Unknown" as the tag (same as other variant renames).
+        let json = r#"{"type":"SomeNewFutureEvent","data":{"foo":123}}"#;
         let event = serde_json::from_str::<TuiEvent>(json).unwrap();
         match event {
-            TuiEvent::Error { message } => assert_eq!(message, "connection reset"),
-            other => panic!("expected Error, got {other:?}"),
+            TuiEvent::Unknown { ref event_type } => {
+                assert_eq!(event_type, "SomeNewFutureEvent");
+            }
+            _ => unreachable!("unknown test hit unexpected variant"),
         }
+        // Unknown events round-trip — the variant tag serializes as "Unknown" per serde rename
+        let round_trip = serde_json::to_string(&event).unwrap();
+        assert!(
+            round_trip.contains(r#""Unknown""#),
+            "Unknown variant should serialize with 'Unknown' tag, got: {round_trip}"
+        );
     }
-
     #[test]
     fn retry_round_trips() {
         let json =
@@ -182,7 +482,19 @@ mod tests {
                 assert_eq!(delay_ms, 1000);
                 assert_eq!(reason, "RateLimited");
             }
-            other => panic!("expected Retry, got {other:?}"),
+            TuiEvent::Unknown { .. } => unreachable!("retry test should never hit Unknown"),
+            _ => unreachable!("retry test hit unexpected variant"),
+        }
+    }
+
+    #[test]
+    fn error_deserializes() {
+        let json = r#"{"type":"Error","data":{"message":"connection reset"}}"#;
+        let event = serde_json::from_str::<TuiEvent>(json).unwrap();
+        match event {
+            TuiEvent::Error { ref message } => assert_eq!(message, "connection reset"),
+            TuiEvent::Unknown { .. } => unreachable!("error test should never hit Unknown"),
+            _ => unreachable!("error test hit unexpected variant"),
         }
     }
 
@@ -198,10 +510,11 @@ mod tests {
                         assert_eq!(exit_code, Some(0));
                         assert!(marker_detected);
                     }
-                    other => panic!("expected Closed, got {other:?}"),
+                    _ => unreachable!("closed chunk test hit unexpected variant"),
                 }
             }
-            other => panic!("expected ToolOutput, got {other:?}"),
+            TuiEvent::Unknown { .. } => unreachable!("tool_output test should never hit Unknown"),
+            _ => unreachable!("tool_output test hit unexpected variant"),
         }
     }
 
@@ -214,10 +527,11 @@ mod tests {
                 assert!(verified);
                 match outcome {
                     TuiVerificationOutcome::Pass { note } => assert_eq!(note, "looks good"),
-                    other => panic!("expected Pass, got {other:?}"),
+                    _ => unreachable!("pass outcome test hit unexpected variant"),
                 }
             }
-            other => panic!("expected TaskComplete, got {other:?}"),
+            TuiEvent::Unknown { .. } => unreachable!("task_complete test should never hit Unknown"),
+            _ => unreachable!("task_complete test hit unexpected variant"),
         }
     }
 
@@ -257,16 +571,54 @@ mod tests {
     }
 
     #[test]
-    fn unknown_event_type_is_rejected() {
-        // serde with #[serde(tag = "type")] does not support catch-all variants.
-        // Unknown wire types are handled at the JsonlParser level (WAVE 2),
-        // not in serde deserialization. This test documents the expected
-        // behavior: unknown type tags cause a parse error here.
+    fn unknown_event_type_routes_to_unknown_variant() {
+        // With the Unknown variant added, serde successfully deserializes
+        // previously-unknown event types into the Unknown catch-all.
+        // This is the correct behavior — JsonlParser layers its own
+        // UnknownEventType error on top for UI-level handling.
         let json = r#"{"type":"SomeNewFutureEvent","data":{"foo":123}}"#;
         let result = serde_json::from_str::<TuiEvent>(json);
         assert!(
-            result.is_err(),
-            "unknown type tag should fail serde (handled at JsonlParser level)"
+            result.is_ok(),
+            "Unknown variant should successfully deserialize future event types"
         );
+        match result.unwrap() {
+            TuiEvent::Unknown { ref event_type } => {
+                assert_eq!(event_type, "SomeNewFutureEvent");
+            }
+            _ => panic!("expected Unknown variant"),
+        }
+    }
+
+    #[test]
+    fn debug_tool_call_start() {
+        let json = r#"{"type":"ToolCallStart","data":{"id":"x","name":"y"}}"#;
+        let result = serde_json::from_str::<TuiEvent>(json);
+        eprintln!("Result: {:?}", result);
+        match result {
+            Ok(TuiEvent::ToolCallStart { id, name }) => {
+                eprintln!("id={}, name={}", id, name);
+                assert_eq!(id, "x");
+                assert_eq!(name, "y");
+            }
+            Ok(other) => panic!("wrong variant: {:?}", other),
+            Err(e) => {
+                eprintln!("ERROR: {}", e);
+                panic!("deserialization failed");
+            }
+        }
+    }
+
+    #[test]
+    fn debug_serde_json_map() {
+        let json = r#"{"type":"ToolCallStart","data":{"id":"x","name":"y"}}"#;
+        let value: serde_json::Value = serde_json::from_str(json).unwrap();
+        eprintln!("value = {:?}", value);
+        if let serde_json::Value::Object(map) = value {
+            eprintln!("map keys: {:?}", map.keys().collect::<Vec<_>>());
+            for (k, v) in &map {
+                eprintln!("  {}: {:?}", k, v);
+            }
+        }
     }
 }
