@@ -223,6 +223,11 @@ tauri-specta      = { version = "=2.0.0-rc.24", features = ["derive", "typescrip
 specta            = { version = "=2.0.0-rc.24", features = ["serde_json"] }  # must match tauri-specta's dep
 specta-typescript = "0.0.11"
 
+# Phase 9.5 (kay-tui) additions
+# ratatui ≥ 0.27 (satisfies spec requirement). Pin minor to avoid accidental
+# breaking changes; bump intentionally per Phase milestone.
+ratatui = "0.30"
+
 # Platform-specific
 windows-sys = { version = "0.61", features = ["Win32_System_Console", "Win32_System_Threading", "Win32_Security", "Win32_System_JobObjects"] }
 landlock    = "0.4"

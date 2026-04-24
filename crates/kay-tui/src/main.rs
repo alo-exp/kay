@@ -6,12 +6,9 @@
 //! editor, banner, stream renderer); this crate extends that surface
 //! with a distinct full-screen TUI when user preference calls for it.
 
+use kay_tui::ui;
+
 fn main() {
-    eprintln!(
-        "kay-tui: not yet implemented — full-screen TUI lands in the TUI phase. Use `kay` (CLI) for now."
-    );
-    // EX_UNAVAILABLE from sysexits.h (69) — "service unavailable". Matches the
-    // semantic: the binary exists but the feature isn't implemented yet. Exit 2
-    // would signal "usage error" and conflicts with POSIX conventions.
-    std::process::exit(69);
+    let app = ui::App::new();
+    std::process::exit(ui::run(app).unwrap_or(1));
 }
