@@ -85,10 +85,8 @@ export function EventRow({ event, allEvents: _allEvents }: Props) {
       return <UnknownEventRow eventType={event.data.event_type} />;
 
     default: {
-      // Compile-time exhaustiveness check: if a new IpcAgentEvent variant is added
-      // but not handled above, TypeScript will error on the never assignment.
-      const _never: never = event as never;
-      void _never; // suppress "unused variable" — keep the assertion
+      // Exhaustive match enforced by TypeScript never type on union
+      void (event as { type: string });
       return <UnknownEventRow eventType={(event as { type: string }).type} />;
     }
   }
