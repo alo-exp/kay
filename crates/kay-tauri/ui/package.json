@@ -1,0 +1,34 @@
+{
+  "name": "kay-tauri-ui",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev":     "vite",
+    "build":   "tsc && vite build",
+    "lint":    "eslint src --ext ts,tsx",
+    "preview": "vite preview",
+    "test":    "vitest run"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@uiw/react-codemirror": "^4",
+    "@codemirror/merge": "^6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5",
+    "vite": "^6",
+    "@vitejs/plugin-react": "^4",
+    "vitest": "^2",
+    "@testing-library/react": "^16",
+    "@testing-library/user-event": "^14",
+    "eslint": "^9",
+    "@typescript-eslint/eslint-plugin": "^8",
+    "@typescript-eslint/parser": "^8"
+  }
+}

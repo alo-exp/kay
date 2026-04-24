@@ -1,0 +1,47 @@
+name: Memory Canary (nightly)
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  canary:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-14, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> target"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Build frontend
+        working-directory: crates/kay-tauri/ui
+        run: pnpm install && pnpm build
+
+      - name: Run 4-hour memory canary
+        run: >
+          cargo test -p kay-tauri --test memory_canary
+          -- --ignored --nocapture
+        timeout-minutes: 260
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: canary-report-${{ matrix.os }}
+          path: canary-report.json
+          if-no-files-found: ignore

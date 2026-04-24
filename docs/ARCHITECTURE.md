@@ -52,8 +52,9 @@ Codex-rs (OpenAI) is the closest reference shape. The harness is compiled into t
 - Phase 8: Multi-Perspective Verification — `crates/kay-verifier/` with `MultiPerspectiveVerifier` (3 KIRA critics: test-engineer, QA, end-user), `AgentEvent::Verification` + `AgentEvent::VerifierDisabled`, `VerifierMode` (Interactive/Disabled), `VerifierConfig`, `run_with_rework` outer retry wrapper in `kay-core/src/loop.rs`, `VerificationOutcome`, `CriticResponse` JSON parsing, cost ceiling guard. VERIFY-01..04. PR #17 → b21897a2.
 
 **Not yet started:**
-- Phase 9: TUI (`kay-tui`, ratatui multi-pane).
-- Phase 10: Tauri GUI (`kay-tauri`, React 19 + TypeScript).
+- Phase 9: Tauri Desktop Shell (`kay-tauri`, React 19 + TypeScript + Vite, `ipc::Channel<AgentEvent>`, 4h memory canary).
+- Phase 9.5: TUI (`kay-tui`, ratatui multi-pane, SSH-friendly).
+- Phase 10: Multi-Session Manager + Project Settings.
 - Phase 11: Code signing + release infrastructure.
 - Phase 12: Terminal-Bench 2.0 run + leaderboard submission.
 
