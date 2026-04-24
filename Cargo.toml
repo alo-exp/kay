@@ -216,11 +216,12 @@ predicates = "3"
 # Phase 9 (kay-tauri) additions
 # = pins on RC packages to prevent accidental upgrades; specta version must
 # match exactly what tauri-specta declares in its own Cargo.toml.
-tauri             = { version = "2.3", features = ["rustls-tls"] }
+# RC.24 is latest available on crates.io (2026-04-24).
+tauri             = { version = "2.3", features = ["rustls-tls", "wry"] }
 tauri-build       = { version = "2.3" }
-tauri-specta      = { version = "=2.0.0-rc.21", features = ["derive"] }
-specta            = { version = "=2.0.0-rc.20" }
-specta-typescript = "0.0.7"
+tauri-specta      = { version = "=2.0.0-rc.24", features = ["derive", "typescript"] }
+specta            = { version = "=2.0.0-rc.24", features = ["serde_json"] }  # must match tauri-specta's dep
+specta-typescript = "0.0.11"
 
 # Platform-specific
 windows-sys = { version = "0.61", features = ["Win32_System_Console", "Win32_System_Threading", "Win32_Security", "Win32_System_JobObjects"] }

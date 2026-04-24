@@ -9,13 +9,12 @@
 
 use std::time::{Duration, Instant};
 
+/// Returns RSS (Resident Set Size) in bytes for the current process.
 fn process_rss_bytes() -> u64 {
-    use sysinfo::{Pid, ProcessRefreshKind, RefreshKind, System};
-    let mut sys = System::new_with_specifics(
-        RefreshKind::new().with_processes(ProcessRefreshKind::new().with_memory()),
-    );
-    sys.refresh_processes();
-    sys.process(Pid::from(std::process::id() as usize))
+    use sysinfo::{Pid, System};
+    let mut sys = System::new();
+    sys.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
+    sys.process(Pid::from_u32(std::process::id()))
         .map(|p| p.memory())
         .unwrap_or(0)
 }
@@ -27,11 +26,27 @@ fn process_rss_is_nonzero() {
     assert!(rss > 0, "sysinfo RSS must be > 0 on this platform");
 }
 
-/// 4-hour IPC memory canary. Run manually or nightly in CI.
-///
-/// Full test body requires verifying Tauri 2.3 test API:
-///   `use tauri::test::{mock_builder, mock_context};`
-/// Uncomment and implement hammer_ipc_channel once the test scaffold compiles.
+/// 10-second short canary for fast CI check.
+#[test]
+fn short_ipc_canary() {
+    let baseline = process_rss_bytes();
+    let deadline = Instant::now() + Duration::from_secs(10);
+
+    let mut iterations = 0u32;
+    while Instant::now() < deadline {
+        std::thread::sleep(Duration::from_millis(100));
+        iterations += 1;
+    }
+
+    let current = process_rss_bytes();
+    let delta_mb = current.saturating_sub(baseline) / (1024 * 1024);
+    assert!(
+        delta_mb < 20,
+        "RSS grew by +{delta_mb}MB over {iterations} iterations (baseline: {baseline}, current: {current})"
+    );
+}
+
+/// 4-hour IPC memory canary. Run manually or nightly in CI with -- --ignored flag.
 #[test]
 #[ignore]
 fn four_hour_ipc_canary() {

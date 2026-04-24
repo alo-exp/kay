@@ -11,7 +11,11 @@
 
 #[test]
 fn export_tauri_bindings() {
-    tauri_specta::Builder::<tauri_specta::Typescript>::new()
+    // tauri_specta::Builder uses Typescript (from specta-typescript crate)
+    // as the language exporter. collect_commands! internally calls
+    // tauri::generate_handler!, so we get both binding generation AND handler
+    // registration.
+    tauri_specta::Builder::<tauri::Wry>::new()
         .commands(tauri_specta::collect_commands![
             kay_tauri::commands::start_session,
             kay_tauri::commands::stop_session,

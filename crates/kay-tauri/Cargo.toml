@@ -15,7 +15,8 @@ tauri-build = { workspace = true, features = ["codegen"] }
 [dependencies]
 tauri             = { workspace = true }
 tauri-specta      = { workspace = true }
-specta            = { workspace = true }
+specta            = { workspace = true, features = ["serde_json"] }
+specta-typescript = { workspace = true }  # required by main.rs for Typescript export
 serde             = { workspace = true }
 serde_json        = { workspace = true }
 tokio             = { workspace = true }
@@ -26,6 +27,7 @@ infer             = { workspace = true }
 dashmap           = { workspace = true }
 tracing           = { workspace = true }
 async-trait       = { workspace = true }
+anyhow            = { workspace = true }
 forge_domain      = { path = "../forge_domain" }
 kay-core          = { path = "../kay-core" }
 kay-tools         = { path = "../kay-tools" }
@@ -46,7 +48,6 @@ kay-sandbox-linux   = { path = "../kay-sandbox-linux" }
 kay-sandbox-windows = { path = "../kay-sandbox-windows" }
 
 [dev-dependencies]
-tauri             = { workspace = true, features = ["test"] }
+tauri             = { workspace = true, features = ["compression"] }
 tauri-specta      = { workspace = true }
-specta-typescript = { workspace = true }
 sysinfo           = { workspace = true }
