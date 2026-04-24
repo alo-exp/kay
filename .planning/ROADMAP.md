@@ -25,9 +25,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Session Store + Transcript** *(COMPLETE 2026-04-22 — PR #12 squash-merged as 793317c)* - JSONL source-of-truth transcripts + SQLite index, resume/fork, pre-edit snapshots, self-contained session export. `kay-session` crate; 91 tests green; 6 REQs closed (SESS-01..05 + CLI-02); 9/9 adversarial quality gates PASS.
 - [x] **Phase 7: Context Engine** *(COMPLETE 2026-04-22 — PR #13 squash-merged)* - tree-sitter symbol store + SQLite FTS5 + sqlite-vec hybrid retrieval, per-turn ContextBudget, SchemaHardener. `kay-context` crate; 70 tests green; 5 REQs closed (CTX-01..05); 9/9 adversarial QG PASS.
 - [x] **Phase 8: Multi-Perspective Verification (KIRA Critics)** *(COMPLETE 2026-04-23 — PR #17 squash-merged as b21897a2)* - Test engineer + QA engineer + end-user critics with confidence-gated firing, bounded re-work, and cost ceilings. VERIFY-01..04 closed.
-- [ ] **Phase 9: Tauri Desktop Shell** - Tauri 2.x app with specta-typed IPC, `Channel<AgentEvent>` streaming, session view with tool-call timeline + token/cost meter; 4h memory canary. Desktop GUI frontends the `kay-cli` event contract.
-- [ ] **Phase 9.5: TUI Frontend (ratatui)** *(INSERTED 2026-04-19)* - Full-screen ratatui terminal UI consuming the same `kay-cli` JSONL event stream as the Tauri GUI. Multi-pane layout, keyboard-first, SSH-friendly.
-- [ ] **Phase 10: Multi-Session Manager + Project Settings** - Spawn/pause/resume/fork sessions from GUI and TUI, project workspace + keyring binding, model allowlist picker, command-approval dialog, settings panel.
+- [x] **Phase 9: Tauri Desktop Shell** *(COMPLETE 2026-04-24 — PR #18 squash-merged)* - Tauri 2.x app with specta-typed IPC, `Channel<AgentEvent>` streaming, session view with tool-call timeline + token/cost meter; 4h memory canary. Desktop GUI frontends the `kay-cli` event contract.
+- [x] **Phase 9.5: TUI Frontend (ratatui)** *(INSERTED 2026-04-19; COMPLETE 2026-04-24 — PR #19 squash-merged)* - Full-screen ratatui terminal UI consuming the same `kay-cli` JSONL event stream as the Tauri GUI. Multi-pane layout, keyboard-first, SSH-friendly.
+- [ ] **Phase 10: Multi-Session Manager + Project Settings** *(planned 2026-04-24)* - Spawn/pause/resume/fork sessions from GUI and TUI, project workspace + keyring binding, model allowlist picker, command-approval dialog, settings panel.
 - [ ] **Phase 11: Cross-Platform Hardening + Release Pipeline** - Signed + notarized bundles for macOS (arm64/x64), Windows (x64), Linux (x64/arm64); `cargo install kay` (standalone CLI); `cargo install kay-tui` (TUI); minisign updater for desktop bundle.
 - [ ] **Phase 12: Terminal-Bench 2.0 Submission + v1 Hardening** - Reproducible Harbor runner, held-out task subset, parallel real-repo eval, official >81.8% TB 2.0 submission with archived reference run.
 
@@ -312,8 +312,9 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 6. Session Store + Transcript | 0/TBD | Not started | - |
 | 7. Context Engine | 0/TBD | Not started | - |
 | 8. Multi-Perspective Verification (KIRA Critics) | 0/TBD | Not started | - |
-| 9. Tauri Desktop Shell | 0/TBD | Not started | - |
-| 10. Multi-Session Manager + Project Settings | 0/TBD | Not started | - |
+| 9. Tauri Desktop Shell | 0/TBD | Complete | 2026-04-24 |
+| 9.5 TUI Frontend (ratatui) | 0/TBD | Complete | 2026-04-24 |
+| 10. Multi-Session Manager + Project Settings | 0/TBD | Planning complete | - |
 | 11. Cross-Platform Hardening + Release Pipeline | 0/TBD | Not started | - |
 | 12. Terminal-Bench 2.0 Submission + v1 Hardening | 0/TBD | Not started | - |
 
