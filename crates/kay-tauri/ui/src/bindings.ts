@@ -2,6 +2,16 @@
 
 import { invoke as __TAURI_INVOKE, Channel } from "@tauri-apps/api/core";
 
+// specta::Value maps to specta's TypeScript Value type
+// Defined here to satisfy recursive references in IpcAgentEvent::ToolCallDelta arguments
+export type Value =
+	| null
+	| boolean
+	| number
+	| string
+	| Value[]
+	| { [key: string]: Value };
+
 /** Commands */
 export const commands = {
 	/**

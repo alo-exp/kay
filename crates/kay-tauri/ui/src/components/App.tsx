@@ -99,8 +99,12 @@ export function App() {
     };
 
     try {
-      const sessionId = await commands.startSession(prompt, persona, channel);
-      dispatch({ type: 'SESSION_STARTED', sessionId });
+      const result = await commands.startSession(prompt, persona, channel);
+      if (result.status === 'error') {
+        console.error('start_session failed:', result.error);
+        return;
+      }
+      dispatch({ type: 'SESSION_STARTED', sessionId: result.data });
     } catch (err) {
       console.error('start_session failed:', err);
     }
