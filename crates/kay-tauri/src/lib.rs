@@ -1,7 +1,8 @@
 // kay-tauri — Kay Tauri 2.x desktop shell (Phase 9).
-//
-// Public API surface consumed by integration tests (tests/gen_bindings.rs,
-// tests/memory_canary.rs) and by main.rs.
+//! kay-tauri — Kay Tauri 2.x desktop shell (Phase 9).
+//!
+//! Public API surface consumed by integration tests (`tests/gen_bindings.rs`,
+//! `tests/memory_canary.rs`) and by `main.rs`.
 
 pub mod agent_loop;
 pub mod commands;

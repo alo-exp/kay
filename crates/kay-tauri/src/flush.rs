@@ -55,7 +55,7 @@ fn do_flush(channel: &Channel<IpcAgentEvent>, buffer: &mut Vec<AgentEvent>) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::{Arc, atomic::{AtomicUsize, Ordering}};
+    use std::sync::Arc;
     use kay_tools::events::AgentEvent;
 
     // Note: flush_task tests require an IPC channel mock. The core logic
