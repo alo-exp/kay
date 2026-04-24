@@ -61,15 +61,17 @@ for crate in "${GAP_CRATES[@]}"; do
   fi
 
   # Count #[test] functions in tests/ directory
-  # grep outputs lines matching #[test]; wc -l counts them
+  # grep outputs lines matching #[test] or #[tokio::test]; wc -l counts them
   # || true handles grep exit code 1 (no matches) on macOS
   test_count=$(grep -rh "#\[test\]" "$tests_dir" --include="*.rs" 2>/dev/null | wc -l || true)
+  tokitest_count=$(grep -rh "#\[tokio::test\]" "$tests_dir" --include="*.rs" 2>/dev/null | wc -l || true)
+  total_count=$((test_count + tokitest_count))
 
-  if [ "$test_count" -eq 0 ]; then
+  if [ "$total_count" -eq 0 ]; then
     echo "FAIL: $crate has tests/ dir but zero #[test] functions"
     FAILED=1
   else
-    echo "PASS: $crate — $test_count test(s) found"
+    echo "PASS: $crate — $total_count test(s) found"
   fi
 done
 
