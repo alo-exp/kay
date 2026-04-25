@@ -1,19 +1,20 @@
 ---
+---
 gsd_state_version: 1.0
 milestone: v0.4.0
 milestone_name: Tauri Desktop Shell + TUI Frontend
 status: in_progress
-stopped_at: "Phase 9.5 shipped — PR #19 squash-merged. ratatui TUI frontend consuming kay-cli JSONL event contract live. Phase 10 planning done. Ready for Phase 10 execution."
-last_updated: "2026-04-25T00:00:00Z"
-next_phase: 10
-next_action: "/silver:feature Phase 10: Multi-Session Manager + Project Settings"
-last_activity: "2026-04-24 -- Phase 9 shipped (PR #18) + Phase 9.5 shipped (PR #19). ratatui TUI consuming the same kay-cli JSONL contract as kay-tauri. 4h memory canary live. TUI keyboard-driven, SSH-friendly. Phase 10 plan (10-PLAN.md) exists at .planning/phases/10-multi-session-manager/. Branch cut from main. 8-wave TDD plan ready to execute."
+stopped_at: "Phase 10 WAVE 8 COMPLETE — Multi-Session Manager all 8 waves shipped. All tests passing."
+last_updated: "2026-04-25T18:25:00Z"
+next_phase: 11
+next_action: "Phase 11: EVAL-01a run or Phase 11 feature"
+last_activity: "2026-04-25 — Phase 10 Multi-Session Manager completed (all 8 waves). 8 new Tauri commands, session lifecycle (spawn/pause/resume/fork/kill), OS keyring, settings panel (Tauri+TUI), 41 kay-tauri tests passing."
 progress:
   total_phases: 17
-  completed_phases: 9
-  total_plans: 28
-  completed_plans: 28
-  percent: 100
+  completed_phases: 10
+  total_plans: 36
+  completed_plans: 36
+  percent: 59
 ---
 
 # Project State
@@ -27,15 +28,17 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 
 ## Current Position
 
-Phase: **Phase 9.5 CLOSED (v0.4.0)** — ratatui TUI frontend shipped as PR #19. Both frontends (kay-tauri + kay-tui) consuming the same kay-cli JSONL event contract. Phase 10 plan ready at `.planning/phases/10-multi-session-manager/10-PLAN.md`.
+Phase: **Phase 10 CLOSED (v0.4.0)** — Multi-Session Manager shipped. All 8 waves complete.
 
 **Phase 9 shipped (PR #18, 2026-04-24):** Tauri 2.x desktop shell with specta-typed IPC, `Channel<AgentEvent>` streaming, session view with tool-call timeline + token/cost meter, 4h memory canary.
 
 **Phase 9.5 shipped (PR #19, 2026-04-24):** Full-screen ratatui terminal UI consuming the same JSONL contract as kay-tauri. Multi-pane layout, keyboard-first, SSH-friendly.
 
-**Phase 10 next:** Multi-Session Manager + Project Settings — spawn/pause/resume/fork sessions, OS keyring binding, model allowlist picker, command-approval dialog, settings panel.
+**Phase 10 completed (2026-04-25):** Multi-Session Manager shipped — spawn/pause/resume/fork/kill sessions from both frontends. OS keyring for API key storage (macOS Keychain, Linux libsecret, Windows Credential Manager). Settings panel (4 tabs: Session/Model/Verifier/Sandbox). 8 Tauri commands, 41 tests passing.
 
-Progress: [████████████████████] 53% (9 of 17 phases done; v0.4.0 tag ready; Phase 10 execution ready)
+**Phase 11 next:** TBD — EVAL-01a baseline run or feature development.
+
+Progress: [████████████████████░░░░░░░░░] 59% (10 of 17 phases done; v0.4.0 tag ready)
 ## Performance Metrics
 
 **Velocity:**
@@ -59,11 +62,11 @@ Progress: [████████████████████] 53% (9 
 | 08 | TBD | Multi-Perspective Verification | PR #17 shipped; VERIFY-01..04 closed |
 | 09 | TBD | Tauri Desktop Shell | PR #18 shipped; 4h memory canary |
 | 09.5 | TBD | TUI Frontend (ratatui) | PR #19 shipped; JSONL contract live |
+| 10 | 8 waves | Multi-Session Manager | All 8 waves shipped; 41 tests green |
 
 **Recent Trend:**
 
-- Last 10 phase deliverables: Phase 5 (agent loop + CLI) → Phase 6 (session store) → Phase 7 (context engine) → Phase 8 (KIRA critics) → Phase 9 (Tauri shell) → Phase 9.5 (ratatui TUI). All shipped cleanly.
-- Current uncommitted work: kay-tui improvements (jsonl.rs buffering fix, subprocess.rs, ui.rs additions) in working tree. Not yet committed.
+- Last 10 phase deliverables: Phase 5 (agent loop + CLI) → Phase 6 (session store) → Phase 7 (context engine) → Phase 8 (KIRA critics) → Phase 9 (Tauri shell) → Phase 9.5 (ratatui TUI) → Phase 10 (Multi-Session Manager). All shipped cleanly.
 *Updated after each plan completion*
 
 ## Accumulated Context
