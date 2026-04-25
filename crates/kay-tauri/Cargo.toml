@@ -13,12 +13,14 @@ description = "Kay Tauri 2.x desktop shell (Phase 9)"
 tauri-build = { workspace = true, features = ["codegen"] }
 
 [dependencies]
+chrono = { workspace = true }
 tauri             = { workspace = true }
 tauri-specta      = { workspace = true }
 specta            = { workspace = true, features = ["serde_json"] }
 specta-typescript = { workspace = true }  # required by main.rs for Typescript export
 serde             = { workspace = true }
 serde_json        = { workspace = true }
+thiserror         = { workspace = true }
 tokio             = { workspace = true }
 tokio-util        = { workspace = true }
 uuid              = { workspace = true }

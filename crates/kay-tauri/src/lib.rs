@@ -8,4 +8,5 @@ pub mod agent_loop;
 pub mod commands;
 pub mod flush;
 pub mod ipc_event;
+pub mod session_manager;
 pub mod state;
