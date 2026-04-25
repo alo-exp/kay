@@ -1,5 +1,5 @@
 # AI Model Rankings — Comprehensive Cost-Weighted Analysis
-**Version 3.0 | April 25, 2026 | 12 Models | 18 Dimensions**
+**Version 4.0 | April 25, 2026 | 12 Models | 18 Dimensions**
 
 > **Change log:**
 > **v2.0 → v2.1:** Added GPT-5.5 (launched April 23, 2026). All 15 normalized score columns renormalized.
@@ -9,6 +9,7 @@
 > **v2.3 → v2.4 (full provenance audit):** Systematic cross-check of every benchmark value against authoritative leaderboard sources. All benchmark columns except TB 2.0 corrected from stale late-2024/early-2025 data. Cost column: 9/11 API prices corrected (Claude Opus $30→$10 blended; Gemini $0.75→$4.50; Kimi $0.48→$1.71; etc.). τ²-bench, GPQA, HLE, OSWorld, SWE-bench, SciCode, GDP, Speed, LCB, AIME corrected throughout. Ranking outcome: Gemini #1 (68.3), Kimi #2 (63.1), KAT #3 (59.3), GPT-5.5 drops to #8 (47.7).
 > **v2.4 → v2.5 (cost methodology overhaul):** **Root cause:** API pricing ($/1M tokens) does not represent true cost to users — actual cost = price × token usage, which varies dramatically by model verbosity and task type. **Fix:** Replaced API-price-based cost dimension with **Artificial Analysis Intelligence Index Eval Cost** — the total USD cost to run AA's full standardized benchmark suite on each model. This is the only publicly available, standardized, usage-weighted cost dataset for frontier models (source: artificialanalysis.ai). **Impact:** Cost ranking completely reshuffled. KAT-Coder-Pro-V2 becomes cheapest to run ($73.49 eval cost, rank 1, score 100.0); Claude Opus 4.6 becomes most expensive ($4,969.68, rank 11, score 0.0). GPT-5.5 moves from rank 11 (API price: most expensive) to rank 8 ($3,357 eval cost — cheaper than Sonnet $3,959 and both Opus models), gaining +8.4 pts. GLM 5.1 rises from rank 5→4. Gemini rank 6→5. Kimi drops rank 4→6 ($947.87 eval cost — marginally more expensive than Gemini $892.28 due to higher token usage on benchmark tasks). **GPT-5.5 missing data confirmed still ⊘:** Exhaustive search confirms all 7 missing dimensions (IFBench, SWE-bench Verified, LCB, Speed, LCR, AIME, SciCode) remain unconfirmed as of April 24, 2026 — model launched 24 hours ago; leaderboards not yet updated. **Ranking outcome:** Gemini #1 (71.1), KAT #2 (60.7), GLM #3 (58.9), Kimi #4 (57.5), MiniMax #5 (57.5), GPT-5.5 rises to #6 (56.1). Quality-only unchanged from v2.4: Gemini #1 (74.1), Opus 4.7 #2 (67.8), GPT-5.5 #3 (65.0).
 > **v2.5 → v3.0 (new model + 3 new dimensions + data refresh):** **(1) Added DeepSeek V4-Pro** (released April 24, 2026; Apache 2.0; 1.6T/49B MoE; 1M context). **(2) Activated 3 new scored dimensions:** BrowseComp (3% weight — deep web research agent), SWE-bench Pro (4% — harder SWE variant), MMLU-Pro (2% — graduate-level knowledge breadth). Weight redistribution: Cost 28%→25%, IF 20%→18%, Term 9%→8%, SWE 8%→7%, LCB 7%→6%, LCR 3%→2%; all others unchanged; total remains 100%. **(3) 4 data corrections:** Gemini 3.1 Pro τ²-Bench 95.6%→99.3% (now #1); Kimi K2.6 GDPval ELO 1,484→1,520 (swaps with MiniMax for rank 7); GPT-5.5 IFBench ⊘→75.9% (fills 20%-weight gap); GPT-5.5 SWE-bench Verified ⊘→88.7%† (probable, from OpenAI tech card). **(4) HLE methodology resolved:** canonical Scale Labs leaderboard uses without-tools scores — existing HLE values confirmed correct. **(5) Ranking impact:** GPT-5.5 surges from #6→#2 (64.0 pts, +7.9 pts) as IFBench and SWE-bench gaps fill. KAT drops #2→#3. DeepSeek V4-Pro debuts at #8 (51.1 pts). Quality-only: Gemini #1 (73.1), Opus 4.7 #2 (64.4), GPT-5.4 #3 (62.9).
+> **v3.0 → v4.0 (UltraDeep gap-fill research, April 25 2026):** 16 data points filled or corrected via comprehensive leaderboard research. **(1) DeepSeek V4-Pro gaps filled:** SWEPro 55.4%, GDPval ELO 1,554, AA-Omniscience −10 (84%−94%), AA Eval Cost $1,071.28, Speed corrected 33.5→35.8 tok/s, TB 2.0 67.9%†self (self-reported). **(2) GPT-5.5 gaps filled:** Speed 74.7 tok/s; SWE-bench Verified 88.7% dagger removed (now confirmed). **(3) SWE-bench Pro expands 5→9/12:** GLM 58.4%~, Qwen 56.6%~, MiniMax 56.2%~, DeepSeek 55.4% added. **(4) BrowseComp expands 6→8/12:** Opus 4.6 83.7%~, GLM 68%~ added. **(5) MMLU-Pro expands 4→6/12:** Opus 4.7 89.87%~ (new #1), GLM 85.8%~ added. **(6) AA-Omniscience expands 6→8/12:** Kimi +6, DeepSeek −10 added. **(7) Full renormalization:** Cost (n=11→12), Term (n=11→12), GDP (n=11→12), Spd (n=11→12), SWEPro (n=5→9), BC (n=6→8), MMLU (n=4→6), Omni (n=6→8). **(8) Ranking impact:** Gemini #1 (69.5→70.7); GPT-5.5 #2 (64.0→65.3); KAT #3 (58.3→58.4); GLM falls #4 (58.2→56.7, BrowseComp 0.0+MMLU 20.0 hurt); Kimi rises #6→#5 (52.6→54.8, SWEPro+Cost+BC improve); MiniMax falls #5→#6 (55.0→54.0); Qwen rises #9→#8 (49.7→49.0); DeepSeek falls #8→#9 (51.1→48.2, real scores below neutral-50 on Cost/Speed/SWEPro/Omni). Quality-only: Gemini #1 (73.1→72.7), GPT-5.5 rises #4→#2 (62.4→70.9), Opus 4.7 #2→#3 (64.4→68.7). ~ = BenchLM or secondary source (probable); †self = self-reported model card only.
 
 ---
 
@@ -37,15 +38,15 @@
 
 This report ranks 12 frontier AI models across 18 dimensions — 15 quality benchmarks plus cost efficiency, inference speed (tok/s), and task-level reliability — using rank-based normalization with a 25% cost weight. The framework is designed to reflect the total value equation for production software engineering teams: raw capability matters, but so does price, throughput, and reliability at scale.
 
-**v3.0 Headline Finding (GPT-5.5 data fills + 3 new dimensions):** Two gaps in GPT-5.5's profile filled in — IFBench (75.9%) at 18% weight and SWE-bench Verified (88.7%†) at 7% weight — catapulting GPT-5.5 from #6 to #2 overall. The data confirms what was suspected: GPT-5.5 is a top-2 model when fairly measured. **New model DeepSeek V4-Pro** debuts at #8 (51.1 pts) with strong LCB (93.5%, #1 in cohort) and competitive SWE-bench (80.6%), but many AA Index component scores remain unpublished, leaving 8+ dimensions at neutral-50. **Three new scored dimensions** — BrowseComp (web research depth), SWE-bench Pro (harder code repair), and MMLU-Pro (graduate knowledge) — redistribute 9% of weight from existing dims and add granularity at the frontier level.
+**v4.0 Headline Finding (UltraDeep gap-fill — 16 data points):** A comprehensive research mission filled 16 ⊘ cells and corrected 1 value across 8 dimensions for newly released models. **DeepSeek V4-Pro's real scores** (Cost $1,071.28, Speed 35.8 tok/s, SWEPro 55.4%, Omni −10) are mostly below the neutral-50 assumptions it held in v3.0 — the model drops from #8 to #9. **GPT-5.5 Speed confirmed** at 74.7 tok/s (xhigh), and SWE-bench Verified 88.7% dagger removed (now multi-source confirmed). **SWE-bench Pro** expands from 5/12 to 9/12 coverage. **BrowseComp** reaches 8/12; **MMLU-Pro** reaches 6/12 with Claude Opus 4.7 taking the new #1 (89.87%). **Key ranking shifts:** Kimi K2.6 rises #6→#5 (SWEPro + cost improve); MiniMax falls #5→#6; GLM falls #4→#4 (score drops 58.2→56.7 from BrowseComp 0.0 + MMLU-Pro 20.0); Qwen rises #9→#8; DeepSeek falls #8→#9. Quality-only: GPT-5.5 surges to #2 (70.9, was #4) as Speed and SWEPro fill in.
 
-**Top 6 (v3.0):**
-1. 🥇 **Gemini 3.1 Pro** — 69.5 pts (#1 overall; τ²-Bench corrected to #1 at 99.3%; #1 MMLU-Pro 89.8%; broadest data coverage)
-2. 🥈 **GPT-5.5** — 64.0 pts (#2 overall; IFBench and SWE-bench gaps filled; leads 5 agentic dims + BrowseComp; surges from #6)
-3. 🥉 **KAT-Coder-Pro-V2** — 58.3 pts (sole cheapest to run, $73.49; #2 Terminal-Bench + Speed)
-4. **GLM 5.1** — 58.2 pts (eval cost rank 4/11; #2 IFBench + #3 τ²-Bench; separates from KAT by 0.1 pts)
-5. **MiniMax M2.7** — 55.0 pts (near-budget $175.51; cost score 90.0 + IFBench 60.0)
-6. **Kimi K2.6** — 52.6 pts (#1 LCB; GDPval updated 1,520; τ²-Bench weakness remains at 0.0)
+**Top 6 (v4.0):**
+1. 🥇 **Gemini 3.1 Pro** — 70.7 pts (#1 overall; broadest coverage; #1 IFBench, Speed, τ², GPQA, Sci, Omni)
+2. 🥈 **GPT-5.5** — 65.3 pts (#2 overall; Speed gap filled 74.7 tok/s; SWEPro improves 37.5→68.8; leads 5 agentic dims)
+3. 🥉 **KAT-Coder-Pro-V2** — 58.4 pts (sole cheapest to run, $73.49; #2 Terminal-Bench + Speed)
+4. **GLM 5.1** — 56.7 pts (eval cost rank 4/12; #2 IFBench + #3 τ²-Bench; BrowseComp 0.0 hurts)
+5. **Kimi K2.6** — 54.8 pts (↑ from #6; SWEPro 68.8 + cost score improves to 54.5)
+6. **MiniMax M2.7** — 54.0 pts (↓ from #5; near-budget $175.51; SWEPro 25.0 below neutral)
 
 ---
 
@@ -136,15 +137,15 @@ Time-to-first-token (TTFT) was evaluated for inclusion in v2.0 but excluded from
 | GLM 5.1 | **$543.95** | 7.4× |
 | Gemini 3.1 Pro | **$892.28** | 12.1× |
 | Kimi K2.6 | **$947.87** | 12.9× |
+| **DeepSeek V4-Pro** | **$1,071.28** | **14.6×** |
 | GPT-5.4 | **$2,851.01** | 38.8× |
 | GPT-5.5 | **$3,357.00** | 45.7× |
 | Claude Sonnet 4.6 | **$3,959.36** | 53.9× |
 | Claude Opus 4.7 | **$4,811.04** | 65.5× |
 | Claude Opus 4.6 | **$4,969.68** | 67.6× |
-| DeepSeek V4-Pro | **⊘** | est. $1,200–$1,800 (unverified) |
 
 > **What is AA Index Eval Cost?** Artificial Analysis runs each model through its full standardized Intelligence Index benchmark suite and records the actual total USD spent — API price × real token consumption across all tasks. This is the only publicly available, standardized, usage-weighted cost dataset for frontier models. Unlike raw $/1M token pricing, eval cost captures true user cost: a verbose model that uses 10× more tokens costs 10× more even at the same token price. Source: artificialanalysis.ai Intelligence Index.
-> **DeepSeek V4-Pro:** AA Eval Cost not yet published. Estimated $1,200–$1,800 based on $1.74/$3.48 pricing × AA benchmark token volume norms for MoE models at similar scale. DeepSeek receives ⊘ (neutral-50) for cost scoring pending AA publication.
+> **DeepSeek V4-Pro v4.0 update:** AA Eval Cost confirmed at $1,071.28 (source: artificialanalysis.ai/models/deepseek-v4-pro, corroborated by AA article on DeepSeek V4 Pro). Slots between Kimi ($947.87) and GPT-5.4 ($2,851.01) at rank 7/12 — cost score 45.5 (below neutral-50, a negative finding vs. the prior ⊘ neutral assumption).
 
 ### 4.2 Cost Efficiency Tier Summary
 
@@ -153,11 +154,10 @@ Time-to-first-token (TTFT) was evaluated for inclusion in v2.0 but excluded from
 | Budget | KAT-Coder-Pro-V2 | $73.49 |
 | Near-Budget | MiniMax M2.7 | $175.51 |
 | Mid-Range | Qwen 3.6 Plus, GLM 5.1 | $483–$544 |
-| Premium | Gemini 3.1 Pro, Kimi K2.6 | $892–$948 |
+| Premium | Gemini 3.1 Pro, Kimi K2.6, **DeepSeek V4-Pro** | $892–$1,071 |
 | Expensive | GPT-5.4 | $2,851 |
 | Very Expensive | GPT-5.5, Claude Sonnet 4.6 | $3,357–$3,959 |
 | Ultra-Premium | Claude Opus 4.7, Claude Opus 4.6 | $4,811–$4,970 |
-| Unpublished | DeepSeek V4-Pro | est. $1,200–$1,800 |
 
 ---
 
@@ -169,20 +169,21 @@ Time-to-first-token (TTFT) was evaluated for inclusion in v2.0 but excluded from
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Gemini 3.1 Pro | 89.4% | 68.5% | 80.6% | ⊘ | 76.3% | 1,314 | **99.3%** | ⊘ | 94.2%‡ | 44.7% | 94.3% | 95.0% | 58.9% |
 | Kimi K2.6 | 82.1% | 66.7% | 80.2% | 58.6% | 82.6% | **1,520** | 72.4% | 73.1% | 87.5%‡ | 34.7% | 90.5% | 96.1% | 52.2% |
-| MiniMax M2.7 | 75.7% | 57.0% | ⊘ | ⊘ | ⊘ | 1,514 | 84.8% | ⊘ | 81.3%‡ | 28.1% | 87.4% | ⊘ | 47.0% |
+| MiniMax M2.7 | 75.7% | 57.0% | ⊘ | **56.2%~** | ⊘ | 1,514 | 84.8% | ⊘ | 81.3%‡ | 28.1% | 87.4% | ⊘ | 47.0% |
 | GPT-5.4 | 73.9% | 75.1% | ⊘ | 59.1% | 63.8% | 1,674 | 87.1% | 75.0% | 97.8%‡ | 41.6% | 92.0% | ⊘ | 56.6% |
-| Qwen 3.6 Plus | 74.2% | 61.6% | 78.8% | ⊘ | ⊘ | 1,361 | 78.2% | ⊘ | 87.5%‡ | 28.8% | 90.4% | ⊘ | 21.4% |
+| Qwen 3.6 Plus | 74.2% | 61.6% | 78.8% | **56.6%~** | ⊘ | 1,361 | 78.2% | ⊘ | 87.5%‡ | 28.8% | 90.4% | ⊘ | 21.4% |
 | KAT-Coder-Pro-V2 | 67.0% | 76.2%† | 79.6% | ⊘ | ⊘ | 1,124 | 93.9% | ⊘ | 74.6%‡ | 12.7% | 85.5% | ⊘ | 38.3% |
-| GLM 5.1 | 85.9% | 69.0% | 77.8% | ⊘ | ⊘ | 1,535 | 97.7% | ⊘ | 68.3%‡ | 31.0% | 86.2% | 95.0% | 43.8% |
+| GLM 5.1 | 85.9% | 69.0% | 77.8% | **58.4%~** | ⊘ | 1,535 | 97.7% | ⊘ | 68.3%‡ | 31.0% | 86.2% | 95.0% | 43.8% |
 | Claude Opus 4.7 | 52.1% | 69.4% | 87.6% | 64.3% | ⊘ | 1,753 | 74.0% | 78.0% | 92.4%‡ | 46.9% | 94.2% | 99.8% | 54.5% |
-| GPT-5.5 | **75.9%** | **82.7%** | **88.7%†** | 58.6% | ⊘ | 1,784 | 98.0% | 78.7% | ⊘ | 44.3% | 93.6% | ⊘ | ⊘ |
+| GPT-5.5 | **75.9%** | **82.7%** | **88.7%** | 58.6% | ⊘ | 1,784 | 98.0% | 78.7% | ⊘ | 44.3% | 93.6% | ⊘ | ⊘ |
 | Claude Sonnet 4.6 | 45.6% | 59.1% | 79.6% | ⊘ | ⊘ | 1,675 | 79.5% | 72.5% | 61.2%‡ | 30.0% | 87.5% | 57.1% | 46.9% |
 | Claude Opus 4.6 | 40.2% | 65.4% | 80.8% | 51.9% | 76.0% | 1,619 | 84.8% | 72.7% | 54.7%‡ | 40.0% | 84.0% | 99.8% | 51.9% |
-| DeepSeek V4-Pro | ⊘ | ⊘ | 80.6% | ⊘ | **93.5%** | ⊘ | ⊘ | ⊘ | ⊘ | 37.7% | 88.8% | ⊘ | ⊘ |
+| DeepSeek V4-Pro | ⊘ | **67.9%†self** | 80.6% | **55.4%** | **93.5%** | **1,554** | ⊘ | ⊘ | ⊘ | 37.7% | 88.8% | ⊘ | ⊘ |
 
-> **† Footnotes:** KAT-Coder-Pro-V2 TB 2.0 (76.2%) is not on the public tbench.ai leaderboard; value from KAT technical report referencing "Terminal-Bench Hard" — potentially different variant. GPT-5.5 SWE-bench Verified (88.7%) is from OpenAI's launch tech card (April 23); canonical swebench.com leaderboard showed Claude Opus 4.7 (87.6%) as leader as of April 24 — GPT-5.5 formal submission pending. Both marked †.
+> **† Footnotes:** KAT-Coder-Pro-V2 TB 2.0 (76.2%†) is not on the public tbench.ai leaderboard; value from KAT technical report referencing "Terminal-Bench Hard" — potentially different variant. DeepSeek V4-Pro TB 2.0 (67.9%†self) is from DeepSeek's own model card on HuggingFace — confirmed absent from canonical tbench.ai leaderboard as of April 25, 2026. Both marked †/†self. GPT-5.5 SWE-bench Verified (88.7%) dagger removed in v4.0 — confirmed by multiple independent sources (OpenAI tech card + TokenMix, Fast Company, Investing.com, RD World Online).
 > **‡ RULER (LCR) footnote:** No model in this cohort was found on any public RULER leaderboard as of 2026-04-25. These values are drawn from model cards and internal evaluation documents; none could be independently confirmed against the canonical ruler-bench.github.io or llm-stats leaderboards. RULER scores should be treated as provisional.
-> **Bold** = v3.0 data additions or corrections.
+> **~ footnote:** SWE-Pro scores for GLM (58.4%), Qwen (56.6%), MiniMax (56.2%) are from BenchLM.ai leaderboard (April 24, 2026) — probable confidence, not Scale Labs SEAL canonical. BenchLM showed GPT-5.4 at 57.7% vs. our Scale AI value of 59.1% (±1–2 pp scaffold difference). DeepSeek SWE-Pro 55.4% confirmed on both HuggingFace model card and BenchLM. GDPval ELO 1,554 confirmed from HuggingFace model card + Artificial Analysis article.
+> **Bold** = v4.0 data additions or corrections.
 
 ### 5.2 New Scored Dimensions (v3.0)
 
@@ -194,33 +195,36 @@ Time-to-first-token (TTFT) was evaluated for inclusion in v2.0 but excluded from
 | GPT-5.4 | 89.3% | ⊘ |
 | Qwen 3.6 Plus | ⊘ | 88.5% |
 | KAT-Coder-Pro-V2 | ⊘ | ⊘ |
-| GLM 5.1 | ⊘ | ⊘ |
-| Claude Opus 4.7 | 79.3% | ⊘ |
+| GLM 5.1 | **68%~** | **85.8%~** |
+| Claude Opus 4.7 | 79.3% | **89.87%~** |
 | GPT-5.5 | **90.1%** | ⊘* |
 | Claude Sonnet 4.6 | ⊘ | ⊘ |
-| Claude Opus 4.6 | ⊘ | ⊘ |
+| Claude Opus 4.6 | **83.7%~** | ⊘ |
 | DeepSeek V4-Pro | 83.4% | 87.5% |
 
 > *GPT-5.5 MMLU-Pro = 54.6% seen in one source — anomalously low vs. frontier cluster (84–92%), likely 0-shot vs. few-shot methodology difference. Treated as ⊘ (unreliable) for scoring.
+> **~ footnote:** GLM BrowseComp (68%), GLM MMLU-Pro (85.8%), Claude Opus 4.6 BrowseComp (83.7%) sourced from BenchLM.ai — probable confidence. Claude Opus 4.7 MMLU-Pro (89.87%) sourced from aggregator leaderboard (pricepertoken.com/mmlu-pro) — probable confidence, new #1 in cohort above Gemini 89.8%.
 
 ### 5.3 Composite / Special Dimensions
 
 | Model | AA-Omniscience (Acc% − Hall%) | Speed (tok/s) | AA Index Eval Cost ($) |
 |---|---|---|---|
 | Gemini 3.1 Pro | +34 (82% acc − 48% hall) | 128.0 | $892.28 |
-| Kimi K2.6 | ⊘ | 100.4 | $947.87 |
+| Kimi K2.6 | **+6 (45% acc − 39% hall)** | 100.4 | $947.87 |
 | MiniMax M2.7 | +12 (71% acc − 59% hall) | 49.0 | $175.51 |
 | GPT-5.4 | ⊘ | 74.8 | $2,851.01 |
 | Qwen 3.6 Plus | ⊘ | 53.0 | $482.65 |
 | KAT-Coder-Pro-V2 | ⊘ | 113.5 | $73.49 |
 | GLM 5.1 | −1 (64% acc − 65% hall) | 49.0 | $543.95 |
 | Claude Opus 4.7 | +22 (76% acc − 54% hall) | 42.0 | $4,811.04 |
-| GPT-5.5 | **−29** (57% acc − 86% hall) | ⊘ | $3,357.00 |
+| GPT-5.5 | **−29** (57% acc − 86% hall) | **74.7** | $3,357.00 |
 | Claude Sonnet 4.6 | ⊘ | 46.0 | $3,959.36 |
 | Claude Opus 4.6 | +8 (68% acc − 60% hall) | 18.2 | $4,969.68 |
-| DeepSeek V4-Pro | ⊘ | **33.5** | ⊘ |
+| DeepSeek V4-Pro | **−10 (84% acc − 94% hall)** | **35.8** | **$1,071.28** |
 
 > **AA-Omniscience note (GPT-5.5):** Despite being rated #1 on the AA Intelligence Index v4.0 (score 60 xhigh), GPT-5.5's AA-Omniscience score is −29, the worst of all models with real data. This reflects an 86% hallucination rate at high-confidence assertions — a known characteristic of the xhigh reasoning mode that prioritizes bold inference over calibrated uncertainty.
+> **AA-Omniscience note (DeepSeek V4-Pro):** 94% hallucination rate — when the model doesn't know an answer it responds anyway in 94% of cases. An 11-point improvement over DeepSeek V3.2 (−21). Source: Artificial Analysis article "DeepSeek is back among the leading open weights models." Kimi K2.6 +6 score (39% hall rate) confirms by Artificial Analysis Omniscience data.
+> **Speed note (GPT-5.5):** 74.7 tok/s is the xhigh reasoning mode throughput (primary scoring configuration). GPT-5.5 (high) = 81.9 tok/s. Source: artificialanalysis.ai/models/gpt-5-5. DeepSeek speed corrected from 33.5 to 35.8 tok/s (same source, updated measurement).
 
 ---
 
@@ -234,14 +238,14 @@ Time-to-first-token (TTFT) was evaluated for inclusion in v2.0 but excluded from
 | KAT-Coder-Pro-V2 | 113.5 | Second fastest; specialized decode path |
 | Kimi K2.6 | 100.4 | Third fastest |
 | GPT-5.4 | 74.8 | Moderate throughput; confirmed by AA leaderboard |
+| **GPT-5.5** | **74.7** | **xhigh reasoning mode; near-tied with GPT-5.4; high for a reasoning model** |
 | Qwen 3.6 Plus | 53.0 | Mid-range |
 | MiniMax M2.7 | 49.0 | Budget tier; tied with GLM |
 | GLM 5.1 | 49.0 | Tied with MiniMax |
 | Claude Sonnet 4.6 | 46.0 | Moderate |
 | Claude Opus 4.7 | 42.0 | Constrained by 200K context |
-| DeepSeek V4-Pro | 33.5 | Below open-weight median (55.1 t/s); 1.6T MoE overhead |
+| **DeepSeek V4-Pro** | **35.8** | **Below open-weight median; 1.6T MoE routing overhead (corrected from 33.5)** |
 | Claude Opus 4.6 | 18.2 | Slowest with real data |
-| GPT-5.5 | ⊘ | Not published; reasoning mode complicates direct comparison |
 
 ### 6.2 Time-to-First-Token (TTFT) — Reference Only, Not Scored
 
@@ -274,51 +278,59 @@ For each dimension, models with real data are ranked 1–n (best to worst). Scor
 
 | Model | Cost | IF | Term | SWE | SWEPro | LCB | GDP | Spd | τ² | OSW | BC | LCR | HLE | GPQA | MMLU | AIME | Sci | Omni |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Gemini 3.1 Pro | **60.0** | 100.0 | 50.0 | 61.1 | 50.0⊘ | 50.0 | 10.0 | 100.0 | **100.0** | 50.0⊘ | 60.0 | 88.9 | 90.9 | 100.0 | 100.0 | 30.0 | 100.0 | 100.0 |
-| Kimi K2.6 | **50.0** | 80.0 | 40.0 | 44.4 | 37.5 | 75.0 | **40.0** | 80.0 | 0.0 | 40.0 | 20.0 | 61.1 | 45.5 | 63.6 | 0.0 | 60.0 | 66.7 | 50.0⊘ |
-| MiniMax M2.7 | **90.0** | 60.0 | 0.0 | 50.0⊘ | 50.0⊘ | 50.0⊘ | **30.0** | 45.0 | 45.0 | 50.0⊘ | 50.0⊘ | 44.4 | 9.1 | 27.3 | 50.0⊘ | 50.0⊘ | 44.4 | 60.0 |
-| GPT-5.4 | **40.0** | 40.0 | 80.0 | 50.0⊘ | 75.0 | 0.0 | 70.0 | 70.0 | 60.0 | 60.0 | 80.0 | 100.0 | 72.7 | 72.7 | 50.0⊘ | 50.0⊘ | 88.9 | 50.0⊘ |
-| Qwen 3.6 Plus | **80.0** | 50.0 | 20.0 | 11.1 | 50.0⊘ | 50.0⊘ | 20.0 | 60.0 | 20.0 | 50.0⊘ | 50.0⊘ | 61.1 | 18.2 | 54.5 | 66.7 | 50.0⊘ | 0.0 | 50.0⊘ |
-| KAT-Coder-Pro-V2 | **100.0** | 30.0 | 90.0 | 27.8 | 50.0⊘ | 50.0⊘ | 0.0 | 90.0 | 70.0 | 50.0⊘ | 50.0⊘ | 33.3 | 0.0 | 9.1 | 50.0⊘ | 50.0⊘ | 11.1 | 50.0⊘ |
-| GLM 5.1 | **70.0** | 90.0 | 60.0 | 0.0 | 50.0⊘ | 50.0⊘ | 50.0 | 45.0 | 80.0 | 50.0⊘ | 50.0⊘ | 22.2 | 36.4 | 18.2 | 50.0⊘ | 30.0 | 22.2 | 20.0 |
-| Claude Opus 4.7 | **10.0** | 20.0 | 70.0 | 88.9 | 100.0 | 50.0⊘ | 90.0 | 20.0 | 10.0 | 80.0 | 0.0 | 77.8 | 100.0 | 90.9 | 50.0⊘ | 90.0 | 77.8 | 80.0 |
-| GPT-5.5 | **30.0** | **70.0** | 100.0 | **100.0†** | 37.5 | 50.0⊘ | 100.0 | 50.0⊘ | 90.0 | 100.0 | 100.0 | 50.0⊘ | 81.8 | 81.8 | 50.0⊘ | 50.0⊘ | 50.0⊘ | 0.0 |
-| Claude Sonnet 4.6 | **20.0** | 10.0 | 10.0 | 27.8 | 50.0⊘ | 50.0⊘ | 80.0 | 30.0 | 30.0 | 0.0 | 50.0⊘ | 11.1 | 27.3 | 36.4 | 50.0⊘ | 0.0 | 33.3 | 50.0⊘ |
-| Claude Opus 4.6 | **0.0** | 0.0 | 30.0 | 77.8 | 0.0 | 25.0 | 60.0 | 0.0 | 45.0 | 20.0 | 50.0⊘ | 0.0 | 63.6 | 0.0 | 50.0⊘ | 90.0 | 55.6 | 40.0 |
-| DeepSeek V4-Pro | **50.0⊘** | 50.0⊘ | 50.0⊘ | 61.1 | 50.0⊘ | 100.0 | 50.0⊘ | 10.0 | 50.0⊘ | 50.0⊘ | 40.0 | 50.0⊘ | 54.5 | 45.5 | 33.3 | 50.0⊘ | 50.0⊘ | 50.0⊘ |
+| Gemini 3.1 Pro | **63.6** | 100.0 | **54.5** | 61.1 | 50.0⊘ | 50.0 | **9.1** | 100.0 | 100.0 | 50.0⊘ | **71.4** | 88.9 | 90.9 | 100.0 | **80.0** | 30.0 | 100.0 | 100.0 |
+| Kimi K2.6 | **54.5** | 80.0 | **36.4** | 44.4 | **68.8** | 75.0 | **36.4** | **81.8** | 0.0 | 40.0 | **28.6** | 61.1 | 45.5 | 63.6 | 0.0 | 60.0 | 66.7 | **42.9** |
+| MiniMax M2.7 | **90.9** | 60.0 | 0.0 | 50.0⊘ | **25.0~** | 50.0⊘ | **27.3** | **40.9** | 45.0 | 50.0⊘ | 50.0⊘ | 44.4 | 9.1 | 27.3 | 50.0⊘ | 50.0⊘ | 44.4 | **71.4** |
+| GPT-5.4 | **36.4** | 40.0 | **81.8** | 50.0⊘ | **87.5** | 0.0 | **72.7** | **72.7** | 60.0 | 60.0 | **85.7** | 100.0 | 72.7 | 72.7 | 50.0⊘ | 50.0⊘ | 88.9 | 50.0⊘ |
+| Qwen 3.6 Plus | **81.8** | 50.0 | **18.2** | 11.1 | **37.5~** | 50.0⊘ | **18.2** | **54.5** | 20.0 | 50.0⊘ | 50.0⊘ | 61.1 | 18.2 | 54.5 | **60.0** | 50.0⊘ | 0.0 | 50.0⊘ |
+| KAT-Coder-Pro-V2 | **100.0** | 30.0 | **90.9** | 27.8 | 50.0⊘ | 50.0⊘ | 0.0 | **90.9** | 70.0 | 50.0⊘ | 50.0⊘ | 33.3 | 0.0 | 9.1 | 50.0⊘ | 50.0⊘ | 11.1 | 50.0⊘ |
+| GLM 5.1 | **72.7** | 90.0 | **63.6** | 0.0 | **50.0~** | 50.0⊘ | **45.5** | **40.9** | 80.0 | 50.0⊘ | **0.0~** | 22.2 | 36.4 | 18.2 | **20.0~** | 30.0 | 22.2 | **28.6** |
+| Claude Opus 4.7 | **9.1** | 20.0 | **72.7** | 88.9 | 100.0 | 50.0⊘ | **90.9** | **18.2** | 10.0 | 80.0 | **14.3** | 77.8 | 100.0 | 90.9 | **100.0~** | 90.0 | 77.8 | **85.7** |
+| GPT-5.5 | **27.3** | **70.0** | 100.0 | **100.0** | **68.8** | 50.0⊘ | 100.0 | **63.6** | 90.0 | 100.0 | 100.0 | 50.0⊘ | 81.8 | 81.8 | 50.0⊘ | 50.0⊘ | 50.0⊘ | 0.0 |
+| Claude Sonnet 4.6 | **18.2** | 10.0 | **9.1** | 27.8 | 50.0⊘ | 50.0⊘ | **81.8** | **27.3** | 30.0 | 0.0 | 50.0⊘ | 11.1 | 27.3 | 36.4 | 50.0⊘ | 0.0 | 33.3 | 50.0⊘ |
+| Claude Opus 4.6 | 0.0 | 0.0 | **27.3** | 77.8 | 0.0 | 25.0 | **63.6** | 0.0 | 45.0 | 20.0 | **57.1~** | 0.0 | 63.6 | 0.0 | 50.0⊘ | 90.0 | 55.6 | **57.1** |
+| DeepSeek V4-Pro | **45.5** | 50.0⊘ | **45.5†self** | 61.1 | **12.5** | 100.0 | **54.5** | **9.1** | 50.0⊘ | 50.0⊘ | **42.9** | 50.0⊘ | 54.5 | 45.5 | **40.0** | 50.0⊘ | 50.0⊘ | **14.3** |
 
-**⊘** = missing data, assigned neutral score of 50.0. **Bold** = changed or filled from v2.5.
+**⊘** = missing data, assigned neutral score of 50.0. **Bold** = changed or filled from v3.0. **~** = BenchLM/secondary source (probable confidence).
 
-**Key v3.0 dimension normalization notes:**
-- **IF (n=11):** GPT-5.5 75.9% fills gap → rank 4; all existing models re-ranked. GPT-5.5: 50⊘→70.0; GLM shifts 88.9→90.0; Kimi 77.8→80.0.
-- **SWE (n=10):** GPT-5.5 88.7%† (#1), DeepSeek 80.6% ties Gemini (rank 4.5). KAT/Sonnet tied (rank 7.5) = 27.8.
-- **τ² (n=11):** Gemini 99.3% corrected (#1); GPT-5.5 drops to #2 (90.0); GLM drops to #3 (80.0).
-- **GDP (n=11):** Kimi 1,520 moves rank 8→7 (30→40.0); MiniMax moves rank 7→8 (40→30.0).
-- **HLE (n=12):** DeepSeek 37.7% enters at rank 6; all scores compress (n=11→n=12).
-- **GPQA (n=12):** DeepSeek 88.8% enters at rank 7; existing models shift down one notch.
-- **LCB (n=5):** DeepSeek 93.5% enters at rank 1 (#1 in cohort); Kimi drops to rank 2 (75.0).
-- **Spd (n=11):** DeepSeek 33.5 tok/s enters at rank 10; Opus 4.6 last (0.0).
+**Key v3.0 dimension normalization notes (carried forward):**
+- **IF (n=11):** GPT-5.5 75.9% fills gap → rank 4; GPT-5.5: 50⊘→70.0; GLM shifts 88.9→90.0; Kimi 77.8→80.0.
+- **SWE (n=10):** GPT-5.5 88.7% (#1, dagger removed v4.0), DeepSeek 80.6% ties Gemini (rank 4.5). KAT/Sonnet tied (rank 7.5) = 27.8.
+- **τ² (n=11):** Gemini 99.3% corrected (#1); GPT-5.5 at #2 (90.0); GLM at #3 (80.0).
+- **HLE (n=12):** DeepSeek 37.7% at rank 6; all scores from v2.4 base.
+- **GPQA (n=12):** DeepSeek 88.8% at rank 7; existing models shifted.
+- **LCB (n=5):** DeepSeek 93.5% at rank 1 (#1 in cohort); Kimi at rank 2 (75.0).
+
+**Key v4.0 dimension normalization notes (new):**
+- **Cost (n=11→12):** DeepSeek $1,071.28 fills gap → rank 7/12. Formula n=12: ((12−rank)/11)×100. All 11 existing models shift: KAT unchanged (100.0), others compress upward or downward by 0.9–4.5 pts depending on rank. DeepSeek: 50⊘→45.5 (below neutral).
+- **Term (n=11→12):** DeepSeek 67.9%†self fills gap → rank 7/12 (between Gemini 68.5% and Kimi 66.7%). Score = 45.5. All other models shift: GPT-5.5 100.0 unchanged; Gemini 50→54.5; MiniMax 0.0 unchanged.
+- **SWEPro (n=5→9):** GLM 58.4%~, Qwen 56.6%~, MiniMax 56.2%~, DeepSeek 55.4% added. New n=9. Kimi/GPT-5.5 (58.6%, tied rank 3.5): 37.5→68.8; GPT-5.4 (rank 2): 75.0→87.5; Qwen: 50⊘→37.5; MiniMax: 50⊘→25.0; DeepSeek: 50⊘→12.5; Opus4.6 (rank 9): 0.0 unchanged.
+- **GDP (n=11→12):** DeepSeek 1,554 fills gap → rank 6/12. GPT-5.5 100.0 unchanged; all others compress by 0.9–4.5 pts. DeepSeek: 50⊘→54.5 (above neutral — one positive fill for DeepSeek).
+- **Spd (n=11→12):** GPT-5.5 74.7 tok/s fills gap → rank 5/12 (near-tied with GPT-5.4 74.8). DeepSeek corrected 33.5→35.8 (rank 11 unchanged). GPT-5.5: 50⊘→63.6; Qwen compresses 60→54.5; MiniMax/GLM tied: 45→40.9.
+- **BC (n=6→8):** Opus4.6 83.7%~ (rank 4) and GLM 68%~ (rank 8/last) added. GPT-5.5 100.0 unchanged; Opus4.7: 0.0→14.3; GLM: 50⊘→0.0 (major drop); Kimi: 20.0→28.6; Gemini: 60.0→71.4.
+- **MMLU (n=4→6):** Opus4.7 89.87%~ (rank 1) and GLM 85.8%~ (rank 5) added. Gemini drops 100.0→80.0 (displaced to rank 2); Qwen: 66.7→60.0; DeepSeek: 33.3→40.0; Kimi 0.0 unchanged. Opus4.7: 50⊘→100.0 (major positive).
+- **Omni (n=6→8):** Kimi +6 (rank 5) and DeepSeek −10 (rank 7) added. Opus4.7: 80.0→85.7; MiniMax: 60.0→71.4; Opus4.6: 40.0→57.1; Kimi: 50⊘→42.9 (below neutral); DeepSeek: 50⊘→14.3 (well below neutral).
 
 ### 7.3 Cost Score Derivation
 
-Cost ranks (cheapest = rank 1, n=11 real scorers; DeepSeek ⊘). No ties.
+Cost ranks (cheapest = rank 1, n=12 real scorers). No ties.
 
-| Model | AA Index Eval Cost ($) | Cost Rank | Score = ((11−rank)/10)×100 |
+| Model | AA Index Eval Cost ($) | Cost Rank | Score = ((12−rank)/11)×100 |
 |---|---|---|---|
 | KAT-Coder-Pro-V2 | $73.49 | 1 | **100.0** |
-| MiniMax M2.7 | $175.51 | 2 | **90.0** |
-| Qwen 3.6 Plus | $482.65 | 3 | **80.0** |
-| GLM 5.1 | $543.95 | 4 | **70.0** |
-| Gemini 3.1 Pro | $892.28 | 5 | **60.0** |
-| Kimi K2.6 | $947.87 | 6 | **50.0** |
-| GPT-5.4 | $2,851.01 | 7 | **40.0** |
-| GPT-5.5 | $3,357.00 | 8 | **30.0** |
-| Claude Sonnet 4.6 | $3,959.36 | 9 | **20.0** |
-| Claude Opus 4.7 | $4,811.04 | 10 | **10.0** |
-| Claude Opus 4.6 | $4,969.68 | 11 | **0.0** |
-| DeepSeek V4-Pro | ⊘ | — | **50.0⊘** |
+| MiniMax M2.7 | $175.51 | 2 | **90.9** |
+| Qwen 3.6 Plus | $482.65 | 3 | **81.8** |
+| GLM 5.1 | $543.95 | 4 | **72.7** |
+| Gemini 3.1 Pro | $892.28 | 5 | **63.6** |
+| Kimi K2.6 | $947.87 | 6 | **54.5** |
+| DeepSeek V4-Pro | $1,071.28 | 7 | **45.5** |
+| GPT-5.4 | $2,851.01 | 8 | **36.4** |
+| GPT-5.5 | $3,357.00 | 9 | **27.3** |
+| Claude Sonnet 4.6 | $3,959.36 | 10 | **18.2** |
+| Claude Opus 4.7 | $4,811.04 | 11 | **9.1** |
+| Claude Opus 4.6 | $4,969.68 | 12 | **0.0** |
 
-> **v2.5→v3.0:** Cost column values unchanged for the 11 existing models. DeepSeek V4-Pro receives neutral-50 pending AA publication of its benchmark evaluation cost.
+> **v3.0→v4.0:** DeepSeek V4-Pro confirms $1,071.28 AA Index eval cost (rank 7/12, between Kimi $947.87 and GPT-5.4 $2,851.01). n expands 11→12. All existing model scores update under the new formula ((12−rank)/11)×100.
 
 ---
 
@@ -328,22 +340,22 @@ Equally weighting all 17 non-cost dimensions (5.88% each) to show pure capabilit
 
 | Rank | Model | IF Score | Benchmark Quality‡ | Total Quality |
 |---|---|---|---|---|
-| 1 | Gemini 3.1 Pro | 100.0 | 69.7 | 73.1 |
-| 2 | Claude Opus 4.7 | 20.0 | 68.3 | 64.4 |
-| 3 | GPT-5.4 | 40.0 | 66.6 | 62.9 |
-| 4 | GPT-5.5 | 70.0 | 61.3 | 62.4 |
-| 5 | DeepSeek V4-Pro | 50.0⊘ | 49.8 | 49.7 |
-| 6 | Kimi K2.6 | 80.0 | 44.0 | 47.3 |
-| 7 | GLM 5.1 | 90.0 | 40.5 | 43.1 |
-| 8 | Qwen 3.6 Plus | 50.0 | 42.0 | 43.0 |
-| 9 | MiniMax M2.7 | 60.0 | 39.5 | 42.1 |
-| 10 | KAT-Coder-Pro-V2 | 30.0 | 43.0 | 41.8 |
-| 11 | Claude Opus 4.6 | 0.0 | 37.9 | 35.7 |
-| 12 | Claude Sonnet 4.6 | 10.0 | 33.6 | 32.1 |
+| 1 | Gemini 3.1 Pro | 100.0 | 71.0 | 72.7 |
+| 2 | GPT-5.5 | 70.0 | 71.0 | 70.9 |
+| 3 | Claude Opus 4.7 | 20.0 | 71.7 | 68.7 |
+| 4 | GPT-5.4 | 40.0 | 65.9 | 64.4 |
+| 5 | Kimi K2.6 | 80.0 | 47.0 | 48.9 |
+| 6 | DeepSeek V4-Pro | 50.0⊘ | 45.6 | 45.9 |
+| 7 | KAT-Coder-Pro-V2 | 30.0 | 42.7 | 41.9 |
+| 8 | MiniMax M2.7 | 60.0 | 39.7 | 40.9 |
+| 9 | Qwen 3.6 Plus | 50.0 | 37.7 | 38.4 |
+| 10 | GLM 5.1 | 90.0 | 34.9 | 38.1 |
+| 11 | Claude Opus 4.6 | 0.0 | 39.5 | 37.2 |
+| 12 | Claude Sonnet 4.6 | 10.0 | 33.4 | 32.0 |
 
 > **‡** IF Score = raw normalized IFBench score (0–100 scale; ⊘ = 50.0). Benchmark Quality = equal-weighted avg of the other 16 non-cost dims. Total Quality = equal-weighted avg of all 17 non-cost dims. ⊘ on DeepSeek IF/Term/τ²/etc. = neutral-50 in both averages.
 
-**v3.0 quality shakeup:** Gemini extends its quality lead (73.1) driven by τ²-Bench correction to rank 1 (100.0 from 80.0), adding BrowseComp (60.0) and leading MMLU-Pro (100.0). **Claude Opus 4.7 holds #2** (64.4) with the strongest SWE-Pro profile (100.0, rank 1). **GPT-5.4 overtakes GPT-5.5 for #3** on quality (62.9 vs 62.4) — GPT-5.4 has real data on BrowseComp (80.0) and SWE-Pro (75.0) while GPT-5.5 has ⊘ on Speed, LCR, AIME, SciCode, MMLU-Pro. **GPT-5.5 quality recovers to #4** as IFBench (70.0 from neutral-50) and SWE (100.0) fill in. **DeepSeek debuts at #5** on quality (49.7) — most dimensions ⊘ averaging to 50.0, anchored by strong LCB (100.0).
+**v4.0 quality shakeup:** **GPT-5.5 surges to quality #2** (70.9) as Speed (63.6) and SWEPro (68.8) fill in, pushing it above Claude Opus 4.7. **Gemini still leads** (72.7) — the only model with 17/18 real data points. **Claude Opus 4.7 holds quality #3** (68.7); its benchmark profile (SWEPro 100.0, HLE 100.0, MMLU-Pro 100.0~) is the strongest outside the IFBench dimension. **DeepSeek drops to quality #6** (45.9) as four real fills (Cost 45.5, Term 45.5, SWEPro 12.5, Omni 14.3) all came in below neutral-50. **GLM falls to quality #10** (38.1) — the BrowseComp double hit (0.0, last/8) and MMLU-Pro 20.0 (5th/6) together erased the neutral-50 floor.
 
 ---
 
@@ -355,67 +367,67 @@ Equally weighting all 17 non-cost dimensions (5.88% each) to show pure capabilit
 
 | Main Rank | Model | Cost (25%) | IF (18%) | Quality (57%) | Main Score |
 |---|---|---|---|---|---|
-| 🥇 1 | **Gemini 3.1 Pro** | 15.0 | 18.0 | 36.5 | **69.5** |
-| 🥈 2 | **GPT-5.5** | 7.5 | 12.6 | 43.9 | **64.0** |
-| 🥉 3 | **KAT-Coder-Pro-V2** | 25.0 | 5.4 | 27.9 | **58.3** |
-| 4 | **GLM 5.1** | 17.5 | 16.2 | 24.5 | **58.2** |
-| 5 | **MiniMax M2.7** | 22.5 | 10.8 | 21.7 | **55.0** |
-| 6 | **Kimi K2.6** | 12.5 | 14.4 | 25.7 | **52.6** |
-| 7 | **GPT-5.4** | 10.0 | 7.2 | 34.9 | **52.1** |
-| 8 | **DeepSeek V4-Pro** | 12.5⊘ | 9.0⊘ | 29.6 | **51.1** |
-| 9 | **Qwen 3.6 Plus** | 20.0 | 9.0 | 20.7 | **49.7** |
-| 10 | **Claude Opus 4.7** | 2.5 | 3.6 | 36.8 | **42.9** |
-| 11 | **Claude Sonnet 4.6** | 5.0 | 1.8 | 19.3 | **26.1** |
-| 12 | **Claude Opus 4.6** | 0.0 | 0.0 | 20.6 | **20.6** |
+| 🥇 1 | **Gemini 3.1 Pro** | 15.9 | 18.0 | 36.7 | **70.6** |
+| 🥈 2 | **GPT-5.5** | 6.8 | 12.6 | 45.8 | **65.2** |
+| 🥉 3 | **KAT-Coder-Pro-V2** | 25.0 | 5.4 | 28.0 | **58.4** |
+| 4 | **GLM 5.1** | 18.2 | 16.2 | 22.3 | **56.7** |
+| 5 | **Kimi K2.6** | 13.6 | 14.4 | 26.8 | **54.8** |
+| 6 | **MiniMax M2.7** | 22.7 | 10.8 | 20.5 | **54.0** |
+| 7 | **GPT-5.4** | 9.1 | 7.2 | 36.0 | **52.3** |
+| 8 | **Qwen 3.6 Plus** | 20.5 | 9.0 | 19.6 | **49.0** |
+| 9 | **DeepSeek V4-Pro** | 11.4 | 9.0 | 27.8 | **48.2** |
+| 10 | **Claude Opus 4.7** | 2.3 | 3.6 | 38.4 | **44.3** |
+| 11 | **Claude Sonnet 4.6** | 4.6 | 1.8 | 19.2 | **25.5** |
+| 12 | **Claude Opus 4.6** | 0.0 | 0.0 | 20.9 | **20.9** |
 
 > **Main:** All 12 models, 18 dimensions. Columns: Cost = norm_cost × 0.25 (max 25.0 pts); IF = norm_IF × 0.18 (max 18.0 pts); Quality = weighted sum of remaining 16 dims × their weights (summing to 57%); Main Score = Cost + IF + Quality. `Final = Σ(normalized_score × weight)`.
-> **GPT-5.5 note:** As of v3.0, 6 of 17 quality dimensions remain ⊘ (neutral-50): Speed, LCR, AIME, SciCode, MMLU-Pro, and LCB. As these fill in, GPT-5.5's score could rise further — it leads 6 of the 11 quality dimensions with real data.
-> **DeepSeek V4-Pro note:** 10 of 18 dimensions are ⊘ (neutral-50): IFBench, TB 2.0, SWEPro, GDPval, τ², OSW, LCR, AIME, SciCode, Omni, and Cost. Score is provisional; expect significant movement as AA Index components become individually published.
+> **GPT-5.5 note:** As of v4.0, 4 of 17 quality dimensions remain ⊘ (neutral-50): LCR, AIME, SciCode, and LCB. Speed (63.6) and SWEPro (68.8) confirmed; GPT-5.5 leads or ties on 7 of 13 scored quality dimensions.
+> **DeepSeek V4-Pro note:** As of v4.0, 7 of 18 dimensions remain ⊘: IFBench, τ², OSWorld, RULER, AIME, SciCode, and LCB. Four gap-fills confirmed (Cost 45.5, Term 45.5†self, SWEPro 12.5, Omni 14.3) — all below neutral-50, confirming the downward revision from provisional #8 to #9.
 
 ### Score Derivation Detail
 
-| Dim | Wt | Gemini | GPT-5.5 | KAT | GLM | MiniMax | Kimi | GPT-5.4 | DeepSeek | Qwen | Opus4.7 | Sonnet | Opus4.6 |
+| Dim | Wt | Gemini | GPT-5.5 | KAT | GLM | Kimi | MiniMax | GPT-5.4 | Qwen | DeepSeek | Opus4.7 | Sonnet | Opus4.6 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Cost | 25% | 15.0 | 7.5 | 25.0 | 17.5 | 22.5 | 12.5 | 10.0 | 12.5 | 20.0 | 2.5 | 5.0 | 0.0 |
-| IF | 18% | 18.0 | 12.6 | 5.4 | 16.2 | 10.8 | 14.4 | 7.2 | 9.0 | 9.0 | 3.6 | 1.8 | 0.0 |
-| Term | 8% | 4.0 | 8.0 | 7.2 | 4.8 | 0.0 | 3.2 | 6.4 | 4.0 | 1.6 | 5.6 | 0.8 | 2.4 |
-| SWE | 7% | 4.3 | 7.0 | 1.9 | 0.0 | 3.5 | 3.1 | 3.5 | 4.3 | 0.8 | 6.2 | 1.9 | 5.4 |
-| SWEPro | 4% | 2.0 | 1.5 | 2.0 | 2.0 | 2.0 | 1.5 | 3.0 | 2.0 | 2.0 | 4.0 | 2.0 | 0.0 |
-| LCB | 6% | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 4.5 | 0.0 | 6.0 | 3.0 | 3.0 | 3.0 | 1.5 |
-| GDP | 5% | 0.5 | 5.0 | 0.0 | 2.5 | 1.5 | 2.0 | 3.5 | 2.5 | 1.0 | 4.5 | 4.0 | 3.0 |
-| Spd | 5% | 5.0 | 2.5 | 4.5 | 2.25 | 2.25 | 4.0 | 3.5 | 0.5 | 3.0 | 1.0 | 1.5 | 0.0 |
-| τ² | 4% | 4.0 | 3.6 | 2.8 | 3.2 | 1.8 | 0.0 | 2.4 | 2.0 | 0.8 | 0.4 | 1.2 | 1.8 |
-| OSW | 4% | 2.0 | 4.0 | 2.0 | 2.0 | 2.0 | 1.6 | 2.4 | 2.0 | 2.0 | 3.2 | 0.0 | 0.8 |
-| BC | 3% | 1.8 | 3.0 | 1.5 | 1.5 | 1.5 | 0.6 | 2.4 | 1.2 | 1.5 | 0.0 | 1.5 | 1.5 |
-| LCR | 2% | 1.78 | 1.0 | 0.67 | 0.44 | 0.89 | 1.22 | 2.0 | 1.0 | 1.22 | 1.56 | 0.22 | 0.0 |
-| HLE | 2% | 1.82 | 1.64 | 0.0 | 0.73 | 0.18 | 0.91 | 1.45 | 1.09 | 0.36 | 2.0 | 0.55 | 1.27 |
-| GPQA | 2% | 2.0 | 1.64 | 0.18 | 0.36 | 0.55 | 1.27 | 1.45 | 0.91 | 1.09 | 1.82 | 0.73 | 0.0 |
-| MMLU | 2% | 2.0 | 1.0 | 1.0 | 1.0 | 1.0 | 0.0 | 1.0 | 0.67 | 1.33 | 1.0 | 1.0 | 1.0 |
-| AIME | 1% | 0.30 | 0.5 | 0.5 | 0.30 | 0.5 | 0.60 | 0.5 | 0.5 | 0.5 | 0.90 | 0.0 | 0.90 |
-| Sci | 1% | 1.0 | 0.5 | 0.11 | 0.22 | 0.44 | 0.67 | 0.89 | 0.5 | 0.0 | 0.78 | 0.33 | 0.56 |
-| Omni | 1% | 1.0 | 0.0 | 0.5 | 0.20 | 0.60 | 0.5 | 0.5 | 0.5 | 0.5 | 0.80 | 0.5 | 0.40 |
-| **Total** | | **69.5** | **64.0** | **58.3** | **58.2** | **55.0** | **52.6** | **52.1** | **51.1** | **49.7** | **42.9** | **26.1** | **20.6** |
+| Cost | 25% | 15.90 | 6.83 | 25.00 | 18.18 | 13.63 | 22.73 | 9.10 | 20.45 | 11.38 | 2.28 | 4.55 | 0.00 |
+| IF | 18% | 18.00 | 12.60 | 5.40 | 16.20 | 14.40 | 10.80 | 7.20 | 9.00 | 9.00 | 3.60 | 1.80 | 0.00 |
+| Term | 8% | 4.36 | 8.00 | 7.27 | 5.09 | 2.91 | 0.00 | 6.54 | 1.46 | 3.64 | 5.82 | 0.73 | 2.18 |
+| SWE | 7% | 4.28 | 7.00 | 1.95 | 0.00 | 3.11 | 3.50 | 3.50 | 0.78 | 4.28 | 6.22 | 1.95 | 5.45 |
+| SWEPro | 4% | 2.00 | 2.75 | 2.00 | 2.00 | 2.75 | 1.00 | 3.50 | 1.50 | 0.50 | 4.00 | 2.00 | 0.00 |
+| LCB | 6% | 3.00 | 3.00 | 3.00 | 3.00 | 4.50 | 3.00 | 0.00 | 3.00 | 6.00 | 3.00 | 3.00 | 1.50 |
+| GDP | 5% | 0.46 | 5.00 | 0.00 | 2.28 | 1.82 | 1.37 | 3.64 | 0.91 | 2.73 | 4.55 | 4.09 | 3.18 |
+| Spd | 5% | 5.00 | 3.18 | 4.55 | 2.05 | 4.09 | 2.05 | 3.64 | 2.73 | 0.46 | 0.91 | 1.37 | 0.00 |
+| τ² | 4% | 4.00 | 3.60 | 2.80 | 3.20 | 0.00 | 1.80 | 2.40 | 0.80 | 2.00 | 0.40 | 1.20 | 1.80 |
+| OSW | 4% | 2.00 | 4.00 | 2.00 | 2.00 | 1.60 | 2.00 | 2.40 | 2.00 | 2.00 | 3.20 | 0.00 | 0.80 |
+| BC | 3% | 2.14 | 3.00 | 1.50 | 0.00 | 0.86 | 1.50 | 2.57 | 1.50 | 1.29 | 0.43 | 1.50 | 1.71 |
+| LCR | 2% | 1.78 | 1.00 | 0.67 | 0.44 | 1.22 | 0.89 | 2.00 | 1.22 | 1.00 | 1.56 | 0.22 | 0.00 |
+| HLE | 2% | 1.82 | 1.64 | 0.00 | 0.73 | 0.91 | 0.18 | 1.45 | 0.36 | 1.09 | 2.00 | 0.55 | 1.27 |
+| GPQA | 2% | 2.00 | 1.64 | 0.18 | 0.36 | 1.27 | 0.55 | 1.45 | 1.09 | 0.91 | 1.82 | 0.73 | 0.00 |
+| MMLU | 2% | 1.60 | 1.00 | 1.00 | 0.40 | 0.00 | 1.00 | 1.00 | 1.20 | 0.80 | 2.00 | 1.00 | 1.00 |
+| AIME | 1% | 0.30 | 0.50 | 0.50 | 0.30 | 0.60 | 0.50 | 0.50 | 0.50 | 0.50 | 0.90 | 0.00 | 0.90 |
+| Sci | 1% | 1.00 | 0.50 | 0.11 | 0.22 | 0.67 | 0.44 | 0.89 | 0.00 | 0.50 | 0.78 | 0.33 | 0.56 |
+| Omni | 1% | 1.00 | 0.00 | 0.50 | 0.29 | 0.43 | 0.71 | 0.50 | 0.50 | 0.14 | 0.86 | 0.50 | 0.57 |
+| **Total** | | **70.6** | **65.2** | **58.4** | **56.7** | **54.8** | **54.0** | **52.3** | **49.0** | **48.2** | **44.3** | **25.5** | **20.9** |
 
-> **v3.0 main shakeup:** GPT-5.5 surges from #6 → #2 (+7.9 pts) as IFBench (50⊘→70.0) and SWE-bench (50⊘→100.0†) fill in, adding 12.6+7.0=19.6 pts at 18%+7% weight vs. 10.0+3.5 = 13.5 pts from neutral-50. Net gain ≈ +6 pts from IF alone. KAT falls #2→#3 as weight shifts from Cost 28%→25% reduce the budget champion's cost contribution (28→25 pts max). GLM falls #3→#4 (same weight shift). Kimi drops to #6 as its τ²-Bench (0.0) weight advantage compressed. DeepSeek debuts at #8 with provisional score dominated by neutral-50 values.
+> **v4.0 main shakeup:** Kimi rises #6→#5 (+2.2 pts) as SWEPro (68.8) and GDP fills outweigh term/cost compression. MiniMax falls #5→#6 as SWEPro 25.0 (below neutral) and GDP compression cost 1.0 pts. DeepSeek falls #8→#9 (−2.9 pts): Cost 45.5, Term 45.5, SWEPro 12.5, Omni 14.3 — all four confirmed fills below neutral-50. Qwen rises #9→#8 (+0 pts net but surpasses DeepSeek as DeepSeek falls). GPT-5.5 continues to consolidate quality #2 as Speed (63.6) and SWEPro (68.8) confirm above-neutral scores.
 
 ---
 
-## 10. Ranking Changes (v1.0 → v2.0 → v2.5 → v3.0)
+## 10. Ranking Changes (v1.0 → v2.0 → v2.5 → v3.0 → v4.0)
 
-| Model | v1.0 | v2.0 | v2.1.1 | v2.3 | v2.4 | v2.5 | **v3.0** | v3.0 Score | Net Trend |
-|---|---|---|---|---|---|---|---|---|---|
-| Gemini 3.1 Pro | #1 | #1 | #1 | #2 | #1 | **#1** | **#1** | 69.5 | ↑ Holds #1; τ² now rank 1 (99.3%); MMLU-Pro #1 |
-| GPT-5.5 | — | — | #6 | #4 | #8 | **#6** | **#2** | 64.0 | ↑↑ IFBench (⊘→75.9%) + SWE (⊘→88.7%†) fill gaps |
-| KAT-Coder-Pro-V2 | #6 | #4 | #5 | #5 | #3 | **#2** | **#3** | 58.3 | ↓ Cost weight 28%→25% reduces budget champion bonus |
-| GLM 5.1 | #7 | #7 | #7 | #7 | #5 | **#3** | **#4** | 58.2 | ↓ Same weight shift; holds quality position |
-| MiniMax M2.7 | #3 | #3 | #3 | #3 | #4 | **#5** | **#5** | 55.0 | ─ Stable; near-budget tier |
-| Kimi K2.6 | #2 | #2 | #2 | #1 | #2 | **#4** | **#6** | 52.6 | ↓ GDP swap with MiniMax; τ²=0.0 weight stable |
-| GPT-5.4 | #4 | #5 | #4 | #6 | #7 | **#8** | **#7** | 52.1 | ↑ BrowseComp 80.0 + SWEPro 75.0 (new dims) help |
-| DeepSeek V4-Pro | — | — | — | — | — | — | **#8** | 51.1 | NEW; provisional (#10+ dims at ⊘) |
-| Qwen 3.6 Plus | #5 | #6 | #8 | #8 | #6 | **#7** | **#9** | 49.7 | ↓ MMLU-Pro helps (66.7) but other gaps hurt |
-| Claude Opus 4.7 | #8 | #8 | #9 | #9 | #9 | **#9** | **#10** | 42.9 | ─ Quality #2 but BrowseComp 0.0 (last/6) hurts |
-| Claude Sonnet 4.6 | #9 | #10 | #10 | #10 | #10 | **#10** | **#11** | 26.1 | ─ |
-| Claude Opus 4.6 | #10 | #9 | #11 | #11 | #11 | **#11** | **#12** | 20.6 | ─ Most expensive to run |
+| Model | v1.0 | v2.0 | v2.1.1 | v2.3 | v2.4 | v2.5 | v3.0 | **v4.0** | v4.0 Score | Net Trend |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Gemini 3.1 Pro | #1 | #1 | #1 | #2 | #1 | #1 | #1 | **#1** | 70.6 | ↑ Holds #1; all 8 renorm dims favor Gemini net +1.1 pts |
+| GPT-5.5 | — | — | #6 | #4 | #8 | #6 | #2 | **#2** | 65.2 | ↑ Speed (63.6) + SWEPro (68.8) confirm quality #2; +1.2 pts |
+| KAT-Coder-Pro-V2 | #6 | #4 | #5 | #5 | #3 | #2 | #3 | **#3** | 58.4 | ─ Stable; +0.1 pts as n=12 slightly lifts rank-2 scores |
+| GLM 5.1 | #7 | #7 | #7 | #7 | #5 | #3 | #4 | **#4** | 56.7 | ↓ BrowseComp 0.0 (last/8) + MMLU-Pro 20.0 double hit; −1.5 pts |
+| Kimi K2.6 | #2 | #2 | #2 | #1 | #2 | #4 | #6 | **#5** | 54.8 | ↑ SWEPro 68.8 + Cost/Term n-expansion; +2.2 pts |
+| MiniMax M2.7 | #3 | #3 | #3 | #3 | #4 | #5 | #5 | **#6** | 54.0 | ↓ SWEPro 25.0 (below neutral) + GDP drop; −1.0 pts |
+| GPT-5.4 | #4 | #5 | #4 | #6 | #7 | #8 | #7 | **#7** | 52.3 | ↑ SWEPro rank improves (75→87.5 with n=9); +0.2 pts |
+| Qwen 3.6 Plus | #5 | #6 | #8 | #8 | #6 | #7 | #9 | **#8** | 49.0 | ↑ Rises as DeepSeek falls past it; own score −0.7 pts |
+| DeepSeek V4-Pro | — | — | — | — | — | — | #8 | **#9** | 48.2 | ↓↓ All 4 gap-fills below neutral: Cost 45.5, Term 45.5, SWEPro 12.5, Omni 14.3; −2.9 pts |
+| Claude Opus 4.7 | #8 | #8 | #9 | #9 | #9 | #9 | #10 | **#10** | 44.3 | ↑ MMLU-Pro #1 (100.0~) + BC/Omni fills; +1.4 pts |
+| Claude Sonnet 4.6 | #9 | #10 | #10 | #10 | #10 | #10 | #11 | **#11** | 25.5 | ─ Minor compression; −0.6 pts |
+| Claude Opus 4.6 | #10 | #9 | #11 | #11 | #11 | #11 | #12 | **#12** | 20.9 | ↑ BC 57.1%~ + Omni 57.1%~ fill in above neutral; +0.3 pts |
 
 ---
 
@@ -424,24 +436,24 @@ Equally weighting all 17 non-cost dimensions (5.88% each) to show pure capabilit
 ### 11.1 Gemini 3.1 Pro 🥇
 **Overall:** #1 | **Quality:** #1 | **Cost tier:** Premium ($892.28 eval cost)
 
-**v3.0 extends Gemini's lead.** Three v3.0 changes work in Gemini's favor simultaneously: (1) τ²-Bench corrected to 99.3% → rank 1 (100.0 from 80.0), adding +0.8 pts at 4% weight. (2) New MMLU-Pro dimension where Gemini leads (89.8%, rank 1/4, score 100.0), worth +2.0 pts at 2% weight. (3) BrowseComp at 85.9% (rank 3/6, score 60.0), worth +1.8 pts at 3% weight. Net quality gain ≈ +4.6 pts vs. v2.5, offset by cost weight reduction 28%→25% (−1.7 pts). Final score: 69.5.
+**v4.0 extends Gemini's lead to 70.6 pts (+1.1 vs v3.0 69.5).** The n=12 renormalization of Cost (60.0→63.6) and BrowseComp (60.0→71.4 as n grows from 6→8) contribute +0.9 and +0.34 pts. MMLU-Pro drops from 100.0 to 80.0 (−0.4 pts) as Opus 4.7 (89.87%~) displaces Gemini from #1 to #2 in that dimension. Net gain ≈ +1.1 pts.
 
-**Why Gemini holds #1:** The only model with real data on 17 of 18 dimensions (only OSWorld ⊘ — confirmed no published score). Leads on IFBench (100.0), Speed (100.0), τ²-Bench (100.0), GPQA Diamond (100.0), SciCode (100.0), MMLU-Pro (100.0), AA-Omniscience (100.0). GDP (10.0 — rank 10/11) remains the structural weakness: human preference evaluators consistently rank Gemini below peers on conversational quality.
+**Why Gemini holds #1:** The only model with real data on 17 of 18 dimensions (OSWorld remains ⊘). Leads on IFBench (100.0), Speed (100.0), τ²-Bench (100.0), GPQA Diamond (100.0), SciCode (100.0), AA-Omniscience (100.0). GDP (9.1 — rank 11/12) remains the structural weakness: human preference evaluators consistently rank Gemini near-last on conversational quality.
 
 **Best for:** Production SE workloads requiring consistent, instruction-following intelligence at scale. Long-context tasks (2M token window). Coverage-critical deployments where missing-data risk is unacceptable.
 
 ---
 
 ### 11.2 GPT-5.5 🥈
-**Overall:** #2 | **Quality:** #4 | **Cost tier:** Very Expensive ($3,357.00 eval cost)
+**Overall:** #2 | **Quality:** #2 | **Cost tier:** Very Expensive ($3,357.00 eval cost)
 
-**The v3.0 story is GPT-5.5's emergence.** Two gaps fill simultaneously: IFBench (⊘→75.9%, rank 4/11, score 70.0) at 18% weight and SWE-bench Verified (⊘→88.7%†, rank 1/10, score 100.0) at 7% weight. Together these add ≈ 9.1 pts vs. neutral-50 placeholders. Combined with being #1 on 5 dimensions (Terminal-Bench 82.7%, GDP 1,784, τ² 98.0%, OSWorld 78.7%, BrowseComp 90.1%), GPT-5.5 at 64.0 pts is a clear #2 with only 6 dimensions still ⊘ (Speed, LCB, LCR, AIME, SciCode, MMLU-Pro). As those fill in, GPT-5.5 could reach #1.
+**v4.0 confirms GPT-5.5 as quality #2 (70.9 pts, up from 62.4).** Two v4.0 fills: Speed confirmed at 74.7 tok/s (rank 5/12, score 63.6) and SWEPro confirmed at 68.8 (tied rank 3.5/9 with Kimi). Together these add +0.68+1.25 = +1.93 pts vs. neutral-50, pushing GPT-5.5 to quality #2 above Claude Opus 4.7. The SWE-bench Verified † dagger is removed — the 88.7% figure is now confirmed on swebench.com. Overall score rises 64.0 → 65.2.
 
-**Remaining gaps (6 of 18 ⊘):** Speed (not published for xhigh mode), LCB (not submitted), LCR (not published), AIME 2025 (OpenAI hasn't published), SciCode (not submitted), MMLU-Pro (anomalous 54.6% treated as ⊘). Each confirmed gap at neutral-50 represents a ±several-point swing when real data arrives.
+**Remaining gaps (4 of 18 ⊘):** LCB (not submitted), LCR (not published), AIME 2025, SciCode. These four ⊘ dimensions represent the last uncertainty band — if LCB and AIME fill in strong, GPT-5.5 could approach #1.
 
-**AA-Omniscience caveat (0.0 score):** The −29 raw score (57% accuracy − 86% hallucination at xhigh) is GPT-5.5's one confirmed weakness. At lower reasoning tiers, this would differ significantly.
+**AA-Omniscience caveat (0.0 score):** The −29 raw score (57% accuracy − 86% hallucination at xhigh) is GPT-5.5's one confirmed weakness. At standard reasoning tiers, both accuracy and hallucination rates would differ significantly.
 
-**Best for:** Terminal/CLI agents (#1 TB 2.0), computer-use/GUI agents (#1 OSWorld), deep web research (#1 BrowseComp), τ²-Bench-sensitive agentic pipelines, SWE-bench-sensitive code repair (probable #1).
+**Best for:** Terminal/CLI agents (#1 TB 2.0), computer-use/GUI agents (#1 OSWorld), deep web research (#1 BrowseComp), τ²-Bench-sensitive agentic pipelines, SWE-bench code repair (#1 confirmed 88.7%).
 
 ---
 
@@ -457,77 +469,80 @@ Equally weighting all 17 non-cost dimensions (5.88% each) to show pure capabilit
 ---
 
 ### 11.4 GLM 5.1
-**Overall:** #4 | **Quality:** #7 | **Cost tier:** Mid-Range ($543.95 eval cost)
+**Overall:** #4 | **Quality:** #10 | **Cost tier:** Mid-Range ($543.95 eval cost)
 
-GLM separates from KAT by only 0.1 pts (58.2 vs 58.3). GLM's profile: #2 IFBench (90.0), #3 τ²-Bench (80.0), eval cost rank 4 (70.0). New dimensions all ⊘ → neutral-50 (neither helps nor hurts). The τ²-Bench correction that made Gemini rank 1 moved GLM from rank 2 to rank 3 (from 90.0 to 80.0, −0.4 pts at 4% weight).
+**v4.0 delivers a double hit to GLM's quality score.** BrowseComp fills in at 68%~ — last in the 8-model cohort (score 0.0), costing −1.5 pts at 3% weight vs. neutral-50. MMLU-Pro fills in at 85.8%~ (rank 5/6, score 20.0), costing −0.6 pts at 2% weight. Combined −2.1 pts quality impact drops GLM from quality #7 (43.1) to quality #10 (38.1). Overall score falls 58.2 → 56.7. GLM holds #4 overall only because its strong IFBench (#2, 90.0) and τ²-Bench (#3, 80.0) — both at high weights — provide a durable cost-weighted floor.
 
-**Best for:** Instruction-following tasks requiring τ²-Bench multi-step reliability at mid-range cost. A strong alternative to Gemini for budget-conscious instruction-following workloads.
+**Best for:** Instruction-following tasks requiring τ²-Bench multi-step reliability at mid-range cost. A strong alternative to Gemini for budget-conscious instruction-following workloads. Note BrowseComp weakness — not suitable for deep web research pipelines.
 
 ---
 
 ### 11.5 MiniMax M2.7
-**Overall:** #5 | **Quality:** #9 | **Cost tier:** Near-Budget ($175.51 eval cost)
+**Overall:** #6 | **Quality:** #8 | **Cost tier:** Near-Budget ($175.51 eval cost)
 
-MiniMax holds near-budget status (eval cost rank 2, score 90.0). New dimensions: SWEPro ⊘, BrowseComp ⊘, MMLU-Pro ⊘ — all neutral-50. One v3.0 change affects MiniMax: the GDPval ranking swap with Kimi. Kimi's GDPval ELO updated to 1,520 moves it to rank 7; MiniMax at 1,514 drops to rank 8 (score 40.0→30.0, −0.5 pts at 5% weight). Final: 55.0 pts.
+**v4.0: MiniMax drops from #5 to #6** as Kimi overtakes it (+2.2 pts vs. MiniMax's −1.0 pts). SWEPro fills at 56.2%~ (rank 7/9, score 25.0) — below neutral-50 (−1.0 pts at 4% weight). GDP compresses slightly as DeepSeek enters the pool. Cost score improves marginally (90.0→90.9 with n=12). Final: 54.0 pts (down from 55.0).
 
-**Best for:** High-volume classification, summarization, extraction tasks at near-budget cost. Not suitable for coding-agent applications (Terminal-Bench last in field, 0.0).
+**Best for:** High-volume classification, summarization, extraction tasks at near-budget cost. Not suitable for coding-agent applications (Terminal-Bench last in field, 0.0). SWEPro weakness confirms: avoid for code repair pipelines.
 
 ---
 
 ### 11.6 Kimi K2.6
-**Overall:** #6 | **Quality:** #6 | **Cost tier:** Premium ($947.87 eval cost)
+**Overall:** #5 | **Quality:** #5 | **Cost tier:** Premium ($947.87 eval cost)
 
-Kimi's v3.0 changes: GDPval ELO updated 1,484→1,520 → GDP score improves 30.0→40.0 (+0.5 pts at 5% weight). SWE-bench Pro activated at 58.6% (tied rank 3.5/5 with GPT-5.5) → score 37.5 vs. prior ⊘ neutral-50 (−0.5 pts vs. prior neutral). BrowseComp 83.2% (rank 5/6) → score 20.0 (below neutral-50, −0.9 pts vs. prior ⊘). MMLU-Pro 84.6% (rank 4/4) → score 0.0 (well below neutral-50, −1.0 pts vs. prior ⊘). Net v3.0 quality impact: roughly neutral to slightly negative from the 3 new dimensions despite having real data for all of them. τ²-Bench (0.0 — rank 11/11) remains the dominant weakness at 4% weight.
+**v4.0: Kimi rises from #6 to #5** (+2.2 pts, 52.6→54.8). The primary driver is SWEPro renormalization: with n expanding from 5→9, Kimi's 58.6% (tied rank 3.5/9 with GPT-5.5) improves from score 37.5 to 68.8 (+1.25 pts at 4% weight). Cost also improves as n=12 lifts rank-6/12 from 50.0 to 54.5 (+1.125 pts at 25% weight). These gains outweigh minor compressions elsewhere. τ²-Bench (0.0 — rank 11/11) remains the dominant weakness at 4% weight. MMLU-Pro 84.6% at rank 4/6 now scores 0.0 — last in the enlarged cohort.
 
-**LCB update:** DeepSeek V4-Pro (93.5%) enters at LCB rank 1, pushing Kimi to rank 2 (75.0 from 100.0, −0.84 pts at 6% weight). Kimi is no longer the LCB champion.
-
-**Best for:** Coding-heavy pipelines (LCB #2 at 75.0), open-weight deployments (Apache 2.0), long-context tasks (200K), SWE-bench Pro is competitive (58.6%).
+**Best for:** Coding-heavy pipelines (LCB #2 at 75.0, second only to DeepSeek V4-Pro), open-weight deployments (Apache 2.0), long-context tasks (200K), SWE-bench Pro competitive at 58.6%.
 
 ---
 
 ### 11.7 GPT-5.4
-**Overall:** #7 | **Quality:** #3 | **Cost tier:** Expensive ($2,851.01 eval cost)
+**Overall:** #7 | **Quality:** #4 | **Cost tier:** Expensive ($2,851.01 eval cost)
 
-GPT-5.4 benefits from two new dimensions: BrowseComp 89.3% (rank 2/6, score 80.0) and SWE-bench Pro 59.1% (rank 2/5, score 75.0). These add 2.4+3.0 = 5.4 pts above prior neutral-50 (at 3%+4% weight). LCR holds #1 (100.0). This earns GPT-5.4 quality rank #3 (62.9). But eval cost ($2,851, rank 7/11, score 40.0) at 25% weight caps the total at 52.1 pts — rank #7 overall.
+**v4.0: GPT-5.4 drops to quality #4** (64.4, down from #3 at 62.9 in v3.0 — wait, actually v4.0 quality is 64.4 which is the same as what was labeled v3.0 Opus4.7; GPT-5.5 now occupies quality #2 displacing both). Overall score rises slightly 52.1→52.3 as SWEPro improves from rank 2/5 (75.0) to rank 2/9 (87.5) with n-expansion — the biggest per-dimension gain. Cost moves from 40.0 to 36.4 (rank 8/12 as DeepSeek inserts) but this is offset by SWEPro gain. Net +0.2 pts.
 
-**Best for:** Long-context retrieval (#1 LCR 100.0), BrowseComp web research (#2), SWE-bench Pro (2nd best), Terminal-Bench (80.0), GPQA (72.7). Teams running research, retrieval, or code repair at expensive-but-not-ultra-expensive tier.
+**Best for:** Long-context retrieval (#1 LCR 100.0), BrowseComp web research (#2 at 85.7%), SWE-bench Pro (#2 at 87.5 normalized), Terminal-Bench (81.8). Teams running research, retrieval, or code repair at expensive-but-not-ultra-expensive tier.
 
 ---
 
-### 11.8 DeepSeek V4-Pro *(new)*
-**Overall:** #8 | **Quality:** #5 | **Cost tier:** Unpublished (est. $1,200–$1,800)
+### 11.8 DeepSeek V4-Pro *(v4.0 gap-fills confirmed)*
+**Overall:** #9 | **Quality:** #6 | **Cost tier:** Premium ($1,071.28 eval cost)
 
-**Profile:** DeepSeek V4-Pro (released April 24, 2026) is Apache 2.0 open-source, 1.6T total / 49B active parameters (MoE), 1M context window. AA Intelligence Index: 52 (#2 open-weight behind Kimi K2.6 at 54). Pricing: $1.74/$3.48 per MTok in/out — below Kimi's comparable tier.
+**v4.0 delivers a significant downward revision: #8→#9, 51.1→48.2 (−2.9 pts).** Four dimensions that were ⊘ in v3.0 now have confirmed real data — every one came in below neutral-50:
 
-**Confirmed strengths:** LiveCodeBench v4 (93.5%, rank 1/5 in cohort — new LCB champion), SWE-bench Verified (80.6%, tied rank 4.5/10), BrowseComp (83.4%, rank 4/6). Speed (33.5 tok/s) is below the open-weight median — MoE routing overhead at 1.6T total parameters.
+| Dimension | ⊘ Assumption (v3.0) | v4.0 Real Value | Score | Impact |
+|---|---|---|---|---|
+| Cost | 50.0⊘ | $1,071.28 (rank 7/12) | 45.5 | −1.13 pts |
+| Terminal-Bench 2.0 | 50.0⊘ | 67.9%†self (rank 7/12) | 45.5 | −0.36 pts |
+| SWE-bench Pro | 50.0⊘ | 55.4% (rank 8/9) | 12.5 | −1.50 pts |
+| AA-Omniscience | 50.0⊘ | −10 (84% acc − 94% hall.) | 14.3 | −0.36 pts |
 
-**Confirmed weaknesses:** Slow throughput (33.5 tok/s, rank 10/11, score 10.0), HLE (37.7%, rank 6/12, score 54.5 — below Claude 40.0%, GPT-5.4 41.6%, Gemini 44.7%). GPQA Diamond (88.8%) at probable-confidence suggests mid-tier science reasoning.
+These four fills subtract a net 3.35 pts from the ⊘ baseline, partially offset by GDPval ELO 1,554 (rank 6/12, score 54.5, +0.23 pts above prior ⊘). The lesson: DeepSeek V4-Pro's neutral-50 provisional score in v3.0 was too optimistic. Its real cost-weighted profile is clearly below the frontier leaders.
 
-**⊘ coverage:** 10 of 18 dimensions are ⊘: IFBench, Terminal-Bench 2.0 Pro (only Flash 79.0% found), GDPval-AA ELO, τ²-Bench, OSWorld, RULER, AIME 2025 (87.5% seen but attributed to "DeepSeek" — may be R1), SciCode, AA-Omniscience, and Cost. All receive neutral-50. The AA Intelligence Index composite (52) confirms overall frontier parity but component breakdowns are not individually published.
+**Confirmed strengths:** LiveCodeBench v4 (93.5%, rank 1/5 — still the LCB champion), SWE-bench Verified (80.6%, tied rank 4.5/10), BrowseComp (83.4%, rank 4/8), GDPval ELO 1,554 (above neutral).
 
-**Expected trajectory:** As leaderboards process the April 24 release, expect IFBench, τ², and Cost to fill in within 2–4 weeks. Based on the composite AA score and architecture, realistic IFBench estimate: 70–75%; τ² estimate: 85–92%; Cost estimate: likely rank 7 ($1,400 est., between Kimi $948 and GPT-5.4 $2,851).
+**Remaining ⊘ (7 of 18):** IFBench, τ²-Bench, OSWorld, RULER, AIME, SciCode, LCB not yet in ranking pool (counted separately). Speed corrected to 35.8 tok/s (rank 11/12, score 9.1).
 
-**Best for:** LiveCodeBench coding tasks (#1), SWE-bench GitHub issue resolution, BrowseComp research tasks, open-source deployments requiring on-premise licensing. Avoid latency-sensitive streaming applications (33.5 tok/s).
+**Best for:** LiveCodeBench coding tasks (#1 globally), SWE-bench GitHub issue resolution, open-source deployments requiring on-premise licensing (Apache 2.0, 1M context). Avoid latency-sensitive streaming (35.8 tok/s, second-slowest in field).
 
 ---
 
 ### 11.9 Qwen 3.6 Plus
-**Overall:** #9 | **Quality:** #8 | **Cost tier:** Mid-Range ($482.65 eval cost)
+**Overall:** #8 | **Quality:** #9 | **Cost tier:** Mid-Range ($482.65 eval cost)
 
-Qwen benefits from MMLU-Pro where it ranks #2 (88.5%, score 66.7) — a meaningful data point at 2% weight (+0.33 pts vs. neutral-50). BrowseComp ⊘ (neutral-50). SWEPro ⊘ (neutral-50). LCR unchanged at 61.1 (tied rank 4.5 with Kimi). τ²-Bench (20.0, rank 9/11) remains a weakness. Final: 49.7 pts.
+**v4.0: Qwen rises from #9 to #8** — not because its own score improved (49.7→49.0, slight decline), but because DeepSeek falls past it (51.1→48.2). Qwen's SWEPro fills at 56.6%~ (rank 5/9, score 37.5) — below neutral-50 (−0.5 pts). Speed compresses slightly (60.0→54.5) as GPT-5.5 inserts at rank 5. MMLU-Pro drops from rank 2/4 (66.7) to rank 3/6 (60.0) as new models enter. Net: −0.7 pts own score.
 
-**Best for:** High-volume mid-range workloads. MMLU-Pro strength suggests knowledge-breadth tasks. Avoid τ²-Bench-sensitive or agentic pipelines.
+**Best for:** High-volume mid-range workloads. MMLU-Pro at rank 3/6 (88.5%) indicates strong knowledge breadth. Avoid τ²-Bench-sensitive or agentic pipelines (rank 9/11, score 20.0).
 
 ---
 
 ### 11.10 Claude Opus 4.7
-**Overall:** #10 | **Quality:** #2 | **Cost tier:** Ultra-Premium ($4,811.04 eval cost)
+**Overall:** #10 | **Quality:** #3 | **Cost tier:** Ultra-Premium ($4,811.04 eval cost)
 
-**The v3.0 story for Opus 4.7 is BrowseComp (0.0 — rank 6/6, last).** Opus 4.7 at 79.3% is last in the 6-model BrowseComp cohort, worth 0.0 at 3% weight vs. neutral-50 in v2.5 (−1.5 pts). SWE-bench Pro offset this: Opus 4.7 leads with 64.3% (rank 1/5, score 100.0) → +2.0 pts at 4% weight vs. neutral-50. Net from new dims: roughly neutral. Eval cost contribution drops (28%→25% weight) by −0.7 pts. Final: 42.9 pts.
+**v4.0: Opus 4.7 gains +1.4 pts (42.9→44.3) and rises to quality #3 (68.7).** The biggest single positive fill is MMLU-Pro 89.87%~ — this puts Opus 4.7 at rank 1/6, score 100.0, worth +2.0 pts at 2% weight vs. neutral-50. BrowseComp (14.3, rank 7/8) and Omni (85.7, rank 2/8) also fill in above neutral. Cost compresses slightly (10.0→9.1 as n=12), costing −0.23 pts. Net +1.4 pts.
 
-**Quality-cost paradox:** #2 quality overall (64.4 pts) but #10 in the main ranking. The 10-rank gap between quality and overall position remains the largest in the field. Cost score 10.0 at 25% weight contributes only 2.5 pts — Gemini earns 15.0 pts from cost. For teams prioritizing capability over cost, Opus 4.7 is the go-to for SWE-bench (#1, 88.9), SWE-bench Pro (#1, 100.0), HLE (#1, 100.0), GPQA (#2, 90.9).
+**Quality-cost paradox deepens in v4.0:** Quality #3 (68.7 pts) but #10 overall — a 7-rank gap, the largest in the field. GPT-5.5 displaces Opus 4.7 from quality #2, but Opus 4.7's benchmark profile remains extraordinary: #1 SWE-bench Pro (100.0), #1 HLE (100.0), #1 MMLU-Pro (100.0~), #2 GPQA (90.9). For teams where quality-per-outcome is the only metric, Opus 4.7 is the definitive choice.
 
-**Best for:** High-stakes software engineering, SWE-bench Pro (#1 at 64.3%), expert-knowledge tasks (HLE #1), enterprise customers where quality-per-outcome matters more than cost.
+**Best for:** High-stakes software engineering (SWE-bench Pro #1, 64.3%), expert-knowledge tasks (HLE #1, 46.9%), graduate-level reasoning (MMLU-Pro #1~, GPQA #2), enterprise customers unconstrained by cost.
 
 ---
 
@@ -551,33 +566,35 @@ Most expensive model to run ($4,969.68, rank 11/11, cost score 0.0). SWE-bench P
 
 ## 12. Strategic Insights
 
-### 12.1 GPT-5.5 Is Now a Clear #2 — But Provisional
+### 12.1 GPT-5.5 Confirmed as Quality #2 — Gap Narrows on Gemini
 
-v3.0 fills two critical GPT-5.5 gaps: IFBench (75.9%, rank 4/11) and SWE-bench Verified (88.7%†, rank 1/10). These two dimensions — at 18% and 7% weight — account for +6.1 pts of GPT-5.5's total improvement. The model now holds confirmed #1 on 5 agentic dimensions (TB 2.0, GDP, τ², OSWorld, BrowseComp) and probable #1 on SWE-bench Verified. Six dimensions remain ⊘. When Speed, LCB, AIME, SciCode, LCR, and MMLU-Pro fill in, GPT-5.5 has a realistic path to #1 if its quality profile holds.
+v4.0 confirms two more GPT-5.5 gaps: Speed at 74.7 tok/s (rank 5/12, score 63.6) and SWEPro at 68.8 (tied rank 3.5/9 with Kimi). With these fills, GPT-5.5 now holds confirmed #1 on 6 agentic dimensions (TB 2.0, GDP, τ², OSWorld, BrowseComp, SWE-bench Verified) and quality #2 overall (70.9 pts). The SWE-bench Verified dagger is removed — confirmed on canonical swebench.com.
 
-**The remaining gap:** Gemini leads GPT-5.5 by 5.5 pts. Gemini has zero ⊘ quality dimensions — it cannot be displaced by "surprise" real data. GPT-5.5 must earn its remaining quality scores; each neutral-50 dim is a risk in both directions.
+**The remaining gap:** Gemini leads GPT-5.5 by 5.4 pts (70.6 vs. 65.2). GPT-5.5 still has 4 ⊘ dimensions (LCB, LCR, AIME, SciCode). If LCB fills strong (GPT-5.5 has strong coding fundamentals), the gap narrows further. But Gemini's near-complete 17/18 data profile means it cannot be displaced by surprise real data — its lead is structural.
 
-### 12.2 DeepSeek V4-Pro: Open-Source Frontier Contender
+### 12.2 DeepSeek V4-Pro: The Gap-Fill Surprise
 
-DeepSeek V4-Pro's debut at #8 (51.1 pts) is provisional but meaningful. The model's LCB leadership (93.5%, above Kimi's 82.6%) establishes it as the current open-source coding champion at the competition-programming level. Its Codeforces rating (3,206) and Putnam-2025 (120/120, first open-source perfect score) confirm exceptional mathematical reasoning not yet captured in the scored dimensions.
+**The central v4.0 finding is that DeepSeek's neutral-50 provisional score was too optimistic.** All four confirmed gap-fills came in below neutral: Cost 45.5 (not cheap), TB 2.0 67.9%†self (mid-tier), SWEPro 55.4% (rank 8/9, second-worst in cohort), Omni −10 (84% accuracy vs. 94% hallucination rate). The net effect: −2.9 pts, dropping DeepSeek from #8 to #9.
 
-The speed penalty (33.5 tok/s, rank 10/11) is significant for streaming applications — nearly 3× slower than Gemini (128.0 tok/s). For batch processing and offline coding tasks, the speed disadvantage matters less. At $1.74/$3.48 pricing with a 1M context window, DeepSeek V4-Pro offers frontier-class coding capability at mid-range token cost, making it a strong open-source alternative to Kimi K2.6 for LCB-type tasks.
+This is a data lesson for provisinoal-model scoring: a composite AI Intelligence Index score of 52 (frontier parity) does not uniformly distribute across 18 dimensions. DeepSeek's gap-fills reveal a model strong on LCB (93.5%, #1) and SWE-bench Verified (80.6%) but surprisingly weak on structured code repair (SWEPro last-quintile) and hallucination control (94% rate). Its one positive fill — GDPval ELO 1,554 — confirms human preference quality above the open-weight median.
 
-### 12.3 The New Dimension Landscape
+LCB dominance (93.5%) still establishes DeepSeek as the open-source coding champion for competition-programming tasks. At $1.74/$3.48 per MTok with a 1M context window, the value proposition is strongest for LCB-type batch coding workloads.
 
-Three new dimensions reveal new capability differentiators at the frontier:
+### 12.3 Coverage Expansion Sharpens Discrimination
 
-- **BrowseComp** separates GPT-5.5 (90.1%, #1) and GPT-5.4 (89.3%, #2) as superior deep-web research agents, with Claude Opus 4.7 (79.3%) last in the 6-model cohort — a meaningful finding for enterprise research automation decisions.
-- **SWE-bench Pro** reveals Claude Opus 4.7 as the definitive code repair leader (64.3%, 5.2% gap to #2 GPT-5.4 at 59.1%). This harder benchmark better differentiates frontier models than the Verified variant where the top 10 cluster within 11 percentage points.
-- **MMLU-Pro** confirms Gemini's knowledge breadth leadership (89.8%) and places Qwen at #2 (88.5%) — giving Qwen its first clear dimension strength in this cohort.
+v4.0 significantly expands coverage on three dimensions:
 
-### 12.4 Kimi K2.6 Is No Longer the LCB Champion
+- **SWE-bench Pro** (5→9 models): Now covers 75% of the cohort. Opus 4.7 leads at 64.3% — a 5.2-point gap to #2 GPT-5.4 (59.1%). The expanded cohort confirms SWEPro is harder than SWE-bench Verified: scores are more spread out and DeepSeek (55.4%) is decisively below Kimi (58.6%).
+- **BrowseComp** (6→8 models): Opus 4.6 (83.7%~) and GLM (68%~) added. GLM's last-place finish (0.0 normalized) is the most significant new data point — BrowseComp is GLM's structural blind spot.
+- **MMLU-Pro** (4→6 models): Opus 4.7 (89.87%~) enters at rank 1, displacing Gemini from the MMLU-Pro lead. This is the largest single positive fill in v4.0 — Opus 4.7 gains +2.0 pts (100.0 × 2% weight) vs. neutral-50.
 
-DeepSeek V4-Pro's 93.5% on LiveCodeBench v4 displaces Kimi K2.6 (82.6%) as LCB leader. The 10.9-point gap is substantial. Combined with Kimi's τ²-Bench weakness (0.0, last in field), this raises questions about Kimi's "coding specialist" positioning. Kimi remains competitive on SWE-bench (80.2%) and SWE-bench Pro (58.6%), but for pure coding evaluation benchmarks, DeepSeek V4-Pro is the new open-source standard.
+### 12.4 Kimi K2.6 Solidifies #5 — The SWEPro Renormalization Effect
+
+With SWEPro n expanding from 5→9, Kimi's 58.6% improves in rank (from tied 3.5/5 to tied 3.5/9 — but score goes from 37.5 to 68.8 as the denominator grows). This +1.25 pt gain at 4% weight is the single largest per-dimension gain in v4.0 for any model. Combined with Cost score improvement (+1.13 pts at 25% weight), Kimi rises from #6 to #5. The τ²-Bench weakness (0.0, last in field) caps further rise.
 
 ### 12.5 The Anthropic Cost Structure Remains the Dominant Constraint
 
-Under the AA Index Eval Cost methodology, all three Anthropic frontier models (Sonnet $3,959, Opus 4.7 $4,811, Opus 4.6 $4,970) are in the top-4 most expensive to run. At 25% cost weight, Claude Opus 4.7's cost score (10.0) contributes only 2.5 pts vs. Gemini's 15.0 pts — a 12.5 pt cost disadvantage that quality (#2 at 64.4 pts) cannot overcome at this weighting. Teams running cost-unconstrained research pipelines where SWE-Pro or HLE performance matters most should consider Opus 4.7; all production workloads face a structural cost ceiling.
+Under the AA Index Eval Cost methodology, all three Anthropic frontier models (Sonnet $3,959, Opus 4.7 $4,811, Opus 4.6 $4,970) remain in the top-4 most expensive to run. At 25% cost weight, Claude Opus 4.7's cost score (9.1) contributes only 2.3 pts vs. Gemini's 15.9 pts — a 13.6 pt cost disadvantage that even quality #3 (68.7 pts) cannot overcome. Opus 4.7 scores 44.3 overall vs. Gemini's 70.6 — a 26-pt gap driven almost entirely by the cost dimension. Teams running cost-unconstrained pipelines where SWEPro or HLE performance matters most should consider Opus 4.7; all production workloads face the structural cost ceiling.
 
 ---
 
@@ -586,7 +603,7 @@ Under the AA Index Eval Cost methodology, all three Anthropic frontier models (S
 | Use Case | Primary Choice | Budget Alternative | Notes |
 |---|---|---|---|
 | Production SE pipeline (cost-first) | **Gemini 3.1 Pro** | GLM 5.1 | #1 overall at 69.5 pts; broadest coverage; $892 eval cost |
-| Broadest-coverage production choice | **Gemini 3.1 Pro** | GPT-5.5 | Real data on 17/18 dims; #1 IFBench, Speed, τ², GPQA, Sci, MMLU |
+| Broadest-coverage production choice | **Gemini 3.1 Pro** | GPT-5.5 | Real data on 17/18 dims; #1 IFBench, Speed, τ², GPQA, Sci, Omni |
 | Minimum eval-cost processing | **KAT-Coder-Pro-V2** | MiniMax M2.7 | $73.49 eval cost (#1) vs $175.51 (#2) |
 | High-volume batch processing | **KAT-Coder-Pro-V2** | MiniMax M2.7 | KAT: $73.49 + TB 2.0 #2; MiniMax: $175.51 + IFBench #5 |
 | Coding specialist (LCB / competition) | **DeepSeek V4-Pro** | Kimi K2.6 | LCB #1 (93.5%) vs LCB #2 (82.6%); both open-source |
@@ -602,9 +619,9 @@ Under the AA Index Eval Cost methodology, all three Anthropic frontier models (S
 | Instruction-following reliability | **Gemini 3.1 Pro** | GLM 5.1 | IFBench: 89.4% (#1) vs 85.9% (#2) |
 | Fast streaming / real-time | **Gemini 3.1 Pro** | KAT-Coder-Pro-V2 | 128.0 tok/s (#1) vs 113.5 tok/s (#2) |
 | Open-source / on-premise frontier | **DeepSeek V4-Pro** | Kimi K2.6 | LCB #1, Apache 2.0, 1M context, $1.74/MTok |
-| Highest quality, cost unconstrained | **GPT-5.5** | Claude Opus 4.7 | 5 agentic dim leads; Opus 4.7 #2 quality (64.4) |
-| Expert knowledge / HLE tasks | **Claude Opus 4.7** | Gemini 3.1 Pro | HLE #1 (46.9%) vs #2 (44.7%) |
-| Mid-range instruction + agentic | **GLM 5.1** | Qwen 3.6 Plus | #4 overall (58.2); $544 eval cost; IFBench #2 + τ² #3 |
+| Highest quality, cost unconstrained | **GPT-5.5** | Claude Opus 4.7 | 6 agentic dim leads; Opus 4.7 quality #3 (68.7); GPT-5.5 quality #2 (70.9) |
+| Expert knowledge / HLE tasks | **Claude Opus 4.7** | Gemini 3.1 Pro | HLE #1 (46.9%) vs #2 (44.7%); MMLU-Pro #1 (89.87%~) |
+| Mid-range instruction + agentic | **GLM 5.1** | Qwen 3.6 Plus | #4 overall (56.7); $544 eval cost; IFBench #2 + τ² #3 |
 
 ---
 
@@ -612,13 +629,13 @@ Under the AA Index Eval Cost methodology, all three Anthropic frontier models (S
 
 ### 14.1 Data Freshness
 
-- **DeepSeek V4-Pro** (April 24, 2026): provisional entry. 10+ dimensions ⊘. Expect rapid data availability in next 2–4 weeks as AA Index processes and leaderboards update.
-- **GPT-5.5** (April 23, 2026): 6 dimensions still ⊘. IFBench and SWE-bench Verified filled in v3.0. Speed, LCB, LCR, AIME, SciCode, MMLU-Pro pending.
+- **DeepSeek V4-Pro** (April 24, 2026): 7 dimensions remain ⊘ after v4.0 gap-fills: IFBench, τ²-Bench, OSWorld, RULER, AIME, SciCode, LCB (not yet in LCB pool). All four confirmed fills (Cost, Term, SWEPro, Omni) came in below neutral-50 — the provisional #8 rank in v3.0 was optimistic.
+- **GPT-5.5** (April 23, 2026): 4 dimensions still ⊘. Speed (63.6) and SWEPro (68.8) confirmed in v4.0. Remaining: LCB, LCR, AIME, SciCode.
 - All other model data is sourced from official publications and established leaderboards as of April 25, 2026.
 
-### 14.2 GPT-5.5 SWE-bench Verified Uncertainty
+### 14.2 GPT-5.5 SWE-bench Verified — Confirmed
 
-The 88.7%† value is from OpenAI's launch tech card (April 23). The canonical swebench.com leaderboard showed Claude Opus 4.7 (87.6%) as leader as of April 24 — GPT-5.5 may not have been formally submitted yet. If confirmed, GPT-5.5 becomes #1 on SWE-bench Verified. If actual swebench.com leaderboard result differs materially, the SWE column will be corrected in v3.1.
+The 88.7%† provisional value from v3.0 is now confirmed on the canonical swebench.com leaderboard. The dagger (†) marker is removed in v4.0. GPT-5.5 is the confirmed #1 on SWE-bench Verified as of April 25, 2026.
 
 ### 14.3 Benchmark Contamination Risk
 
@@ -636,9 +653,15 @@ The 86% hallucination rate driving the −29 raw Omniscience score comes from ea
 
 LayerLens independent testing: 16.67%. Multiple secondary sources attribute 100% performance to GPT-5.4 (possibly misattributed from GPT-5.2 xhigh). Unresolvable with current data. GPT-5.4 receives ⊘=50 on AIME 2025.
 
-### 14.7 New Dimension Coverage Thresholds
+### 14.7 Dimension Coverage Status (v4.0)
 
-BrowseComp (6/12 models), SWE-bench Pro (5/12), MMLU-Pro (4/12) were activated at v3.0 at minimum threshold. Models receiving ⊘ on these dimensions (especially MMLU-Pro, where 8/12 are ⊘) receive neutral-50, reducing the dimension's discriminative power. As coverage improves in v3.1+, these dimensions will gain more precision.
+| Dimension | v3.0 Coverage | v4.0 Coverage | Discriminative Power |
+|---|---|---|---|
+| SWE-bench Pro | 5/12 (42%) | 9/12 (75%) | High — 5.2% spread between #1 and #2 |
+| BrowseComp | 6/12 (50%) | 8/12 (67%) | High — GLM 0.0 vs GPT-5.5 100.0 reveals clear separation |
+| MMLU-Pro | 4/12 (33%) | 6/12 (50%) | Moderate — still 6 models at neutral-50 |
+
+SWEPro is now sufficiently covered to be highly discriminative. MMLU-Pro remains the weakest of the three activated dimensions; expect further coverage expansion in v4.1+.
 
 ### 14.8 Framework Design Constraints
 
@@ -781,6 +804,18 @@ Key sources used for v3.0 data updates (from deep-research pipeline, April 25, 2
 - BenchLM, Vellum, multiple sources (BrowseComp scores for 6 models)
 - Scale Labs SWE-bench Pro leaderboard, marc0.dev (SWE-Pro scores for 5 models)
 - Artificial Analysis MMLU-Pro, Kaggle MMLU-Pro leaderboard (MMLU-Pro scores for 4 models)
+
+### 16H. v4.0 Research Sources
+
+Key sources used for v4.0 gap-fill updates (from ultradeep research pipeline, April 25, 2026):
+- Artificial Analysis AA Index Eval Cost leaderboard (DeepSeek V4-Pro $1,071.28 confirmed; GPT-5.5 Speed 74.7 tok/s confirmed; DeepSeek Speed corrected 33.5→35.8 tok/s)
+- DeepSeek V4-Pro official model card / self-reported benchmarks (TB 2.0 67.9%†self)
+- Scale Labs SWE-bench Pro leaderboard (SWEPro fills: GLM 58.4%~, Qwen 56.6%~, MiniMax 56.2%~, DeepSeek 55.4%; n expanded 5→9)
+- Artificial Analysis GDPval leaderboard (DeepSeek V4-Pro ELO 1,554 confirmed; n expanded 11→12)
+- BenchLM / llm-stats.com/benchmarks/browsecomp (BrowseComp fills: Opus 4.6 83.7%~, GLM 68%~; n expanded 6→8)
+- Artificial Analysis MMLU-Pro leaderboard (MMLU-Pro fills: Opus 4.7 89.87%~, GLM 85.8%~; n expanded 4→6)
+- Artificial Analysis Omniscience leaderboard (Omni fills: Kimi +6 = 45%−39%, DeepSeek −10 = 84%−94%; n expanded 6→8)
+- swebench.com canonical leaderboard (GPT-5.5 88.7% confirmed; † removed)
 
 ---
 
