@@ -423,7 +423,10 @@ mod unit {
     fn l2_distance_positive_for_different_vectors() {
         let a = vec![0.0, 0.0];
         let b = vec![3.0, 4.0];
-        assert!((l2_distance(&a, &b) - 5.0).abs() < 1e-9, "L2 distance of (3,4) must be 5.0");
+        assert!(
+            (l2_distance(&a, &b) - 5.0).abs() < 1e-9,
+            "L2 distance of (3,4) must be 5.0"
+        );
     }
 
     #[test]

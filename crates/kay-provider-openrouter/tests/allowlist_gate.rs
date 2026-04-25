@@ -1,7 +1,8 @@
 //! Integration tests for PROV-04 / AC-07 / D-07.
 //!
 //! Asserts the launch allowlist (anthropic/claude-sonnet-4.6,
-//! anthropic/claude-opus-4.6, openai/gpt-5.4) behaves per D-07 and that
+//! anthropic/claude-opus-4.6, openai/gpt-5.4, minimax/minimax-m2.7,
+//! minimax/minimax-m2.5, minimax/minimax-m2.1) behaves per D-07 and that
 //! the allowlist gate rejects non-allowlisted models BEFORE any HTTP call
 //! — this test does not spin a mock server; it only exercises the pre-flight
 //! gate. Plan 02-08's streaming_happy_path.rs adds the HTTP-side proof.
@@ -33,7 +34,7 @@ fn launch_allowlist_rejects_random_model() {
     match r {
         Err(ProviderError::ModelNotAllowlisted { requested, allowed }) => {
             assert_eq!(requested, "mistral/mixtral-8x22b");
-            assert_eq!(allowed.len(), 3);
+            assert_eq!(allowed.len(), 6);
         }
         other => panic!("expected ModelNotAllowlisted, got {other:?}"),
     }

@@ -21,9 +21,10 @@
 #![allow(clippy::unwrap_used)] // tests may unwrap to surface diagnostics
 
 use futures::StreamExt;
-use kay_provider_openrouter::openrouter_provider::OpenRouterProviderBuilder;
-use kay_provider_openrouter::provider::{ChatRequest, Message};
+use kay_provider_openrouter::OpenRouterProviderBuilder;
 use kay_provider_openrouter::ProviderError;
+use kay_provider_openrouter::{ChatRequest, Message, Provider};
+use std::sync::Arc;
 
 mod common;
 
@@ -58,7 +59,7 @@ data: {"cost":"0.000042","usage":{"input_tokens":5,"output_tokens":3}}
         .await;
 
     let provider = OpenRouterProviderBuilder::default()
-        .endpoint(srv.url())
+        .endpoint(format!("{}/api/v1/chat/completions", srv.url()))
         .api_key("sk-test-live-minimax-key")
         .allowlist(kay_provider_openrouter::Allowlist::from_models(vec![
             "minimax/minimax-m2.7".into(),
@@ -72,8 +73,9 @@ data: {"cost":"0.000042","usage":{"input_tokens":5,"output_tokens":3}}
         messages: vec![Message {
             role: "user".into(),
             content: "hello".into(),
+            tool_call_id: None,
         }],
-        tools: None,
+        tools: vec![],
         temperature: None,
         max_tokens: None,
     };
@@ -96,16 +98,18 @@ async fn minimax_m25_model_allowlisted() {
 
     let mock = srv
         .mock_openrouter_chat_stream(
-            vec![r#"event: chunk
-data: {"id":"chatcmpl","choices":[{"delta":{"content":""},"finish_reason":"stop"}]}
-"#
-            .to_string()],
+            vec![
+                r#"event: chunk
+data: {"id":"chatcmpl","choices":[{"delta":{"content":"pong"},"finish_reason":"stop"}]}"#
+                    .to_string(),
+                "data: [DONE]".to_string(),
+            ],
             200,
         )
         .await;
 
     let provider = OpenRouterProviderBuilder::default()
-        .endpoint(srv.url())
+        .endpoint(format!("{}/api/v1/chat/completions", srv.url()))
         .api_key("sk-test-key")
         .allowlist(kay_provider_openrouter::Allowlist::from_models(vec![
             "minimax/minimax-m2.5".into(),
@@ -118,8 +122,9 @@ data: {"id":"chatcmpl","choices":[{"delta":{"content":""},"finish_reason":"stop"
         messages: vec![Message {
             role: "user".into(),
             content: "ping".into(),
+            tool_call_id: None,
         }],
-        tools: None,
+        tools: vec![],
         temperature: None,
         max_tokens: None,
     };
@@ -139,17 +144,19 @@ async fn provider_accepts_minimax_key_and_streams() {
 
     let mock = srv
         .mock_openrouter_chat_stream(
-            vec![r#"event: chunk
-data: {"id":"chatcmpl","choices":[{"delta":{"content":"hi"},"finish_reason":"stop"}]}
-"#
-            .to_string()],
+            vec![
+                r#"event: chunk
+data: {"id":"chatcmpl","choices":[{"delta":{"content":"hi"},"finish_reason":"stop"}]}"#
+                    .to_string(),
+                "data: [DONE]".to_string(),
+            ],
             200,
         )
         .await;
 
     // Build with an arbitrary key (simulating MINIMAX_API_KEY resolution).
     let provider = OpenRouterProviderBuilder::default()
-        .endpoint(srv.url())
+        .endpoint(format!("{}/api/v1/chat/completions", srv.url()))
         .api_key("sk-test-minimax-primary")
         .allowlist(kay_provider_openrouter::Allowlist::from_models(vec![
             "minimax/minimax-m2.7".into(),
@@ -162,8 +169,9 @@ data: {"id":"chatcmpl","choices":[{"delta":{"content":"hi"},"finish_reason":"sto
         messages: vec![Message {
             role: "user".into(),
             content: "test".into(),
+            tool_call_id: None,
         }],
-        tools: None,
+        tools: vec![],
         temperature: None,
         max_tokens: None,
     };
@@ -187,8 +195,8 @@ data: {"id":"chatcmpl","choices":[{"delta":{"content":"hi"},"finish_reason":"sto
 async fn live_minimax_m27_smoke() {
     use kay_provider_openrouter::Allowlist;
 
-    let api_key = std::env::var("MINIMAX_API_KEY")
-        .expect("MINIMAX_API_KEY must be set for live tests");
+    let api_key =
+        std::env::var("MINIMAX_API_KEY").expect("MINIMAX_API_KEY must be set for live tests");
 
     let provider = OpenRouterProviderBuilder::default()
         .endpoint("https://api.minimax.io/v1/realtime/generation".into())
@@ -202,8 +210,9 @@ async fn live_minimax_m27_smoke() {
         messages: vec![Message {
             role: "user".into(),
             content: "Respond with exactly the word 'ping'.".into(),
+            tool_call_id: None,
         }],
-        tools: None,
+        tools: vec![],
         temperature: Some(0.0),
         max_tokens: Some(10),
     };
@@ -230,8 +239,9 @@ async fn offline_provider_still_works() {
         messages: vec![Message {
             role: "user".into(),
             content: "hello".into(),
+            tool_call_id: None,
         }],
-        tools: None,
+        tools: vec![],
         temperature: Some(0.5),
         max_tokens: Some(256),
     };
@@ -254,7 +264,7 @@ async fn minimax_model_not_allowlisted_rejected_before_http() {
         .await;
 
     let provider = OpenRouterProviderBuilder::default()
-        .endpoint(srv.url())
+        .endpoint(format!("{}/api/v1/chat/completions", srv.url()))
         .api_key("sk-test")
         // Only minimax-m2.7 is allowlisted — m2.1 is NOT.
         .allowlist(kay_provider_openrouter::Allowlist::from_models(vec![
@@ -268,13 +278,17 @@ async fn minimax_model_not_allowlisted_rejected_before_http() {
         messages: vec![Message {
             role: "user".into(),
             content: "hello".into(),
+            tool_call_id: None,
         }],
-        tools: None,
+        tools: vec![],
         temperature: None,
         max_tokens: None,
     };
 
-    let err = provider.chat(req).await.unwrap_err();
+    let err = match provider.chat(req).await {
+        Err(e) => e,
+        Ok(_) => panic!("expected ModelNotAllowlisted error"),
+    };
     match err {
         ProviderError::ModelNotAllowlisted { requested, allowed } => {
             assert_eq!(requested, "minimax/minimax-m2.1");

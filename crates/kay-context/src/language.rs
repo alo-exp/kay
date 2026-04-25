@@ -31,8 +31,14 @@ mod unit {
 
     #[test]
     fn from_extension_typescript() {
-        assert!(matches!(Language::from_extension("ts"), Language::TypeScript));
-        assert!(matches!(Language::from_extension("tsx"), Language::TypeScript));
+        assert!(matches!(
+            Language::from_extension("ts"),
+            Language::TypeScript
+        ));
+        assert!(matches!(
+            Language::from_extension("tsx"),
+            Language::TypeScript
+        ));
     }
 
     #[test]
@@ -47,7 +53,10 @@ mod unit {
 
     #[test]
     fn from_extension_unknown() {
-        assert!(matches!(Language::from_extension("java"), Language::Unknown));
+        assert!(matches!(
+            Language::from_extension("java"),
+            Language::Unknown
+        ));
         assert!(matches!(Language::from_extension(""), Language::Unknown));
         assert!(matches!(Language::from_extension("c"), Language::Unknown));
     }

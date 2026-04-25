@@ -64,7 +64,9 @@ mod unit {
             id,
             name: name.to_string(),
             sig: String::new(),
-            file: "test.rs".to_string(),
+            file_path: "test.rs".to_string(),
+            start_line: 1,
+            end_line: 10,
             kind: crate::store::SymbolKind::Function,
         }
     }
@@ -88,7 +90,10 @@ mod unit {
     fn name_bonus_applies_on_exact_match() {
         let score = 0.5;
         let result = apply_name_bonus(score, "foo", "foo");
-        assert!((result - 1.0).abs() < 1e-9, "exact match must add +0.5 bonus");
+        assert!(
+            (result - 1.0).abs() < 1e-9,
+            "exact match must add +0.5 bonus"
+        );
     }
 
     #[test]
@@ -102,7 +107,10 @@ mod unit {
     fn name_bonus_case_sensitive() {
         let score = 0.5;
         let result = apply_name_bonus(score, "Foo", "foo");
-        assert!((result - 0.5).abs() < 1e-9, "name bonus must be case-sensitive");
+        assert!(
+            (result - 0.5).abs() < 1e-9,
+            "name bonus must be case-sensitive"
+        );
     }
 
     #[test]

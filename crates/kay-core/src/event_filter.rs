@@ -113,7 +113,10 @@ mod unit {
             policy_rule: "project_root_only".to_string(),
             os_error: Some(13),
         };
-        assert!(!for_model_context(&ev), "QG-C4: SandboxViolation must be blocked from model context");
+        assert!(
+            !for_model_context(&ev),
+            "QG-C4: SandboxViolation must be blocked from model context"
+        );
     }
 
     #[test]
@@ -126,7 +129,10 @@ mod unit {
             policy_rule: "project_root_only".to_string(),
             os_error: None,
         };
-        assert!(!for_model_context(&ev), "QG-C4: pre-flight SandboxViolation must also be blocked");
+        assert!(
+            !for_model_context(&ev),
+            "QG-C4: pre-flight SandboxViolation must also be blocked"
+        );
     }
 
     // All other variants must be allowed.
@@ -178,10 +184,8 @@ mod unit {
 
     #[test]
     fn tool_call_start_allowed() {
-        let ev = AgentEvent::ToolCallStart {
-            id: "call_1".to_string(),
-            name: "fs_read".to_string(),
-        };
+        let ev =
+            AgentEvent::ToolCallStart { id: "call_1".to_string(), name: "fs_read".to_string() };
         assert!(for_model_context(&ev));
     }
 

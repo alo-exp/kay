@@ -91,7 +91,10 @@ mod unit {
     fn context_budget_default_values() {
         let b = ContextBudget::default();
         assert_eq!(b.max_tokens, 8192, "default max_tokens must be 8192");
-        assert_eq!(b.reserve_tokens, 1024, "default reserve_tokens must be 1024");
+        assert_eq!(
+            b.reserve_tokens, 1024,
+            "default reserve_tokens must be 1024"
+        );
     }
 
     #[test]
@@ -137,10 +140,10 @@ mod unit {
     #[test]
     fn estimate_tokens_formula() {
         // (name_len + sig_len + 10) / 4
-        assert_eq!(estimate_tokens("", ""), 2);   // (0 + 0 + 10) / 4 = 2
+        assert_eq!(estimate_tokens("", ""), 2); // (0 + 0 + 10) / 4 = 2
         assert_eq!(estimate_tokens("foo", ""), 3); // (3 + 0 + 10) / 4 = 3
-        assert_eq!(estimate_tokens("", "()"), 3);  // (0 + 2 + 10) / 4 = 3
-        assert_eq!(estimate_tokens("fn", "i32"), 4); // (2 + 3 + 10) / 4 = 3.75 → 3
+        assert_eq!(estimate_tokens("", "()"), 3); // (0 + 2 + 10) / 4 = 3
+        assert_eq!(estimate_tokens("fn", "i32"), 3); // (2 + 3 + 10) / 4 = 15 / 4 = 3 (integer div)
     }
 
     #[test]
@@ -158,7 +161,15 @@ mod unit {
         use crate::store::Symbol;
         let b = ContextBudget::new(8192, 0);
         let schema = serde_json::json!({"type": "object"});
-        let sym = Symbol { id: 1, name: "foo".to_string(), sig: "()".to_string(), file: "test.rs".to_string(), kind: crate::store::SymbolKind::Function };
+        let sym = Symbol {
+            id: 1,
+            name: "foo".to_string(),
+            sig: "()".to_string(),
+            file_path: "test.rs".to_string(),
+            start_line: 1,
+            end_line: 10,
+            kind: crate::store::SymbolKind::Function,
+        };
         let packet = b.assemble(vec![sym], &[schema.clone()]);
         assert_eq!(packet.hardened_schemas, vec![schema]);
     }
