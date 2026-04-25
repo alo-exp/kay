@@ -18,6 +18,7 @@ use ratatui::{
 };
 
 use crate::events::TuiEvent;
+use crate::session_manager::{KeyboardMapper, SessionAction, TuiSessionManager};
 use crate::state::SessionState;
 
 /// ratatui component state.
@@ -40,6 +41,9 @@ pub struct App {
     /// Subprocess handle (if spawned).
     #[allow(unused)]
     subprocess: Option<crate::subprocess::KaySubprocess>,
+    /// TUI session manager for keyboard-driven session control.
+    /// Handles: n (spawn), p (pause), r (resume), f (fork), x (kill), ? (help).
+    session_manager: TuiSessionManager,
 }
 
 impl Default for App {
@@ -59,6 +63,7 @@ impl App {
             running: true,
             show_settings: false,
             subprocess: None,
+            session_manager: TuiSessionManager::new(),
         }
     }
 
@@ -84,6 +89,53 @@ impl App {
         use crossterm::event::KeyCode;
         let n = self.session.event_log.len();
 
+        // First, check for session control shortcuts (n/p/r/f/x/?)
+        if let Some(action) = KeyboardMapper.map_key(key.code) {
+            match action {
+                SessionAction::Spawn => {
+                    // Spawn new session and log the event
+                    let info = self.session_manager.spawn(None);
+                    tracing::info!("Spawned new session: {}", info.id);
+                }
+                SessionAction::Pause => {
+                    if let Some(info) = self.session_manager.pause() {
+                        tracing::info!("Paused session: {}", info.id);
+                    }
+                }
+                SessionAction::Resume => {
+                    if let Some(info) = self.session_manager.resume() {
+                        tracing::info!("Resumed session: {}", info.id);
+                    }
+                }
+                SessionAction::Fork => {
+                    if let Some(info) = self.session_manager.fork() {
+                        tracing::info!(
+                            "Forked session {} -> {}",
+                            self.session_manager
+                                .sessions()
+                                .first()
+                                .map(|s| s.id.as_str())
+                                .unwrap_or("?"),
+                            info.id
+                        );
+                    }
+                }
+                SessionAction::Kill => {
+                    if let Some(info) = self.session_manager.kill() {
+                        tracing::info!("Killed session: {}", info.id);
+                    }
+                }
+                SessionAction::ToggleSettings => {
+                    self.show_settings = !self.show_settings;
+                }
+                SessionAction::ShowHelp => {
+                    // TODO: Show help overlay
+                    tracing::info!("Help requested (shortcut: ?)");
+                }
+            }
+            return;
+        }
+
         match key.code {
             KeyCode::Up | KeyCode::Char('k') => {
                 if self.selected_index > 0 {
@@ -105,9 +157,7 @@ impl App {
             KeyCode::Char('q') | KeyCode::Esc => {
                 self.running = false;
             }
-            KeyCode::Char('s') => {
-                self.show_settings = !self.show_settings;
-            }
+            // 's' is handled by KeyboardMapper above (toggle settings)
             _ => {}
         }
     }
@@ -194,7 +244,7 @@ impl App {
             Span::raw(" | events: "),
             Span::raw(self.session.event_log.len().to_string()),
             Span::styled(
-                " | ↑↓ navigate | q quit | s settings",
+                " | n:new p:pause r:resume f:fork x:kill ?help q:quit",
                 Style::new().fg(Color::DarkGray),
             ),
         ]);

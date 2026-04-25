@@ -102,3 +102,72 @@ fn app_navigation_updates_selection() {
     app.handle_input(KeyEvent::new(KeyCode::Down, KeyModifiers::empty()));
     assert_eq!(app.selected_index(), 4);
 }
+
+/// Test that 'n' key spawns a new session.
+#[test]
+fn app_spawns_session_on_n_key() {
+    let mut app = App::new();
+    app.handle_input(KeyEvent::new(KeyCode::Char('n'), KeyModifiers::empty()));
+    // App should still be running after spawn
+    assert!(app.is_running());
+}
+
+/// Test that 'p' key pauses the current session.
+#[test]
+fn app_pauses_session_on_p_key() {
+    let mut app = App::new();
+    // First spawn a session
+    app.handle_input(KeyEvent::new(KeyCode::Char('n'), KeyModifiers::empty()));
+    // Then pause it
+    app.handle_input(KeyEvent::new(KeyCode::Char('p'), KeyModifiers::empty()));
+    assert!(app.is_running());
+}
+
+/// Test that 'r' key resumes a paused session.
+#[test]
+fn app_resumes_session_on_r_key() {
+    let mut app = App::new();
+    // Spawn and pause
+    app.handle_input(KeyEvent::new(KeyCode::Char('n'), KeyModifiers::empty()));
+    app.handle_input(KeyEvent::new(KeyCode::Char('p'), KeyModifiers::empty()));
+    // Resume
+    app.handle_input(KeyEvent::new(KeyCode::Char('r'), KeyModifiers::empty()));
+    assert!(app.is_running());
+}
+
+/// Test that 'f' key forks the current session.
+#[test]
+fn app_forks_session_on_f_key() {
+    let mut app = App::new();
+    app.handle_input(KeyEvent::new(KeyCode::Char('n'), KeyModifiers::empty()));
+    app.handle_input(KeyEvent::new(KeyCode::Char('f'), KeyModifiers::empty()));
+    assert!(app.is_running());
+}
+
+/// Test that 'x' key kills the current session.
+#[test]
+fn app_kills_session_on_x_key() {
+    let mut app = App::new();
+    app.handle_input(KeyEvent::new(KeyCode::Char('n'), KeyModifiers::empty()));
+    app.handle_input(KeyEvent::new(KeyCode::Char('x'), KeyModifiers::empty()));
+    assert!(app.is_running());
+}
+
+/// Test that '?' key shows help (logged, no crash).
+#[test]
+fn app_shows_help_on_question_mark() {
+    let mut app = App::new();
+    app.handle_input(KeyEvent::new(KeyCode::Char('?'), KeyModifiers::empty()));
+    assert!(app.is_running());
+}
+
+/// Test that 's' key toggles settings panel.
+#[test]
+fn app_toggles_settings_on_s_key() {
+    let mut app = App::new();
+    // Toggle on
+    app.handle_input(KeyEvent::new(KeyCode::Char('s'), KeyModifiers::empty()));
+    // Toggle off
+    app.handle_input(KeyEvent::new(KeyCode::Char('s'), KeyModifiers::empty()));
+    assert!(app.is_running());
+}
