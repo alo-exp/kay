@@ -4,19 +4,17 @@ gsd_state_version: 1.0
 milestone: v0.4.0
 milestone_name: Tauri Desktop Shell + TUI Frontend
 status: in_progress
-stopped_at: "Phase 10 WAVE 8 COMPLETE — Multi-Session Manager all 8 waves shipped. All tests passing."
+stopped_at: "Phase 11 COMPLETE — cross-platform CI + code signing + crates.io + Tauri updater shipped."
 last_updated: "2026-04-25T18:25:00Z"
-next_phase: 11
-next_action: "Phase 11: EVAL-01a run or Phase 11 feature"
-last_activity: "2026-04-25 — Phase 10 Multi-Session Manager completed (all 8 waves). 8 new Tauri commands, session lifecycle (spawn/pause/resume/fork/kill), OS keyring, settings panel (Tauri+TUI), 41 kay-tauri tests passing."
+next_phase: 12
+next_action: "Phase 12: EVAL-01a baseline run OR continue feature development"
+last_activity: "2026-04-25 — Phase 11 cross-platform hardening + release pipeline shipped. CI matrix for macOS/Windows/Linux, code signing (notarytool + Azure), crates.io publish workflow, Tauri minisign updater."
 progress:
   total_phases: 17
-  completed_phases: 10
+  completed_phases: 11
   total_plans: 36
-  completed_plans: 36
-  percent: 59
----
-
+  completed_plans: 44
+  percent: 65
 # Project State
 
 ## Project Reference
@@ -28,17 +26,17 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 
 ## Current Position
 
-Phase: **Phase 10 CLOSED (v0.4.0)** — Multi-Session Manager shipped. All 8 waves complete.
+Phase: **Phase 11 CLOSED (v0.5.0)** — Cross-platform release pipeline shipped.
 
-**Phase 9 shipped (PR #18, 2026-04-24):** Tauri 2.x desktop shell with specta-typed IPC, `Channel<AgentEvent>` streaming, session view with tool-call timeline + token/cost meter, 4h memory canary.
-
-**Phase 9.5 shipped (PR #19, 2026-04-24):** Full-screen ratatui terminal UI consuming the same JSONL contract as kay-tauri. Multi-pane layout, keyboard-first, SSH-friendly.
+**Phase 10 shipped (PR #18, 2026-04-24):** Tauri 2.x desktop shell with specta-typed IPC, `Channel<AgentEvent>` streaming, session view with tool-call timeline + token/cost meter, 4h memory canary.
 
 **Phase 10 completed (2026-04-25):** Multi-Session Manager shipped — spawn/pause/resume/fork/kill sessions from both frontends. OS keyring for API key storage (macOS Keychain, Linux libsecret, Windows Credential Manager). Settings panel (4 tabs: Session/Model/Verifier/Sandbox). 8 Tauri commands, 41 tests passing.
 
-**Phase 11 next:** TBD — EVAL-01a baseline run or feature development.
+**Phase 11 completed (2026-04-25):** Cross-platform CI (macOS/Windows/Linux), code signing (notarytool + Azure), crates.io publish workflow, Tauri minisign updater.
 
-Progress: [████████████████████░░░░░░░░░] 59% (10 of 17 phases done; v0.4.0 tag ready)
+**Phase 12 next:** TBD — EVAL-01a baseline run or feature development.
+
+Progress: [████████████████████░░░░░░░░░] 65% (11 of 17 phases done; v0.5.0 tag ready)
 ## Performance Metrics
 
 **Velocity:**
@@ -63,6 +61,7 @@ Progress: [████████████████████░░░
 | 09 | TBD | Tauri Desktop Shell | PR #18 shipped; 4h memory canary |
 | 09.5 | TBD | TUI Frontend (ratatui) | PR #19 shipped; JSONL contract live |
 | 10 | 8 waves | Multi-Session Manager | All 8 waves shipped; 41 tests green |
+| 11 | TBD | Cross-Platform Release Pipeline | CI matrix + code signing + crates.io + Tauri updater |
 
 **Recent Trend:**
 
@@ -139,8 +138,8 @@ Items acknowledged and carried forward:
 
 ## Session Continuity
 
-Last session: 2026-04-24 — Phase 9 shipped (PR #18) + Phase 9.5 shipped (PR #19). Tauri desktop shell and ratatui TUI frontend both live, consuming the same kay-cli JSONL event contract. Phase 10 plan ready at `.planning/phases/10-multi-session-manager/10-PLAN.md`. 8-wave TDD plan for Multi-Session Manager + Project Settings. Uncommitted work in kay-tui: jsonl.rs buffering fix, subprocess.rs improvements, ui.rs additions.
+Last session: 2026-04-25 — Phase 11 cross-platform release pipeline shipped (CI matrix, code signing, crates.io, Tauri updater). Branch `phase/10-multi-session-manager` (will rename to `phase/11-release` on merge). Phase 12 plan TBD — EVAL-01a baseline run or continue feature development.
 
-Stopped at: Phase 9.5 closure complete. Both frontends shipped. Phase 10 plan approved and ready for execution.
+Stopped at: Phase 11 closure complete. All 11 phases shipped. v0.5.0 tag ready.
 
-Resume action: `/silver:feature Phase 10: Multi-Session Manager + Project Settings` (per `next_action` in frontmatter; Phase 10 plan at `.planning/phases/10-multi-session-manager/10-PLAN.md`; branch `phase/10-multi-session-manager` cut from main).
+Resume action: Decide Phase 12 priority — EVAL-01a baseline run (fork parity on TB 2.0 ≥80%) OR continue feature development.
