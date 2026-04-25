@@ -126,10 +126,7 @@ pub struct TuiSessionManager {
 impl TuiSessionManager {
     /// Creates a new TuiSessionManager.
     pub fn new() -> Self {
-        Self {
-            current_session: None,
-            sessions: Vec::new(),
-        }
+        Self { current_session: None, sessions: Vec::new() }
     }
 
     /// Returns the current session, if any.
@@ -145,11 +142,7 @@ impl TuiSessionManager {
     /// Spawns a new session.
     pub fn spawn(&mut self, persona: Option<String>) -> SessionInfo {
         let id = uuid::Uuid::new_v4().to_string();
-        let info = SessionInfo {
-            id: id.clone(),
-            state: SessionState::Running,
-            persona,
-        };
+        let info = SessionInfo { id: id.clone(), state: SessionState::Running, persona };
         self.sessions.push(info.clone());
         self.current_session = Some(info.clone());
         info
@@ -208,23 +201,20 @@ impl TuiSessionManager {
     pub fn can_action(&self, action: SessionAction) -> bool {
         match action {
             SessionAction::Spawn => true,
-            SessionAction::Pause => {
-                self.current_session
-                    .as_ref()
-                    .map(|s| s.state == SessionState::Running)
-                    .unwrap_or(false)
-            }
-            SessionAction::Resume => {
-                self.current_session
-                    .as_ref()
-                    .map(|s| s.state == SessionState::Paused)
-                    .unwrap_or(false)
-            }
-            SessionAction::Fork | SessionAction::Kill => {
-                self.current_session
-                    .as_ref()
-                    .is_some_and(|s| s.state != SessionState::Killed)
-            }
+            SessionAction::Pause => self
+                .current_session
+                .as_ref()
+                .map(|s| s.state == SessionState::Running)
+                .unwrap_or(false),
+            SessionAction::Resume => self
+                .current_session
+                .as_ref()
+                .map(|s| s.state == SessionState::Paused)
+                .unwrap_or(false),
+            SessionAction::Fork | SessionAction::Kill => self
+                .current_session
+                .as_ref()
+                .is_some_and(|s| s.state != SessionState::Killed),
             SessionAction::ToggleSettings | SessionAction::ShowHelp => true,
         }
     }
@@ -249,13 +239,34 @@ mod tests {
         use crossterm::event::KeyCode;
         let mapper = KeyboardMapper::new();
 
-        assert_eq!(mapper.map_key(KeyCode::Char('n')), Some(SessionAction::Spawn));
-        assert_eq!(mapper.map_key(KeyCode::Char('p')), Some(SessionAction::Pause));
-        assert_eq!(mapper.map_key(KeyCode::Char('r')), Some(SessionAction::Resume));
-        assert_eq!(mapper.map_key(KeyCode::Char('f')), Some(SessionAction::Fork));
-        assert_eq!(mapper.map_key(KeyCode::Char('x')), Some(SessionAction::Kill));
-        assert_eq!(mapper.map_key(KeyCode::Char('s')), Some(SessionAction::ToggleSettings));
-        assert_eq!(mapper.map_key(KeyCode::Char('?')), Some(SessionAction::ShowHelp));
+        assert_eq!(
+            mapper.map_key(KeyCode::Char('n')),
+            Some(SessionAction::Spawn)
+        );
+        assert_eq!(
+            mapper.map_key(KeyCode::Char('p')),
+            Some(SessionAction::Pause)
+        );
+        assert_eq!(
+            mapper.map_key(KeyCode::Char('r')),
+            Some(SessionAction::Resume)
+        );
+        assert_eq!(
+            mapper.map_key(KeyCode::Char('f')),
+            Some(SessionAction::Fork)
+        );
+        assert_eq!(
+            mapper.map_key(KeyCode::Char('x')),
+            Some(SessionAction::Kill)
+        );
+        assert_eq!(
+            mapper.map_key(KeyCode::Char('s')),
+            Some(SessionAction::ToggleSettings)
+        );
+        assert_eq!(
+            mapper.map_key(KeyCode::Char('?')),
+            Some(SessionAction::ShowHelp)
+        );
 
         // Unhandled keys
         assert_eq!(mapper.map_key(KeyCode::Char('q')), None);
@@ -280,20 +291,14 @@ mod tests {
 
         // Pause
         assert!(mgr.pause().is_some());
-        assert_eq!(
-            mgr.current_session().unwrap().state,
-            SessionState::Paused
-        );
+        assert_eq!(mgr.current_session().unwrap().state, SessionState::Paused);
 
         // Can't pause again
         assert!(mgr.pause().is_none());
 
         // Resume
         assert!(mgr.resume().is_some());
-        assert_eq!(
-            mgr.current_session().unwrap().state,
-            SessionState::Running
-        );
+        assert_eq!(mgr.current_session().unwrap().state, SessionState::Running);
     }
 
     #[test]

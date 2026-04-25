@@ -5,7 +5,7 @@
 // event wire format must be mirrored in both files. See Phase 9.5 spec §3.
 // serde rename attrs ensure wire compatibility (same JSON field names).
 
-use serde::de::{self, Visitor, Deserializer};
+use serde::de::{self, Deserializer, Visitor};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
@@ -143,34 +143,39 @@ impl<'de> Deserialize<'de> for TuiEvent {
                     .and_then(|v| v.as_str())
                     .ok_or_else(|| de::Error::missing_field("type"))?;
 
-                let data = fields.get("data").cloned().unwrap_or(serde_json::Value::Null);
+                let data = fields
+                    .get("data")
+                    .cloned()
+                    .unwrap_or(serde_json::Value::Null);
 
                 // Route to the correct variant based on type tag
                 let type_str: &str = type_field;
                 match type_str {
                     "TextDelta" => {
-                        let content = data.get("content")
+                        let content = data
+                            .get("content")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing content field"))?;
                         Ok(TuiEvent::TextDelta { content: content.to_string() })
                     }
                     "ToolCallStart" => {
-                        let id = data.get("id")
+                        let id = data
+                            .get("id")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing id field"))?;
-                        let name = data.get("name")
+                        let name = data
+                            .get("name")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing name field"))?;
-                        Ok(TuiEvent::ToolCallStart {
-                            id: id.to_string(),
-                            name: name.to_string(),
-                        })
+                        Ok(TuiEvent::ToolCallStart { id: id.to_string(), name: name.to_string() })
                     }
                     "ToolCallDelta" => {
-                        let id = data.get("id")
+                        let id = data
+                            .get("id")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing id field"))?;
-                        let arguments_delta = data.get("arguments_delta")
+                        let arguments_delta = data
+                            .get("arguments_delta")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing arguments_delta field"))?;
                         Ok(TuiEvent::ToolCallDelta {
@@ -179,10 +184,12 @@ impl<'de> Deserialize<'de> for TuiEvent {
                         })
                     }
                     "ToolCallComplete" => {
-                        let id = data.get("id")
+                        let id = data
+                            .get("id")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing id field"))?;
-                        let name = data.get("name")
+                        let name = data
+                            .get("name")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing name field"))?;
                         Ok(TuiEvent::ToolCallComplete {
@@ -192,13 +199,16 @@ impl<'de> Deserialize<'de> for TuiEvent {
                         })
                     }
                     "ToolCallMalformed" => {
-                        let id = data.get("id")
+                        let id = data
+                            .get("id")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing id field"))?;
-                        let raw = data.get("raw")
+                        let raw = data
+                            .get("raw")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing raw field"))?;
-                        let error = data.get("error")
+                        let error = data
+                            .get("error")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing error field"))?;
                         Ok(TuiEvent::ToolCallMalformed {
@@ -208,64 +218,71 @@ impl<'de> Deserialize<'de> for TuiEvent {
                         })
                     }
                     "Usage" => {
-                        let prompt_tokens = data.get("prompt_tokens")
+                        let prompt_tokens = data
+                            .get("prompt_tokens")
                             .and_then(|v| v.as_u64())
                             .ok_or_else(|| de::Error::custom("missing prompt_tokens"))?;
-                        let completion_tokens = data.get("completion_tokens")
+                        let completion_tokens = data
+                            .get("completion_tokens")
                             .and_then(|v| v.as_u64())
                             .ok_or_else(|| de::Error::custom("missing completion_tokens"))?;
-                        let cost_usd = data.get("cost_usd")
+                        let cost_usd = data
+                            .get("cost_usd")
                             .and_then(|v| v.as_f64())
                             .ok_or_else(|| de::Error::custom("missing cost_usd"))?;
-                        Ok(TuiEvent::Usage {
-                            prompt_tokens,
-                            completion_tokens,
-                            cost_usd,
-                        })
+                        Ok(TuiEvent::Usage { prompt_tokens, completion_tokens, cost_usd })
                     }
                     "Retry" => {
-                        let attempt = data.get("attempt")
+                        let attempt = data
+                            .get("attempt")
                             .and_then(|v| v.as_u64())
                             .map(|v| v as u32)
                             .ok_or_else(|| de::Error::custom("missing attempt"))?;
-                        let delay_ms = data.get("delay_ms")
+                        let delay_ms = data
+                            .get("delay_ms")
                             .and_then(|v| v.as_u64())
                             .ok_or_else(|| de::Error::custom("missing delay_ms"))?;
-                        let reason = data.get("reason")
+                        let reason = data
+                            .get("reason")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing reason"))?;
-                        Ok(TuiEvent::Retry {
-                            attempt,
-                            delay_ms,
-                            reason: reason.to_string(),
-                        })
+                        Ok(TuiEvent::Retry { attempt, delay_ms, reason: reason.to_string() })
                     }
                     "Error" => {
-                        let message = data.get("message")
+                        let message = data
+                            .get("message")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing message field"))?;
                         Ok(TuiEvent::Error { message: message.to_string() })
                     }
                     "ToolOutput" => {
-                        let call_id = data.get("call_id")
+                        let call_id = data
+                            .get("call_id")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing call_id"))?;
-                        let chunk: TuiToolOutputChunk = serde_json::from_value(data.get("chunk").cloned().unwrap_or(serde_json::Value::Null))
-                            .map_err(|e| de::Error::custom(e))?;
-                        Ok(TuiEvent::ToolOutput {
-                            call_id: call_id.to_string(),
-                            chunk,
-                        })
+                        let chunk: TuiToolOutputChunk = serde_json::from_value(
+                            data.get("chunk")
+                                .cloned()
+                                .unwrap_or(serde_json::Value::Null),
+                        )
+                        .map_err(|e| de::Error::custom(e))?;
+                        Ok(TuiEvent::ToolOutput { call_id: call_id.to_string(), chunk })
                     }
                     "TaskComplete" => {
-                        let call_id = data.get("call_id")
+                        let call_id = data
+                            .get("call_id")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing call_id"))?;
-                        let verified = data.get("verified")
+                        let verified = data
+                            .get("verified")
                             .and_then(|v| v.as_bool())
                             .ok_or_else(|| de::Error::custom("missing verified"))?;
-                        let outcome: TuiVerificationOutcome = serde_json::from_value(data.get("outcome").cloned().unwrap_or(serde_json::Value::Null))
-                            .map_err(|e| de::Error::custom(e))?;
+                        let outcome: TuiVerificationOutcome = serde_json::from_value(
+                            data.get("outcome")
+                                .cloned()
+                                .unwrap_or(serde_json::Value::Null),
+                        )
+                        .map_err(|e| de::Error::custom(e))?;
                         Ok(TuiEvent::TaskComplete {
                             call_id: call_id.to_string(),
                             verified,
@@ -273,10 +290,12 @@ impl<'de> Deserialize<'de> for TuiEvent {
                         })
                     }
                     "ImageRead" => {
-                        let path = data.get("path")
+                        let path = data
+                            .get("path")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing path"))?;
-                        let data_url = data.get("data_url")
+                        let data_url = data
+                            .get("data_url")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing data_url"))?;
                         Ok(TuiEvent::ImageRead {
@@ -285,19 +304,24 @@ impl<'de> Deserialize<'de> for TuiEvent {
                         })
                     }
                     "SandboxViolation" => {
-                        let call_id = data.get("call_id")
+                        let call_id = data
+                            .get("call_id")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing call_id"))?;
-                        let tool_name = data.get("tool_name")
+                        let tool_name = data
+                            .get("tool_name")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing tool_name"))?;
-                        let resource = data.get("resource")
+                        let resource = data
+                            .get("resource")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing resource"))?;
-                        let policy_rule = data.get("policy_rule")
+                        let policy_rule = data
+                            .get("policy_rule")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing policy_rule"))?;
-                        let os_error = data.get("os_error")
+                        let os_error = data
+                            .get("os_error")
                             .and_then(|v| v.as_i64())
                             .map(|v| v as i32);
                         Ok(TuiEvent::SandboxViolation {
@@ -310,50 +334,53 @@ impl<'de> Deserialize<'de> for TuiEvent {
                     }
                     "Paused" => Ok(TuiEvent::Paused),
                     "Aborted" => {
-                        let reason = data.get("reason")
+                        let reason = data
+                            .get("reason")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing reason field"))?;
                         Ok(TuiEvent::Aborted { reason: reason.to_string() })
                     }
                     "ContextTruncated" => {
-                        let dropped_symbols = data.get("dropped_symbols")
+                        let dropped_symbols = data
+                            .get("dropped_symbols")
                             .and_then(|v| v.as_u64())
                             .map(|v| v as usize)
                             .ok_or_else(|| de::Error::custom("missing dropped_symbols"))?;
-                        let budget_tokens = data.get("budget_tokens")
+                        let budget_tokens = data
+                            .get("budget_tokens")
                             .and_then(|v| v.as_u64())
                             .map(|v| v as usize)
                             .ok_or_else(|| de::Error::custom("missing budget_tokens"))?;
-                        Ok(TuiEvent::ContextTruncated {
-                            dropped_symbols,
-                            budget_tokens,
-                        })
+                        Ok(TuiEvent::ContextTruncated { dropped_symbols, budget_tokens })
                     }
                     "IndexProgress" => {
-                        let indexed = data.get("indexed")
+                        let indexed = data
+                            .get("indexed")
                             .and_then(|v| v.as_u64())
                             .map(|v| v as usize)
                             .ok_or_else(|| de::Error::custom("missing indexed"))?;
-                        let total = data.get("total")
+                        let total = data
+                            .get("total")
                             .and_then(|v| v.as_u64())
                             .map(|v| v as usize)
                             .ok_or_else(|| de::Error::custom("missing total"))?;
-                        Ok(TuiEvent::IndexProgress {
-                            indexed,
-                            total,
-                        })
+                        Ok(TuiEvent::IndexProgress { indexed, total })
                     }
                     "Verification" => {
-                        let critic_role = data.get("critic_role")
+                        let critic_role = data
+                            .get("critic_role")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing critic_role"))?;
-                        let verdict = data.get("verdict")
+                        let verdict = data
+                            .get("verdict")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing verdict"))?;
-                        let reason = data.get("reason")
+                        let reason = data
+                            .get("reason")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing reason"))?;
-                        let cost_usd = data.get("cost_usd")
+                        let cost_usd = data
+                            .get("cost_usd")
                             .and_then(|v| v.as_f64())
                             .ok_or_else(|| de::Error::custom("missing cost_usd"))?;
                         Ok(TuiEvent::Verification {
@@ -364,16 +391,15 @@ impl<'de> Deserialize<'de> for TuiEvent {
                         })
                     }
                     "VerifierDisabled" => {
-                        let reason = data.get("reason")
+                        let reason = data
+                            .get("reason")
                             .and_then(|v| v.as_str())
                             .ok_or_else(|| de::Error::custom("missing reason"))?;
-                        let cost_usd = data.get("cost_usd")
+                        let cost_usd = data
+                            .get("cost_usd")
                             .and_then(|v| v.as_f64())
                             .ok_or_else(|| de::Error::custom("missing cost_usd"))?;
-                        Ok(TuiEvent::VerifierDisabled {
-                            reason: reason.to_string(),
-                            cost_usd,
-                        })
+                        Ok(TuiEvent::VerifierDisabled { reason: reason.to_string(), cost_usd })
                     }
                     // Unknown event type → route to catch-all variant
                     _ => Ok(TuiEvent::Unknown { event_type: type_field.to_string() }),

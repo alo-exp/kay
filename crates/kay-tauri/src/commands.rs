@@ -23,7 +23,7 @@ use crate::ipc_event::IpcAgentEvent;
 use crate::state::AppState;
 
 // Re-export SessionStatus and SessionManager from session_manager
-pub use crate::session_manager::{SessionStatus, SessionManager};
+pub use crate::session_manager::{SessionManager, SessionStatus};
 
 // ── Specta builder (same crate as #[tauri::command] so __cmd__ macros resolve) ──
 
@@ -76,7 +76,13 @@ pub async fn start_session(
     let (event_tx, event_rx) = mpsc::channel::<AgentEvent>(1024);
 
     tokio::spawn(flush_task(event_rx, channel));
-    tokio::spawn(run_agent_loop(prompt, persona, session_id.clone(), event_tx, token));
+    tokio::spawn(run_agent_loop(
+        prompt,
+        persona,
+        session_id.clone(),
+        event_tx,
+        token,
+    ));
 
     Ok(session_id)
 }
@@ -221,24 +227,20 @@ pub async fn load_project_settings(
 /// Bind an API key to the OS keychain.
 #[tauri::command]
 #[specta::specta]
-pub async fn bind_api_key(
-    provider: String,
-    key: String,
-) -> Result<(), String> {
+pub async fn bind_api_key(provider: String, key: String) -> Result<(), String> {
     use crate::keyring::create_keyring;
 
     let alias = format!("{}:api-key", provider.to_lowercase());
     let keyring = create_keyring();
-    keyring.store(&alias, &key)
+    keyring
+        .store(&alias, &key)
         .map_err(|e| format!("Failed to store key: {:?}", e))
 }
 
 /// Get the fingerprint of a bound API key (checks if key exists).
 #[tauri::command]
 #[specta::specta]
-pub async fn get_api_key_fingerprint(
-    provider: String,
-) -> Result<Option<String>, String> {
+pub async fn get_api_key_fingerprint(provider: String) -> Result<Option<String>, String> {
     use crate::keyring::create_keyring;
 
     let alias = format!("{}:api-key", provider.to_lowercase());

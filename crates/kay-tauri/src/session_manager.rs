@@ -15,7 +15,7 @@ pub struct SessionInfo {
     pub id: String,
     pub status: SessionStatus,
     #[specta(type = i64)]
-    pub created_at: i64,  // Unix timestamp seconds
+    pub created_at: i64, // Unix timestamp seconds
     #[specta(type = i64)]
     pub last_active: i64, // Unix timestamp seconds
     pub persona: String,
@@ -49,7 +49,11 @@ pub trait SessionManager: Send + Sync {
     fn list_sessions(&self) -> Vec<SessionInfo>;
     fn pause_session(&self, id: &str) -> Result<(), SessionManagerError>;
     fn resume_session(&self, id: &str) -> Result<(), SessionManagerError>;
-    fn fork_session(&self, id: &str, persona: Option<String>) -> Result<String, SessionManagerError>;
+    fn fork_session(
+        &self,
+        id: &str,
+        persona: Option<String>,
+    ) -> Result<String, SessionManagerError>;
     fn kill_session(&self, id: &str) -> Result<(), SessionManagerError>;
 }
 
@@ -65,9 +69,7 @@ pub struct SessionManagerImpl {
 
 impl SessionManagerImpl {
     pub fn new() -> Self {
-        Self {
-            sessions: Mutex::new(HashMap::new()),
-        }
+        Self { sessions: Mutex::new(HashMap::new()) }
     }
 
     /// Register a new session with its metadata.
@@ -140,7 +142,11 @@ impl SessionManager for SessionManagerImpl {
         }
     }
 
-    fn fork_session(&self, id: &str, persona: Option<String>) -> Result<String, SessionManagerError> {
+    fn fork_session(
+        &self,
+        id: &str,
+        persona: Option<String>,
+    ) -> Result<String, SessionManagerError> {
         let info = match self.sessions.lock().unwrap().get(id).cloned() {
             Some(info) => info,
             None => return Err(SessionManagerError::NotFound(id.to_string())),
@@ -238,7 +244,10 @@ mod tests {
         let mgr = SessionManagerImpl::new();
         let result = mgr.pause_session("nonexistent-id");
         assert!(result.is_err(), "expected error for nonexistent session");
-        assert!(matches!(result.unwrap_err(), SessionManagerError::NotFound(_)));
+        assert!(matches!(
+            result.unwrap_err(),
+            SessionManagerError::NotFound(_)
+        ));
     }
 
     #[test]
@@ -257,7 +266,10 @@ mod tests {
 
         let result = mgr.pause_session("session-1");
         assert!(result.is_err(), "cannot pause already paused session");
-        assert!(matches!(result.unwrap_err(), SessionManagerError::WrongState(_)));
+        assert!(matches!(
+            result.unwrap_err(),
+            SessionManagerError::WrongState(_)
+        ));
     }
 
     #[test]
@@ -276,7 +288,10 @@ mod tests {
 
         let result = mgr.resume_session("session-1");
         assert!(result.is_err(), "cannot resume already running session");
-        assert!(matches!(result.unwrap_err(), SessionManagerError::WrongState(_)));
+        assert!(matches!(
+            result.unwrap_err(),
+            SessionManagerError::WrongState(_)
+        ));
     }
 
     #[test]

@@ -20,43 +20,124 @@ use kay_tools::seams::verifier::VerificationOutcome;
 #[serde(tag = "type", content = "data")]
 pub enum IpcAgentEvent {
     // Phase 2 variants
-    TextDelta         { content: String },
-    ToolCallStart     { id: String, name: String },
-    ToolCallDelta     { id: String, arguments_delta: String },
-    ToolCallComplete  { id: String, name: String, arguments: serde_json::Value },
-    ToolCallMalformed { id: String, raw: String, error: String },
-    Usage             { prompt_tokens: u64, completion_tokens: u64, cost_usd: f64 },
-    Retry             { attempt: u32, delay_ms: u64, reason: String },
-    Error             { message: String },
+    TextDelta {
+        content: String,
+    },
+    ToolCallStart {
+        id: String,
+        name: String,
+    },
+    ToolCallDelta {
+        id: String,
+        arguments_delta: String,
+    },
+    ToolCallComplete {
+        id: String,
+        name: String,
+        arguments: serde_json::Value,
+    },
+    ToolCallMalformed {
+        id: String,
+        raw: String,
+        error: String,
+    },
+    Usage {
+        prompt_tokens: u64,
+        completion_tokens: u64,
+        cost_usd: f64,
+    },
+    Retry {
+        attempt: u32,
+        delay_ms: u64,
+        reason: String,
+    },
+    Error {
+        message: String,
+    },
 
     // Phase 3 variants
-    ToolOutput        { call_id: String, chunk: IpcToolOutputChunk },
-    TaskComplete      { call_id: String, verified: bool, outcome: IpcVerificationOutcome },
-    ImageRead         { path: String, data_url: String },
-    SandboxViolation  { call_id: String, tool_name: String, resource: String, policy_rule: String, os_error: Option<i32> },
+    ToolOutput {
+        call_id: String,
+        chunk: IpcToolOutputChunk,
+    },
+    TaskComplete {
+        call_id: String,
+        verified: bool,
+        outcome: IpcVerificationOutcome,
+    },
+    ImageRead {
+        path: String,
+        data_url: String,
+    },
+    SandboxViolation {
+        call_id: String,
+        tool_name: String,
+        resource: String,
+        policy_rule: String,
+        os_error: Option<i32>,
+    },
 
     // Phase 5 variants
     Paused,
-    Aborted           { reason: String },
+    Aborted {
+        reason: String,
+    },
 
     // Phase 7 variants
-    ContextTruncated  { dropped_symbols: usize, budget_tokens: usize },
-    IndexProgress     { indexed: usize, total: usize },
+    ContextTruncated {
+        dropped_symbols: usize,
+        budget_tokens: usize,
+    },
+    IndexProgress {
+        indexed: usize,
+        total: usize,
+    },
 
     // Phase 8 variants
-    Verification      { critic_role: String, verdict: String, reason: String, cost_usd: f64 },
-    VerifierDisabled  { reason: String, cost_usd: f64 },
+    Verification {
+        critic_role: String,
+        verdict: String,
+        reason: String,
+        cost_usd: f64,
+    },
+    VerifierDisabled {
+        reason: String,
+        cost_usd: f64,
+    },
 
     // Phase 10 WAVE 3: Session lifecycle variants
-    SessionSpawned    { session_id: String, persona: String, created_at: i64 },
-    SessionPaused     { session_id: String, paused_at: i64 },
-    SessionResumed    { session_id: String, resumed_at: i64 },
-    SessionForked     { parent_id: String, child_id: String },
-    ApprovalRequested  { tool_name: String, command: String, sandbox_status: String },
-    ApprovalDecision   { tool_name: String, approved: bool, decided_at: i64 },
+    SessionSpawned {
+        session_id: String,
+        persona: String,
+        created_at: i64,
+    },
+    SessionPaused {
+        session_id: String,
+        paused_at: i64,
+    },
+    SessionResumed {
+        session_id: String,
+        resumed_at: i64,
+    },
+    SessionForked {
+        parent_id: String,
+        child_id: String,
+    },
+    ApprovalRequested {
+        tool_name: String,
+        command: String,
+        sandbox_status: String,
+    },
+    ApprovalDecision {
+        tool_name: String,
+        approved: bool,
+        decided_at: i64,
+    },
 
     // Catch-all: future #[non_exhaustive] variants become Unknown
-    Unknown           { event_type: String },
+    Unknown {
+        event_type: String,
+    },
 }
 
 /// IPC-safe mirror of `ToolOutputChunk`.
@@ -64,23 +145,26 @@ pub enum IpcAgentEvent {
 pub enum IpcToolOutputChunk {
     Stdout(String),
     Stderr(String),
-    Closed { exit_code: Option<i32>, marker_detected: bool },
+    Closed {
+        exit_code: Option<i32>,
+        marker_detected: bool,
+    },
 }
 
 /// IPC-safe mirror of `VerificationOutcome`.
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub enum IpcVerificationOutcome {
     Pending { reason: String },
-    Pass    { note: String },
-    Fail    { reason: String },
+    Pass { note: String },
+    Fail { reason: String },
 }
 
 impl From<VerificationOutcome> for IpcVerificationOutcome {
     fn from(v: VerificationOutcome) -> Self {
         match v {
             VerificationOutcome::Pending { reason } => Self::Pending { reason },
-            VerificationOutcome::Pass { note }      => Self::Pass { note },
-            VerificationOutcome::Fail { reason }    => Self::Fail { reason },
+            VerificationOutcome::Pass { note } => Self::Pass { note },
+            VerificationOutcome::Fail { reason } => Self::Fail { reason },
             _ => Self::Pending { reason: "unknown_outcome_variant".to_string() },
         }
     }
@@ -89,10 +173,11 @@ impl From<VerificationOutcome> for IpcVerificationOutcome {
 impl From<ToolOutputChunk> for IpcToolOutputChunk {
     fn from(chunk: ToolOutputChunk) -> Self {
         match chunk {
-            ToolOutputChunk::Stdout(s)  => Self::Stdout(s),
-            ToolOutputChunk::Stderr(s)  => Self::Stderr(s),
-            ToolOutputChunk::Closed { exit_code, marker_detected } =>
-                Self::Closed { exit_code, marker_detected },
+            ToolOutputChunk::Stdout(s) => Self::Stdout(s),
+            ToolOutputChunk::Stderr(s) => Self::Stderr(s),
+            ToolOutputChunk::Closed { exit_code, marker_detected } => {
+                Self::Closed { exit_code, marker_detected }
+            }
             _ => Self::Stdout("[unknown chunk variant]".to_string()),
         }
     }
@@ -101,42 +186,55 @@ impl From<ToolOutputChunk> for IpcToolOutputChunk {
 impl From<AgentEvent> for IpcAgentEvent {
     fn from(event: AgentEvent) -> Self {
         match event {
-            AgentEvent::TextDelta { content }
-                => Self::TextDelta { content },
-            AgentEvent::ToolCallStart { id, name }
-                => Self::ToolCallStart { id, name },
-            AgentEvent::ToolCallDelta { id, arguments_delta }
-                => Self::ToolCallDelta { id, arguments_delta },
-            AgentEvent::ToolCallComplete { id, name, arguments }
-                => Self::ToolCallComplete { id, name, arguments },
-            AgentEvent::ToolCallMalformed { id, raw, error }
-                => Self::ToolCallMalformed { id, raw, error },
-            AgentEvent::Usage { prompt_tokens, completion_tokens, cost_usd }
-                => Self::Usage { prompt_tokens, completion_tokens, cost_usd },
-            AgentEvent::Retry { attempt, delay_ms, reason }
-                => Self::Retry { attempt, delay_ms, reason: format!("{:?}", reason) },
-            AgentEvent::Error { error }
-                => Self::Error { message: error.to_string() },
-            AgentEvent::ToolOutput { call_id, chunk }
-                => Self::ToolOutput { call_id, chunk: IpcToolOutputChunk::from(chunk) },
-            AgentEvent::TaskComplete { call_id, verified, outcome }
-                => Self::TaskComplete { call_id, verified, outcome: IpcVerificationOutcome::from(outcome) },
-            AgentEvent::ImageRead { path, bytes }
-                => Self::ImageRead { path: path.clone(), data_url: bytes_to_data_url(&path, &bytes) },
-            AgentEvent::SandboxViolation { call_id, tool_name, resource, policy_rule, os_error }
-                => Self::SandboxViolation { call_id, tool_name, resource, policy_rule, os_error },
-            AgentEvent::Paused
-                => Self::Paused,
-            AgentEvent::Aborted { reason }
-                => Self::Aborted { reason },
-            AgentEvent::ContextTruncated { dropped_symbols, budget_tokens }
-                => Self::ContextTruncated { dropped_symbols, budget_tokens },
-            AgentEvent::IndexProgress { indexed, total }
-                => Self::IndexProgress { indexed, total },
-            AgentEvent::Verification { critic_role, verdict, reason, cost_usd }
-                => Self::Verification { critic_role, verdict, reason, cost_usd },
-            AgentEvent::VerifierDisabled { reason, cost_usd }
-                => Self::VerifierDisabled { reason, cost_usd },
+            AgentEvent::TextDelta { content } => Self::TextDelta { content },
+            AgentEvent::ToolCallStart { id, name } => Self::ToolCallStart { id, name },
+            AgentEvent::ToolCallDelta { id, arguments_delta } => {
+                Self::ToolCallDelta { id, arguments_delta }
+            }
+            AgentEvent::ToolCallComplete { id, name, arguments } => {
+                Self::ToolCallComplete { id, name, arguments }
+            }
+            AgentEvent::ToolCallMalformed { id, raw, error } => {
+                Self::ToolCallMalformed { id, raw, error }
+            }
+            AgentEvent::Usage { prompt_tokens, completion_tokens, cost_usd } => {
+                Self::Usage { prompt_tokens, completion_tokens, cost_usd }
+            }
+            AgentEvent::Retry { attempt, delay_ms, reason } => {
+                Self::Retry { attempt, delay_ms, reason: format!("{:?}", reason) }
+            }
+            AgentEvent::Error { error } => Self::Error { message: error.to_string() },
+            AgentEvent::ToolOutput { call_id, chunk } => {
+                Self::ToolOutput { call_id, chunk: IpcToolOutputChunk::from(chunk) }
+            }
+            AgentEvent::TaskComplete { call_id, verified, outcome } => Self::TaskComplete {
+                call_id,
+                verified,
+                outcome: IpcVerificationOutcome::from(outcome),
+            },
+            AgentEvent::ImageRead { path, bytes } => Self::ImageRead {
+                path: path.clone(),
+                data_url: bytes_to_data_url(&path, &bytes),
+            },
+            AgentEvent::SandboxViolation {
+                call_id,
+                tool_name,
+                resource,
+                policy_rule,
+                os_error,
+            } => Self::SandboxViolation { call_id, tool_name, resource, policy_rule, os_error },
+            AgentEvent::Paused => Self::Paused,
+            AgentEvent::Aborted { reason } => Self::Aborted { reason },
+            AgentEvent::ContextTruncated { dropped_symbols, budget_tokens } => {
+                Self::ContextTruncated { dropped_symbols, budget_tokens }
+            }
+            AgentEvent::IndexProgress { indexed, total } => Self::IndexProgress { indexed, total },
+            AgentEvent::Verification { critic_role, verdict, reason, cost_usd } => {
+                Self::Verification { critic_role, verdict, reason, cost_usd }
+            }
+            AgentEvent::VerifierDisabled { reason, cost_usd } => {
+                Self::VerifierDisabled { reason, cost_usd }
+            }
             _ => Self::Unknown { event_type: "future_variant".to_string() },
         }
     }
@@ -144,17 +242,21 @@ impl From<AgentEvent> for IpcAgentEvent {
 
 /// Infer MIME type from bytes, fall back to path extension.
 pub fn bytes_to_data_url(path: &str, bytes: &[u8]) -> String {
-    let mime = infer::get(bytes)
-        .map(|t| t.mime_type())
-        .unwrap_or_else(|| {
-            match path.rsplit('.').next().unwrap_or("").to_lowercase().as_str() {
-                "png"        => "image/png",
-                "jpg" | "jpeg" => "image/jpeg",
-                "gif"        => "image/gif",
-                "webp"       => "image/webp",
-                _            => "application/octet-stream",
-            }
-        });
+    let mime = infer::get(bytes).map(|t| t.mime_type()).unwrap_or_else(|| {
+        match path
+            .rsplit('.')
+            .next()
+            .unwrap_or("")
+            .to_lowercase()
+            .as_str()
+        {
+            "png" => "image/png",
+            "jpg" | "jpeg" => "image/jpeg",
+            "gif" => "image/gif",
+            "webp" => "image/webp",
+            _ => "application/octet-stream",
+        }
+    });
     let b64 = base64::engine::general_purpose::STANDARD.encode(bytes);
     format!("data:{};base64,{}", mime, b64)
 }
@@ -166,9 +268,7 @@ mod tests {
 
     #[test]
     fn error_maps_to_message_string() {
-        let ev = AgentEvent::Error {
-            error: ProviderError::Stream("connection reset".to_string()),
-        };
+        let ev = AgentEvent::Error { error: ProviderError::Stream("connection reset".to_string()) };
         let ipc = IpcAgentEvent::from(ev);
         match ipc {
             IpcAgentEvent::Error { message } => {
@@ -180,11 +280,7 @@ mod tests {
 
     #[test]
     fn retry_reason_becomes_debug_string() {
-        let ev = AgentEvent::Retry {
-            attempt: 1,
-            delay_ms: 500,
-            reason: RetryReason::RateLimited,
-        };
+        let ev = AgentEvent::Retry { attempt: 1, delay_ms: 500, reason: RetryReason::RateLimited };
         let ipc = IpcAgentEvent::from(ev);
         match ipc {
             IpcAgentEvent::Retry { reason, .. } => {
@@ -202,7 +298,10 @@ mod tests {
         let ipc = IpcAgentEvent::from(ev);
         match ipc {
             IpcAgentEvent::ImageRead { data_url, .. } => {
-                assert!(data_url.starts_with("data:image/png;base64,"), "got: {data_url}");
+                assert!(
+                    data_url.starts_with("data:image/png;base64,"),
+                    "got: {data_url}"
+                );
             }
             other => panic!("expected ImageRead, got {other:?}"),
         }
@@ -252,7 +351,9 @@ mod tests {
         };
         let json = serde_json::to_string(&ev).unwrap();
         let parsed: IpcAgentEvent = serde_json::from_str(&json).unwrap();
-        assert!(matches!(parsed, IpcAgentEvent::SessionSpawned { session_id, .. } if session_id == "test-session-123"));
+        assert!(
+            matches!(parsed, IpcAgentEvent::SessionSpawned { session_id, .. } if session_id == "test-session-123")
+        );
     }
 
     #[test]
@@ -263,7 +364,9 @@ mod tests {
         };
         let json = serde_json::to_string(&ev).unwrap();
         let parsed: IpcAgentEvent = serde_json::from_str(&json).unwrap();
-        assert!(matches!(parsed, IpcAgentEvent::SessionPaused { session_id, .. } if session_id == "test-session-456"));
+        assert!(
+            matches!(parsed, IpcAgentEvent::SessionPaused { session_id, .. } if session_id == "test-session-456")
+        );
     }
 
     #[test]
@@ -274,7 +377,9 @@ mod tests {
         };
         let json = serde_json::to_string(&ev).unwrap();
         let parsed: IpcAgentEvent = serde_json::from_str(&json).unwrap();
-        assert!(matches!(parsed, IpcAgentEvent::SessionResumed { session_id, .. } if session_id == "test-session-789"));
+        assert!(
+            matches!(parsed, IpcAgentEvent::SessionResumed { session_id, .. } if session_id == "test-session-789")
+        );
     }
 
     #[test]
@@ -285,7 +390,9 @@ mod tests {
         };
         let json = serde_json::to_string(&ev).unwrap();
         let parsed: IpcAgentEvent = serde_json::from_str(&json).unwrap();
-        assert!(matches!(parsed, IpcAgentEvent::SessionForked { parent_id, child_id } if parent_id == "parent-abc" && child_id == "child-xyz"));
+        assert!(
+            matches!(parsed, IpcAgentEvent::SessionForked { parent_id, child_id } if parent_id == "parent-abc" && child_id == "child-xyz")
+        );
     }
 
     #[test]
@@ -297,7 +404,9 @@ mod tests {
         };
         let json = serde_json::to_string(&ev).unwrap();
         let parsed: IpcAgentEvent = serde_json::from_str(&json).unwrap();
-        assert!(matches!(parsed, IpcAgentEvent::ApprovalRequested { tool_name, .. } if tool_name == "execute_commands"));
+        assert!(
+            matches!(parsed, IpcAgentEvent::ApprovalRequested { tool_name, .. } if tool_name == "execute_commands")
+        );
     }
 
     #[test]

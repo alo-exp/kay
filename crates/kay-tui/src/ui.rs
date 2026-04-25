@@ -193,8 +193,10 @@ impl App {
             Span::styled(&tool_str, Style::new().fg(Color::Cyan)),
             Span::raw(" | events: "),
             Span::raw(self.session.event_log.len().to_string()),
-            Span::styled(" | ↑↓ navigate | q quit | s settings",
-                Style::new().fg(Color::DarkGray)),
+            Span::styled(
+                " | ↑↓ navigate | q quit | s settings",
+                Style::new().fg(Color::DarkGray),
+            ),
         ]);
 
         let p = Paragraph::new(line)
@@ -283,7 +285,9 @@ impl App {
         let inner = Rect::new(popup_x + 2, popup_y + 2, popup_width - 4, popup_height - 4);
 
         let lines = vec![
-            Line::from(vec![Span::raw("  Tab: [1]Session  [2]Model  [3]Verifier  [4]Sandbox")]),
+            Line::from(vec![Span::raw(
+                "  Tab: [1]Session  [2]Model  [3]Verifier  [4]Sandbox",
+            )]),
             Line::from(vec![Span::raw("")]),
             Line::from(vec![Span::raw("  Model ID: openai/gpt-4o")]),
             Line::from(vec![Span::raw("  Temperature: 0.7")]),

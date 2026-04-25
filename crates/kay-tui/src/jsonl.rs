@@ -407,7 +407,11 @@ mod tests {
         let events: Vec<_> = parser.drain_events();
         // Blank line between content lines is correctly skipped.
         // Non-JSON content lines are logged and skipped per ERR-01.
-        assert_eq!(events.len(), 0, "blank lines skipped; non-JSON lines also skipped per design");
+        assert_eq!(
+            events.len(),
+            0,
+            "blank lines skipped; non-JSON lines also skipped per design"
+        );
     }
 
     #[test]

@@ -79,11 +79,7 @@ impl Default for ProjectSettings {
 
 impl Default for VerifierPolicy {
     fn default() -> Self {
-        Self {
-            enabled: true,
-            max_retries: 3,
-            cost_ceiling_usd: 10.0,
-        }
+        Self { enabled: true, max_retries: 3, cost_ceiling_usd: 10.0 }
     }
 }
 

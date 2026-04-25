@@ -44,7 +44,10 @@ fn all_event_types_parse_from_jsonl() {
     // Spot-check key events (use & for move safety on Vec index)
     assert!(matches!(&parsed[0], TuiEvent::TextDelta { .. }));
     assert!(matches!(&parsed[1], TuiEvent::ToolCallStart { name, .. } if name == "edit_file"));
-    assert!(matches!(&parsed[4], TuiEvent::Usage { prompt_tokens: 100, .. }));
+    assert!(matches!(
+        &parsed[4],
+        TuiEvent::Usage { prompt_tokens: 100, .. }
+    ));
     assert!(matches!(&parsed[6], TuiEvent::Paused));
 }
 
@@ -59,8 +62,16 @@ fn blank_lines_skipped_in_jsonl() {
     parser.feed(b"\n"); // another blank line
     parser.feed(b"{\"type\":\"TextDelta\",\"data\":{\"content\":\"line2\"}}\n");
 
-    let events: Vec<_> = parser.drain_events().into_iter().filter_map(|r| r.ok()).collect();
-    assert_eq!(events.len(), 2, "blank lines should be skipped, only valid JSON parsed");
+    let events: Vec<_> = parser
+        .drain_events()
+        .into_iter()
+        .filter_map(|r| r.ok())
+        .collect();
+    assert_eq!(
+        events.len(),
+        2,
+        "blank lines should be skipped, only valid JSON parsed"
+    );
     assert!(matches!(&events[0], TuiEvent::TextDelta { content } if content == "line1"));
     assert!(matches!(&events[1], TuiEvent::TextDelta { content } if content == "line2"));
 }
@@ -107,12 +118,18 @@ fn partial_jsonl_lines_accumulated() {
     // Step 1: partial line, no newline — should NOT emit
     parser.feed(chunk1.as_bytes());
     let ev1 = parser.next_event();
-    assert!(ev1.is_none(), "should not emit until line is complete. ev1={ev1:?}");
+    assert!(
+        ev1.is_none(),
+        "should not emit until line is complete. ev1={ev1:?}"
+    );
 
     // Step 2: complete the TextDelta, still no newline — should NOT emit yet
     parser.feed(chunk2.as_bytes());
     let ev2 = parser.next_event();
-    assert!(ev2.is_none(), "should not emit without newline. ev2={ev2:?}");
+    assert!(
+        ev2.is_none(),
+        "should not emit without newline. ev2={ev2:?}"
+    );
 
     // Step 3: add newline + second event — now drain both
     parser.feed(chunk3.as_bytes());
@@ -126,5 +143,9 @@ fn partial_jsonl_lines_accumulated() {
     }
     println!("Parsed {} events: {parsed:?}", parsed.len());
 
-    assert_eq!(parsed.len(), 2, "partial lines should be assembled then emitted. got: {parsed:?}");
+    assert_eq!(
+        parsed.len(),
+        2,
+        "partial lines should be assembled then emitted. got: {parsed:?}"
+    );
 }

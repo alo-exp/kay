@@ -14,9 +14,7 @@ use kay_tui::ui::App;
 #[test]
 fn app_handles_text_delta() {
     let mut app = App::new();
-    app.handle_event(TuiEvent::TextDelta {
-        content: "hello world".to_string(),
-    });
+    app.handle_event(TuiEvent::TextDelta { content: "hello world".to_string() });
     // session() is #[cfg(test)] gated on kay_tui, so we access via the
     // internal handle_event state — just verify no panic and still running
     assert!(app.is_running());
@@ -66,9 +64,7 @@ fn app_tracks_active_tool_lifecycle() {
 #[test]
 fn app_routes_unknown_event_types() {
     let mut app = App::new();
-    app.handle_event(TuiEvent::Unknown {
-        event_type: "FutureEvent".to_string(),
-    });
+    app.handle_event(TuiEvent::Unknown { event_type: "FutureEvent".to_string() });
     assert!(app.is_running());
 }
 
@@ -94,9 +90,7 @@ fn app_stop_works() {
 fn app_navigation_updates_selection() {
     let mut app = App::new();
     for i in 0..5 {
-        app.handle_event(TuiEvent::TextDelta {
-            content: format!("event {i}"),
-        });
+        app.handle_event(TuiEvent::TextDelta { content: format!("event {i}") });
     }
     // Initial selection is last event
     let initial = app.selected_index();

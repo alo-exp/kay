@@ -108,11 +108,7 @@ impl ApprovalStore {
     }
 
     /// Checks if approval is needed based on the command approval mode.
-    pub fn needs_approval(
-        &self,
-        tool_name: &str,
-        mode: CommandApproval,
-    ) -> bool {
+    pub fn needs_approval(&self, tool_name: &str, mode: CommandApproval) -> bool {
         match mode {
             CommandApproval::Off => false,
             CommandApproval::OnFirstUse => {
@@ -132,10 +128,7 @@ mod tests {
     fn approval_store_records_decisions() {
         let store = ApprovalStore::new();
         store.record_decision("bash", ApprovalDecision::Approved);
-        assert_eq!(
-            store.get_decision("bash"),
-            Some(ApprovalDecision::Approved)
-        );
+        assert_eq!(store.get_decision("bash"), Some(ApprovalDecision::Approved));
     }
 
     #[test]
@@ -143,10 +136,7 @@ mod tests {
         let store = ApprovalStore::new();
         store.record_decision("bash", ApprovalDecision::Approved);
         store.record_decision("bash", ApprovalDecision::Denied);
-        assert_eq!(
-            store.get_decision("bash"),
-            Some(ApprovalDecision::Denied)
-        );
+        assert_eq!(store.get_decision("bash"), Some(ApprovalDecision::Denied));
     }
 
     #[test]
@@ -163,10 +153,7 @@ mod tests {
             },
         };
         store.add_pending_request(request.clone());
-        assert_eq!(
-            store.take_pending_request("req-1"),
-            Some(request)
-        );
+        assert_eq!(store.take_pending_request("req-1"), Some(request));
         assert_eq!(store.take_pending_request("req-1"), None);
     }
 

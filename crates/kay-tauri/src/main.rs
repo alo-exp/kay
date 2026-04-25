@@ -17,7 +17,10 @@ fn main() {
     #[cfg(debug_assertions)]
     builder
         .clone()
-        .export(Typescript::default(), concat!(env!("CARGO_MANIFEST_DIR"), "/ui/src/bindings.ts"))
+        .export(
+            Typescript::default(),
+            concat!(env!("CARGO_MANIFEST_DIR"), "/ui/src/bindings.ts"),
+        )
         .expect("failed to export tauri-specta bindings");
 
     tauri::Builder::default()

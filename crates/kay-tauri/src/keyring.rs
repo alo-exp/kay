@@ -73,10 +73,14 @@ pub mod macos {
             let output = Command::new("security")
                 .args([
                     "add-generic-password",
-                    "-s", KAY_KEYRING_SERVICE,
-                    "-a", alias,
-                    "-w", key,
-                    "-D", "Kay API Key",
+                    "-s",
+                    KAY_KEYRING_SERVICE,
+                    "-a",
+                    alias,
+                    "-w",
+                    key,
+                    "-D",
+                    "Kay API Key",
                 ])
                 .output()
                 .map_err(|_e| KeyringError::Unavailable)?;
@@ -101,8 +105,10 @@ pub mod macos {
             let output = Command::new("security")
                 .args([
                     "find-generic-password",
-                    "-s", KAY_KEYRING_SERVICE,
-                    "-a", alias,
+                    "-s",
+                    KAY_KEYRING_SERVICE,
+                    "-a",
+                    alias,
                     "-w",
                 ])
                 .output()
@@ -131,8 +137,10 @@ pub mod macos {
             let output = Command::new("security")
                 .args([
                     "delete-generic-password",
-                    "-s", KAY_KEYRING_SERVICE,
-                    "-a", alias,
+                    "-s",
+                    KAY_KEYRING_SERVICE,
+                    "-a",
+                    alias,
                 ])
                 .output()
                 .map_err(|_e| KeyringError::Unavailable)?;
@@ -170,8 +178,8 @@ pub mod linux {
         }
 
         fn fallback_path(alias: &str) -> std::path::PathBuf {
-            let config_dir = std::env::var("XDG_CONFIG_HOME")
-                .unwrap_or_else(|_| "~/.config".to_string());
+            let config_dir =
+                std::env::var("XDG_CONFIG_HOME").unwrap_or_else(|_| "~/.config".to_string());
             std::path::PathBuf::from(config_dir)
                 .join("kay")
                 .join("keys")
@@ -181,30 +189,26 @@ pub mod linux {
         fn fallback_store(&self, alias: &str, key: &str) -> KeyringResult<()> {
             let path = Self::fallback_path(alias);
             if let Some(parent) = path.parent() {
-                std::fs::create_dir_all(parent)
-                    .map_err(|e| KeyringError::Other(e.to_string()))?;
+                std::fs::create_dir_all(parent).map_err(|e| KeyringError::Other(e.to_string()))?;
             }
-            std::fs::write(&path, key)
-                .map_err(|e| KeyringError::Other(e.to_string()))?;
+            std::fs::write(&path, key).map_err(|e| KeyringError::Other(e.to_string()))?;
             Ok(())
         }
 
         fn fallback_retrieve(&self, alias: &str) -> KeyringResult<String> {
             let path = Self::fallback_path(alias);
-            std::fs::read_to_string(&path)
-                .map_err(|e| match e.kind() {
-                    std::io::ErrorKind::NotFound => KeyringError::NotFound,
-                    _ => KeyringError::Other(e.to_string()),
-                })
+            std::fs::read_to_string(&path).map_err(|e| match e.kind() {
+                std::io::ErrorKind::NotFound => KeyringError::NotFound,
+                _ => KeyringError::Other(e.to_string()),
+            })
         }
 
         fn fallback_delete(&self, alias: &str) -> KeyringResult<()> {
             let path = Self::fallback_path(alias);
-            std::fs::remove_file(&path)
-                .map_err(|e| match e.kind() {
-                    std::io::ErrorKind::NotFound => KeyringError::NotFound,
-                    _ => KeyringError::Other(e.to_string()),
-                })
+            std::fs::remove_file(&path).map_err(|e| match e.kind() {
+                std::io::ErrorKind::NotFound => KeyringError::NotFound,
+                _ => KeyringError::Other(e.to_string()),
+            })
         }
     }
 
@@ -218,7 +222,14 @@ pub mod linux {
         fn store(&self, alias: &str, key: &str) -> KeyringResult<()> {
             // Try secret-tool first (requires libsecret)
             let output = std::process::Command::new("secret-tool")
-                .args(["store", "--label=Kay", "service", KAY_KEYRING_SERVICE, "account", alias])
+                .args([
+                    "store",
+                    "--label=Kay",
+                    "service",
+                    KAY_KEYRING_SERVICE,
+                    "account",
+                    alias,
+                ])
                 .input(std::process::Stdio::piped())
                 .output();
 
@@ -322,7 +333,9 @@ pub mod windows {
                 if stdout.contains(&target) {
                     // Credential exists, but we can't read it via cmdkey
                     // In practice, we'd use the Windows API here
-                    Err(KeyringError::Other("Credential found but cannot read via CLI".to_string()))
+                    Err(KeyringError::Other(
+                        "Credential found but cannot read via CLI".to_string(),
+                    ))
                 } else {
                     Err(KeyringError::NotFound)
                 }

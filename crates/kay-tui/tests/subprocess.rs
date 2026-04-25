@@ -69,11 +69,9 @@ async fn stop_terminates_subprocess() {
     // Use /bin/echo to create a short-lived subprocess that outputs JSONL.
     // This verifies the subprocess lifecycle without needing a mock script.
     let echo_path = std::path::PathBuf::from("/bin/echo");
-    let result = KaySubprocess::spawn_with_cli_path(
-        &["Testing kay-tui subprocess".into()],
-        &echo_path,
-    )
-    .await;
+    let result =
+        KaySubprocess::spawn_with_cli_path(&["Testing kay-tui subprocess".into()], &echo_path)
+            .await;
 
     // If /bin/echo exists (should on all Unix), verify it spawns successfully.
     if result.is_ok() {
@@ -81,7 +79,8 @@ async fn stop_terminates_subprocess() {
         // Drain any events (may get 0 or 1 from echo output).
         let _ = tokio::time::timeout(Duration::from_secs(1), async {
             while rx.recv().await.is_some() {}
-        }).await;
+        })
+        .await;
         // Stop should complete within timeout.
         let stop_result = tokio::time::timeout(Duration::from_secs(3), sub.stop()).await;
         assert!(stop_result.is_ok(), "stop should complete within timeout");

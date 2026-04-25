@@ -63,6 +63,9 @@ fn four_hour_ipc_canary() {
         ticks += 1;
         let delta_mb = process_rss_bytes().saturating_sub(baseline) / (1024 * 1024);
         eprintln!("[canary tick {ticks}] RSS delta: +{delta_mb}MB");
-        assert!(delta_mb < 50, "RSS leak detected: +{delta_mb}MB after {ticks} ticks");
+        assert!(
+            delta_mb < 50,
+            "RSS leak detected: +{delta_mb}MB after {ticks} ticks"
+        );
     }
 }

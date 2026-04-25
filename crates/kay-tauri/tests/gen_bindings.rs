@@ -11,8 +11,7 @@
 fn export_tauri_bindings() {
     use std::io::Write;
 
-    let bindings_path =
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("ui/src/bindings.ts");
+    let bindings_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("ui/src/bindings.ts");
 
     // Export via specta (clears + regenerates the file)
     tauri_specta::Builder::<tauri::Wry>::new()
@@ -46,10 +45,25 @@ export type Value = "Null" | { Bool: boolean } | { String: string } | { Number: 
 fn bindings_contain_expected_commands() {
     let bindings = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/ui/src/bindings.ts"));
     // Verify the three Phase 9 IPC commands are in the bindings
-    assert!(bindings.contains("startSession:"), "startSession command missing");
-    assert!(bindings.contains("stopSession:"), "stopSession command missing");
-    assert!(bindings.contains("getSessionStatus:"), "getSessionStatus command missing");
+    assert!(
+        bindings.contains("startSession:"),
+        "startSession command missing"
+    );
+    assert!(
+        bindings.contains("stopSession:"),
+        "stopSession command missing"
+    );
+    assert!(
+        bindings.contains("getSessionStatus:"),
+        "getSessionStatus command missing"
+    );
     // Verify IpcAgentEvent type is exported
-    assert!(bindings.contains("IpcAgentEvent"), "IpcAgentEvent type missing");
-    assert!(bindings.contains("SessionStatus"), "SessionStatus type missing");
+    assert!(
+        bindings.contains("IpcAgentEvent"),
+        "IpcAgentEvent type missing"
+    );
+    assert!(
+        bindings.contains("SessionStatus"),
+        "SessionStatus type missing"
+    );
 }
