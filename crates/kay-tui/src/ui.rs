@@ -35,6 +35,8 @@ pub struct App {
     started_at: Instant,
     /// Whether the app is running.
     running: bool,
+    /// Whether the settings overlay is shown.
+    show_settings: bool,
     /// Subprocess handle (if spawned).
     #[allow(unused)]
     subprocess: Option<crate::subprocess::KaySubprocess>,
@@ -55,6 +57,7 @@ impl App {
             list_state: ListState::default(),
             started_at: Instant::now(),
             running: true,
+            show_settings: false,
             subprocess: None,
         }
     }
@@ -102,6 +105,9 @@ impl App {
             KeyCode::Char('q') | KeyCode::Esc => {
                 self.running = false;
             }
+            KeyCode::Char('s') => {
+                self.show_settings = !self.show_settings;
+            }
             _ => {}
         }
     }
@@ -148,6 +154,11 @@ impl App {
         self.render_header(frame, chunks[0]);
         self.render_event_log(frame, chunks[1]);
         self.render_footer(frame, chunks[2]);
+
+        // Render settings overlay if visible
+        if self.show_settings {
+            self.render_settings_overlay(frame, area);
+        }
     }
 
     fn render_header(&self, frame: &mut Frame<'_>, area: Rect) {
@@ -182,7 +193,8 @@ impl App {
             Span::styled(&tool_str, Style::new().fg(Color::Cyan)),
             Span::raw(" | events: "),
             Span::raw(self.session.event_log.len().to_string()),
-            Span::styled(" | ↑↓ navigate | q quit", Style::new().fg(Color::DarkGray)),
+            Span::styled(" | ↑↓ navigate | q quit | s settings",
+                Style::new().fg(Color::DarkGray)),
         ]);
 
         let p = Paragraph::new(line)
@@ -243,6 +255,48 @@ impl App {
             .alignment(ratatui::layout::Alignment::Center);
 
         frame.render_widget(p, area);
+    }
+
+    fn render_settings_overlay(&self, frame: &mut Frame<'_>, area: Rect) {
+        use ratatui::widgets::Clear;
+
+        // Calculate centered popup size (60% width, 50% height)
+        let popup_width = (area.width * 60 / 100).max(40);
+        let popup_height = (area.height * 50 / 100).max(15);
+        let popup_x = (area.width - popup_width) / 2;
+        let popup_y = (area.height - popup_height) / 2;
+
+        let popup_area = Rect::new(popup_x, popup_y, popup_width, popup_height);
+
+        // Draw semi-transparent background
+        frame.render_widget(Clear, popup_area);
+
+        // Draw popup border
+        let block = Block::default()
+            .title(" Settings ")
+            .borders(Borders::ALL)
+            .style(Style::new().bg(Color::Rgb(40, 40, 50)).fg(Color::White));
+
+        frame.render_widget(block, popup_area);
+
+        // Inner content area
+        let inner = Rect::new(popup_x + 2, popup_y + 2, popup_width - 4, popup_height - 4);
+
+        let lines = vec![
+            Line::from(vec![Span::raw("  Tab: [1]Session  [2]Model  [3]Verifier  [4]Sandbox")]),
+            Line::from(vec![Span::raw("")]),
+            Line::from(vec![Span::raw("  Model ID: openai/gpt-4o")]),
+            Line::from(vec![Span::raw("  Temperature: 0.7")]),
+            Line::from(vec![Span::raw("  Approval: First use per tool")]),
+            Line::from(vec![Span::raw("")]),
+            Line::from(vec![Span::raw("  Press [s] to close | [Enter] to save")]),
+        ];
+
+        let content = Paragraph::new(lines)
+            .style(Style::new().fg(Color::White))
+            .wrap(Wrap { trim: false });
+
+        frame.render_widget(content, inner);
     }
 }
 

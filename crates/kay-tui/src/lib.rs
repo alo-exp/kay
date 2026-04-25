@@ -9,6 +9,7 @@
 
 pub mod events;
 pub mod jsonl;
+pub mod session_manager;
 pub mod state;
 pub mod subprocess;
 pub mod ui;
