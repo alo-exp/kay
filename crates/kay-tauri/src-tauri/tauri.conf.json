@@ -33,5 +33,16 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "RWQZJZ7V3Us1ja4V1TQk+VjeP11xLUJ8+GmaEDTAOuco9Hw7knmZAOQH",
+      "endpoints": [
+        "https://github.com/alo-exp/kay/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
   }
 }

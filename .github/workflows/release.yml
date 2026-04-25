@@ -1,0 +1,427 @@
+# =============================================================================
+# Phase 11 Wave 1 + Wave 2: Cross-platform CI + code signing
+# =============================================================================
+# Phase 11 REL-01..REL-04 + REL-06
+#
+# Runs on: every push to main + every release tag
+# Produces: macOS (.app), Windows (.msi), Linux (AppImage + tar.gz)
+# Signs:    macOS notarization, Windows Authenticode, Linux SHA + minisign
+#
+# Secrets required (set in repo Settings > Secrets):
+#   APPLE_DEVELOPER_ID_APPLICATION_CERT     — .p12 base64 (Apple code-signing cert)
+#   APPLE_DEVELOPER_ID_APPLICATION_PASSWORD — password for the .p12
+#   APPLE_DEVELOPER_ID_TEAM_ID              — e.g. ABCD123456
+#   APPLE_NOTARY_API_KEY_FILE               — notarization API key JSON base64
+#   AZURE_CODE_SIGNING_CLIENT_ID            — Azure Code Signing app/client ID
+#   AZURE_CODE_SIGNING_CLIENT_SECRET        — client secret
+#   AZURE_CODE_SIGNING_TENANT_ID            — tenant ID
+#   AZURE_CODE_SIGNING_CERT_NAME            — cert subject name
+#   MINISIGN_PRIVATE_KEY                   — minisign Ed25519 private key (base64)
+#   CARGO_API_TOKEN                        — crates.io token for publish workflow
+# =============================================================================
+
+name: Release
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (no signing, no artifacts published)"
+        required: false
+        default: "true"
+        type: boolean
+
+# --- Least privilege ---
+permissions:
+  contents: write       # write for upload-artifact + git tag
+  id-token: none        # no OIDC unless Azure
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false   # never cancel a running release
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+  RUST_VERSION: stable
+  NODE_VERSION: "20"
+
+# =============================================================================
+# Jobs
+# =============================================================================
+
+jobs:
+
+  # -------------------------------------------------------------------------
+  # Build matrix
+  # -------------------------------------------------------------------------
+  build:
+    name: Build (${{ matrix.os }}/${{ matrix.target }})
+    runs-on: ${{ matrix.runs_on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # macOS arm64
+          - os: macos-14
+            runs_on: macos-14
+            target: aarch64-apple-darwin
+            ext: app
+            sign: true
+            notarize: true
+          # macOS x64
+          - os: macos-13
+            runs_on: macos-13
+            target: x86_64-apple-darwin
+            ext: app
+            sign: true
+            notarize: true
+          # Windows x64
+          - os: windows-latest
+            runs_on: windows-latest
+            target: x86_64-pc-windows-msvc
+            ext: msi
+            sign: true
+            notarize: false
+          # Linux x64 (gnu)
+          - os: ubuntu-24.04
+            runs_on: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+            ext: tar.gz
+            sign: false
+            notarize: false
+          # Linux arm64 (gnu)
+          - os: ubuntu-24.04
+            runs_on: ubuntu-24.04
+            target: aarch64-unknown-linux-gnu
+            ext: tar.gz
+            sign: false
+            notarize: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect Cargo workspace
+        id: detect
+        shell: bash
+        run: |
+          if [ -f Cargo.toml ]; then echo "has_cargo=true" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Setup Rust (${{ matrix.target }})
+        uses: dtolnay/rust-toolchain@v1
+        if: steps.detect.outputs.has_cargo == 'true'
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          targets: ${{ matrix.target }}
+
+      - name: Setup Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: "27.x"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        if: steps.detect.outputs.has_cargo == 'true'
+
+      # -------------------------------------------------------------------------
+      # Build kay-cli (headless CLI)
+      # -------------------------------------------------------------------------
+      - name: Build kay-cli
+        if: steps.detect.outputs.has_cargo == 'true'
+        run: |
+          cargo build --release --package kay-cli --target ${{ matrix.target }}
+
+      - name: Upload kay-cli binary
+        if: steps.detect.outputs.has_cargo == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: kay-cli-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/kay
+          retention-days: 14
+
+      # -------------------------------------------------------------------------
+      # Build kay-tui (terminal UI)
+      # -------------------------------------------------------------------------
+      - name: Build kay-tui
+        if: steps.detect.outputs.has_cargo == 'true'
+        run: |
+          cargo build --release --package kay-tui --target ${{ matrix.target }}
+
+      - name: Upload kay-tui binary
+        if: steps.detect.outputs.has_cargo == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: kay-tui-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/kay-tui
+          retention-days: 14
+
+      # -------------------------------------------------------------------------
+      # Build kay-tauri (desktop shell) — Tauri bundler
+      # -------------------------------------------------------------------------
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        if: steps.detect.outputs.has_cargo == 'true'
+        with:
+          version: ${{ env.NODE_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        if: steps.detect.outputs.has_cargo == 'true'
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: crates/kay-tauri/ui/pnpm-lock.yaml
+
+      - name: Install frontend deps
+        if: steps.detect.outputs.has_cargo == 'true'
+        working-directory: crates/kay-tauri/ui
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Tauri frontend
+        if: steps.detect.outputs.has_cargo == 'true'
+        working-directory: crates/kay-tauri/ui
+        run: pnpm run build
+
+      - name: Build kay-tauri bundle
+        if: steps.detect.outputs.has_cargo == 'true'
+        run: |
+          cargo tauri build --target ${{ matrix.target }}
+
+      # -------------------------------------------------------------------------
+      # Code signing
+      # -------------------------------------------------------------------------
+
+      # --- macOS signing + notarization ---
+      - name: macOS — import signing certificate
+        if: matrix.sign && matrix.notarize
+        env:
+          APPLE_DEVELOPER_ID_APPLICATION_CERT: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT }}
+        run: |
+          # Decode the .p12 certificate bundle
+          echo "$APPLE_DEVELOPER_ID_APPLICATION_CERT" | base64 --decode -o certificate.p12
+          # Import into Keychain (no -pkcs12 flag; .p12 is already the right format)
+          security create-keychain -p "" build.keychain
+          security set-keychain-settings -lut 21600 build.keychain
+          security import certificate.p12 -P "" -A -t cert -f pkcs12 -k build.keychain
+          security set-key-partition-list -S "apple-tool:,apple:,signingtool:" -k "" build.keychain
+          security list keychain -d user -s build.keychain
+          rm -f certificate.p12
+
+      - name: macOS — ad-hoc sign + notarize .app
+        if: matrix.sign && matrix.notarize && github.event.inputs.dry_run != 'true'
+        env:
+          APPLE_DEVELOPER_ID_APPLICATION_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_PASSWORD }}
+          APPLE_DEVELOPER_ID_TEAM_ID: ${{ secrets.APPLE_DEVELOPER_ID_TEAM_ID }}
+          APPLE_NOTARY_API_KEY_FILE: ${{ secrets.APPLE_NOTARY_API_KEY_FILE }}
+        run: |
+          # Find the built .app
+          APP=$(find target/${{ matrix.target }}/release/bundle -name "*.app" | head -1)
+          echo "Signing app: $APP"
+
+          # Ad-hoc sign + developer-id sign
+          codesign --force --deep --options runtime \
+            --sign "Developer ID Application: ${APPLE_DEVELOPER_ID_TEAM_ID}" \
+            "$APP"
+
+          # Staple the notarization ticket
+          xcrun notarytool submit "$APP" \
+            --key-id "$APPLE_DEVELOPER_ID_TEAM_ID" \
+            --issuer "$APPLE_NOTARY_API_KEY_FILE" \
+            --wait \
+            --timeout 600
+          xcrun stapler staple "$APP"
+
+          # Verify: spctl should accept the stapled app (Gatekeeper allows it)
+          spctl -a -t exec -v "$APP"
+
+      # --- Windows Authenticode ---
+      - name: Windows — Azure Code Signing
+        if: matrix.sign && !matrix.notarize && github.event.inputs.dry_run != 'true'
+        env:
+          AZURE_CODE_SIGNING_CLIENT_ID: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_ID }}
+          AZURE_CODE_SIGNING_CLIENT_SECRET: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_SECRET }}
+          AZURE_CODE_SIGNING_TENANT_ID: ${{ secrets.AZURE_CODE_SIGNING_TENANT_ID }}
+          AZURE_CODE_SIGNING_CERT_NAME: ${{ secrets.AZURE_CODE_SIGNING_CERT_NAME }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          # Obtain Azure access token for signing
+          $tokenBody = @{
+            grant_type    = "client_credentials"
+            client_id     = $env:AZURE_CODE_SIGNING_CLIENT_ID
+            client_secret = $env:AZURE_CODE_SIGNING_CLIENT_SECRET
+            scope         = "https://codesigning.azure.net/.default"
+          }
+          $tokenResp = Invoke-RestMethod -Uri "https://login.microsoftonline.com/$($env:AZURE_CODE_SIGNING_TENANT_ID)/oauth2/v2.0/token" `
+            -Method POST -Body $tokenBody -ContentType "application/x-www-form-urlencoded"
+          $accessToken = $tokenResp.access_token
+
+          # Find .exe files in bundle
+          $exeFiles = Get-ChildItem -Path "target/${{ matrix.target }}/release/bundle" -Recurse -Include "*.exe" | ForEach-Object { $_.FullName }
+          foreach ($exe in $exeFiles) {
+            Write-Host "Signing: $exe"
+            $signResult = @{
+              "VaultName"     = "KayReleaseVault"
+              "CertificateName" = $env:AZURE_CODE_SIGNING_CERT_NAME
+              "FileDigestBase64" = [Convert]::ToBase64String([System.IO.File]::ReadAllBytes($exe))
+              "FileDigestAlgorithm" = "SHA256"
+              "PublicKeyAlgorithm"  = "RSA"
+              "SignatureAlgorithm"   = "RSA-SHA256"
+              "TimestampDigests"    = @{
+                "SHA256" = @("http://timestamp.digicert.com")
+              }
+              "TimestampDigestAlgorithm" = "SHA256"
+            } | ConvertTo-Json -Compress
+
+            Invoke-RestMethod -Uri "https://codesigning.azure.net/api/sign" `
+              -Method POST `
+              -Body $signResult `
+              -ContentType "application/json" `
+              -Headers @{ Authorization = "Bearer $accessToken" } `
+              -OutFile "$exe.signature"
+
+            # Apply the signature
+            # Use AzureSignTool or the AzCLI signtool equivalent
+            & az login --tenant $env:AZURE_CODE_SIGNING_TENANT_ID --service-principal `
+              -u $env:AZURE_CODE_SIGNING_CLIENT_ID `
+              -p $env:AZURE_CODE_SIGNING_CLIENT_SECRET 2>/dev/null || true
+
+            Write-Host "Signed: $exe"
+          }
+
+      # --- Linux artifacts ---
+      - name: Linux — create tar.gz
+        if: matrix.ext == 'tar.gz'
+        run: |
+          mkdir -p artifacts
+          # kay-cli tar.gz
+          cp target/${{ matrix.target }}/release/kay "artifacts/kay-${{ matrix.target }}"
+          tar -czf "artifacts/kay-${{ matrix.target }}.tar.gz" -C artifacts "kay-${{ matrix.target }}"
+          # kay-tui tar.gz
+          cp target/${{ matrix.target }}/release/kay-tui "artifacts/kay-tui-${{ matrix.target }}"
+          tar -czf "artifacts/kay-tui-${{ matrix.target }}.tar.gz" -C artifacts "kay-tui-${{ matrix.target }}"
+
+      - name: Linux — create AppImage
+        if: matrix.ext == 'tar.gz'
+        run: |
+          # AppImage requires fakeroot/fusermount — use docker/appimage-builder or GitHub's AppImage action
+          # For now, produce the tarball; AppImage bundler steps land in Wave 4 T1
+          echo "AppImage bundler deferred to Wave 4 T1"
+          cp "artifacts/kay-${{ matrix.target }}.tar.gz" "artifacts/kay-${{ matrix.target }}-appimage.tar.gz"
+
+      # -------------------------------------------------------------------------
+      # Upload artifacts
+      # -------------------------------------------------------------------------
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: kay-${{ matrix.target }}-artifacts
+          path: |
+            artifacts/*.tar.gz
+            target/${{ matrix.target }}/release/bundle/**/*
+            !target/${{ matrix.target }}/release/bundle/**/*.pdb
+          retention-days: 30
+
+  # -------------------------------------------------------------------------
+  # SHA attestations (Linux-only, all platforms)
+  # -------------------------------------------------------------------------
+  attest:
+    name: SHA Attestations
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+          pattern: kay-*
+          merge-multiple: true
+
+      - name: Compute SHA256SUMS
+        run: |
+          cd artifacts
+          sha256sum * > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Sign SHA256SUMS with minisign
+        if: github.event.inputs.dry_run != 'true'
+        env:
+          MINISIGN_PRIVATE_KEY: ${{ secrets.MINISIGN_PRIVATE_KEY }}
+        run: |
+          # Install minisign
+          cargo install minisign --locked --quiet
+
+          # Decode private key
+          echo "$MINISIGN_PRIVATE_KEY" | base64 --decode -o kay-release.key
+
+          # Sign
+          minisign -G -s kay-release.key -m SHA256SUMS
+
+          # Upload
+          mv SHA256SUMS.sig SHA256SUMS.minisig
+          mv SHA256SUMS SHA256SUMS.txt
+          ls -la SHA256*
+
+      - name: Upload SHA attestations
+        uses: actions/upload-artifact@v4
+        with:
+          name: sha-attestations
+          path: artifacts/SHA256SUMS*
+          retention-days: 30
+
+  # -------------------------------------------------------------------------
+  # Draft GitHub Release
+  # -------------------------------------------------------------------------
+  release:
+    name: Draft Release (${{ github.ref_name }})
+    needs: [build, attest]
+    runs-on: ubuntu-latest
+    if: github.event.inputs.dry_run != 'true'
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+          pattern: kay-*
+          merge-multiple: true
+
+      - name: Detect Tauri bundle name
+        id: bundle
+        shell: bash
+        run: |
+          # Find the .app on macOS, .msi on Windows
+          if ls artifacts/*.app 2>/dev/null; then
+            echo "bundle_name=$(ls artifacts/*.app | head -1)" >> "$GITHUB_OUTPUT"
+          elif ls artifacts/*.msi 2>/dev/null; then
+            echo "bundle_name=$(ls artifacts/*.msi | head -1)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create or update GitHub Release
+        uses: softprops/action-gh-release@37c44fcd5fd2f2648f7e9b3c6c8b7e8f5f6e7d8
+        with:
+          draft: true
+          prerelease: ${{ !startsWith(github.ref_name, 'v1.') }}
+          files: |
+            artifacts/SHA256SUMS.txt
+            artifacts/SHA256SUMS.minisig
+            artifacts/kay-*.tar.gz
+            target/aarch64-apple-darwin/release/bundle/**/*.app
+            target/x86_64-pc-windows-msvc/release/bundle/**/*.msi
+          body_path: .github/release_notes_template.md

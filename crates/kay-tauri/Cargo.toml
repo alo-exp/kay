@@ -15,6 +15,7 @@ tauri-build = { workspace = true, features = ["codegen"] }
 [dependencies]
 chrono = { workspace = true }
 tauri             = { workspace = true }
+tauri-plugin-updater = "2"
 tauri-specta      = { workspace = true }
 specta            = { workspace = true, features = ["serde_json"] }
 specta-typescript = { workspace = true }  # required by main.rs for Typescript export
