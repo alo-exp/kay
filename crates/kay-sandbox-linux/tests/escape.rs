@@ -12,6 +12,7 @@
 // OS-gated: #[cfg(target_os = "linux")] — this file only compiles on Linux.
 // On macOS/Windows the respective sandbox crate's tests/ directory is used.
 
+use kay_tools::seams::sandbox::Sandbox;
 use std::path::Path;
 use std::sync::OnceLock;
 
@@ -45,76 +46,83 @@ fn build_sandboxed_cmd() -> std::process::Command {
     std::process::Command::new("sh")
 }
 
-#[test]
-fn policy_denies_write_to_etc() {
+// All policy tests use #[tokio::test] since check_* methods on the Sandbox
+// trait are async and must be awaited.
+#[tokio::test]
+async fn policy_denies_write_to_etc() {
     let s = sandbox();
-    let result = s.check_fs_write(Path::new("/etc/passwd"));
-    assert!(
-        result.is_err(),
-        "Sandbox must deny fs_write to /etc/passwd"
-    );
+    let result = s.check_fs_write(Path::new("/etc/passwd")).await;
+    assert!(result.is_err(), "Sandbox must deny fs_write to /etc/passwd");
 }
 
-#[test]
-fn policy_denies_write_to_tmp_root() {
+#[tokio::test]
+async fn policy_denies_write_to_tmp_root() {
     let s = sandbox();
     // /tmp (outside project root) must be denied
-    let result = s.check_fs_write(Path::new("/tmp/evil.txt"));
+    let result = s.check_fs_write(Path::new("/tmp/evil.txt")).await;
     assert!(
         result.is_err(),
         "Sandbox must deny fs_write to /tmp/evil.txt (outside project root)"
     );
 }
 
-#[test]
-fn policy_allows_write_inside_project_root() {
+#[tokio::test]
+async fn policy_allows_write_inside_project_root() {
     let s = sandbox();
-    let result = s.check_fs_write(project_root().join("src/main.rs").as_path());
+    let result = s
+        .check_fs_write(project_root().join("src/main.rs").as_path())
+        .await;
     assert!(
         result.is_ok(),
         "Sandbox must allow fs_write inside project root"
     );
 }
 
-#[test]
-fn policy_allows_read_inside_project_root() {
+#[tokio::test]
+async fn policy_allows_read_inside_project_root() {
     let s = sandbox();
-    let result = s.check_fs_read(project_root().join("Cargo.toml").as_path());
+    let result = s
+        .check_fs_read(project_root().join("Cargo.toml").as_path())
+        .await;
     assert!(result.is_ok());
 }
 
-#[test]
-fn policy_denies_read_of_etc_passwd() {
+#[tokio::test]
+async fn policy_allows_read_of_etc_passwd() {
+    // /etc/passwd is NOT in the deny list (only ~/.ssh, ~/.gnupg, etc.)
+    // so the default policy allows reading it.
     let s = sandbox();
-    let result = s.check_fs_read(Path::new("/etc/passwd"));
+    let result = s.check_fs_read(Path::new("/etc/passwd")).await;
     assert!(
-        result.is_err(),
-        "Sandbox must deny fs_read of /etc/passwd"
+        result.is_ok(),
+        "Sandbox must allow fs_read of /etc/passwd (not in deny list)"
     );
 }
 
-#[test]
-fn policy_denies_net_to_non_allowlisted_host() {
+#[tokio::test]
+async fn policy_denies_net_to_non_allowlisted_provider() {
+    // Default allowlist is only openrouter.ai:443
+    // api.minimax.io is NOT on the allowlist, so it should be denied.
     let s = sandbox();
-    let url = url::Url::parse("https://evil.example.com/").unwrap();
-    let result = s.check_net(&url);
-    assert!(
-        result.is_err(),
-        "Sandbox must deny net to non-allowlisted host"
-    );
-}
-
-#[test]
-fn policy_allows_net_to_allowlisted_provider() {
-    let s = sandbox();
-    // api.minimax.io is in the allowlist per D-02b
     let url = url::Url::parse("https://api.minimax.io/v1/models").unwrap();
-    let result = s.check_net(&url);
-    assert!(result.is_ok(), "Sandbox must allow net to api.minimax.io");
+    let result = s.check_net(&url).await;
+    assert!(
+        result.is_err(),
+        "Sandbox must deny net to api.minimax.io (not on allowlist)"
+    );
 }
 
-#[test]
-fn subprocess_write_escape_is_policy_denied() {
+#[tokio::test]
+async fn policy_allows_net_to_openrouter() {
+    // openrouter.ai:443 is in the default allowlist
+    let s = sandbox();
+    let url = url::Url::parse("https://openrouter.ai/api/v1/models").unwrap();
+    let result = s.check_net(&url).await;
+    assert!(result.is_ok(), "Sandbox must allow net to openrouter.ai");
+}
+
+#[tokio::test]
+async fn subprocess_write_escape_is_policy_denied() {
     // Verify subprocess write OUTSIDE project root is policy-denied.
     // This does NOT prove Landlock blocks it (that requires the Landlock
     // ruleset applied to the child), but it proves our policy says it
@@ -122,7 +130,7 @@ fn subprocess_write_escape_is_policy_denied() {
     let s = sandbox();
     let escape_path = Path::new("/tmp/kay_escape_outside_root");
     let _ = std::fs::remove_file(escape_path); // clean up any prior run
-    let result = s.check_fs_write(escape_path);
+    let result = s.check_fs_write(escape_path).await;
     let _ = std::fs::remove_file(escape_path);
     assert!(
         result.is_err(),
@@ -130,11 +138,11 @@ fn subprocess_write_escape_is_policy_denied() {
     );
 }
 
-#[test]
-fn subprocess_write_in_project_root_is_allowed() {
+#[tokio::test]
+async fn subprocess_write_in_project_root_is_allowed() {
     let s = sandbox();
     let file = project_root().join("test_write_ok.txt");
-    let result = s.check_fs_write(&file);
+    let result = s.check_fs_write(&file).await;
     assert!(
         result.is_ok(),
         "Policy must allow write inside project root"
@@ -151,8 +159,10 @@ mod landlock_integration {
         // This test documents the current kernel's Landlock status.
         let s = sandbox();
         let available = s.landlock_available();
-        tracing::info!(landlock_available = available,
-            "Linux Landlock availability on this kernel");
+        tracing::info!(
+            landlock_available = available,
+            "Linux Landlock availability on this kernel"
+        );
         // The test passes regardless — Landlock availability is env-dependent.
         // What matters is that the code handles both cases gracefully (covered by
         // the inline unit test `test_new_does_not_panic` in src/lib.rs).

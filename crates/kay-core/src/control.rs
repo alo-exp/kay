@@ -253,7 +253,9 @@ mod unit {
     #[tokio::test]
     async fn control_channel_send_and_receive_resume() {
         let (tx, mut rx) = control_channel();
-        tx.send(ControlMsg::Resume).await.expect("send must succeed");
+        tx.send(ControlMsg::Resume)
+            .await
+            .expect("send must succeed");
         let received = rx.recv().await;
         assert_eq!(received, Some(ControlMsg::Resume));
     }
@@ -273,13 +275,17 @@ mod unit {
         assert_eq!(rx.recv().await, None);
     }
 
-    #[test]
-    fn install_ctrl_c_handler_returns_ok() {
+    #[tokio::test]
+    async fn install_ctrl_c_handler_returns_ok() {
         // install_ctrl_c_handler must not panic — it installs the signal handler.
         // The actual SIGINT delivery is tested by kay-cli's
         // exit_code_130_on_sigint_nix E2E subprocess test.
         let (tx, _rx) = control_channel();
         let result = install_ctrl_c_handler(tx);
-        assert!(result.is_ok(), "install_ctrl_c_handler must succeed: {:?}", result);
+        assert!(
+            result.is_ok(),
+            "install_ctrl_c_handler must succeed: {:?}",
+            result
+        );
     }
 }
