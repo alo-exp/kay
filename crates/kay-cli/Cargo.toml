@@ -47,6 +47,10 @@ forge_domain = { path = "../forge_domain" }
 # Offline scenarios never produce errors, but the channel type needs it.
 kay-provider-errors = { path = "../kay-provider-errors" }
 
+# MiniMax (OpenRouter-compatible) provider for live smoke testing (M12 Phase 2).
+# Wired behind `kay run --live` flag. Not required for offline E2E tests.
+kay-provider-openrouter = { path = "../kay-provider-openrouter" }
+
 # Serialization (JSONL event stream + YAML persona loader)
 serde = { workspace = true }
 serde_json = { workspace = true }

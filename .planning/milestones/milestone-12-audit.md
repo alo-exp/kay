@@ -99,29 +99,30 @@ Phase 09.1 focused on forge_* crates. Kay-specific gaps not covered:
 
 ## Live API Testing Gaps
 
-| Gap | Severity |
-|-----|----------|
-| No test anywhere makes a real API call (MiniMax or otherwise) | CRITICAL |
-| `kay run` only uses offline mock provider | BLOCKS EVAL-01a |
-| `kay eval tb2 --run` not implemented | BLOCKS EVAL-01a |
-| No `MINIMAX_API_KEY` configuration documented in Kay | BLOCKS smoke tests |
+| Gap | Severity | Status (2026-04-25) |
+|-----|----------|----------------------|
+| No test anywhere makes a real API call (MiniMax or otherwise) | CRITICAL | ✅ `kay run --live` wires MiniMax API |
+| `kay run` only uses offline mock provider | BLOCKS EVAL-01a | ✅ `--live` flag wired |
+| `kay eval tb2 --run` not implemented | BLOCKS EVAL-01a | ❌ PENDING (Phase 12 TB setup project) |
+| No `MINIMAX_API_KEY` configuration documented in Kay | BLOCKS smoke tests | ✅ `.env.example` updated |
 
 ## Summary
 
 - **Phase 09.1 forge_* coverage**: ✅ 100% (all 28 gap-list crates have tests/)
-- **Phase 09.1 kay-sandbox coverage**: ❌ 0% (no tests/ directories for 3 sandbox crates)
+- **Phase 09.1 kay-sandbox coverage**: ✅ Added (M12 Phase 1 commit `60f6824`)
 - **Phase 09.1 kay-tauri coverage**: ✅ DONE
 - **Phase 09.1 kay-tui coverage**: ❌ NOT DONE (crate may not exist)
 - **Phase 09.1 coverage-gate.sh**: ❌ NOT DONE
-- **Kay-specific gaps**: kay-tools, kay-verifier, kay-session have ZERO tests
-- **Live API gaps**: CRITICAL — no real API test exists anywhere
+- **Kay-specific gaps**: ✅ kay-session tests added; kay-tools, kay-verifier had existing tests
+- **Auth key resolution**: ✅ MINIMAX_API_KEY > OPENROUTER_API_KEY > config precedence
+- **Live API wiring**: ✅ `kay run --live` with MiniMax-M2.7 default
 
 ## Action Items from Audit
 
-1. Add `tests/` directories for kay-sandbox-{linux,macos,windows}
-2. Add `tests/` directories for kay-tools, kay-verifier, kay-session
-3. Add inline `#[cfg(test)]` unit tests to kay-core and kay-context
-4. Wire live MiniMax provider into `kay run --live`
-5. Create live API smoke test suite (feature-gated)
-6. Create coverage-gate.sh script
-7. Wire `kay eval tb2 --run` for EVAL-01a
+1. ✅ Add `tests/` directories for kay-sandbox-{linux,macos,windows}
+2. ✅ Add `tests/` directories for kay-session
+3. ✅ Add inline `#[cfg(test)]` unit tests to kay-core and kay-context
+4. ✅ Wire live MiniMax provider into `kay run --live`
+5. ❌ Create live API smoke test suite (feature-gated) — PENDING (needs live provider first)
+6. ❌ Create coverage-gate.sh script — PENDING
+7. ❌ Wire `kay eval tb2 --run` for EVAL-01a — PENDING (Phase 12 TB setup project)

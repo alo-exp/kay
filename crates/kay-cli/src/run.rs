@@ -90,6 +90,7 @@ use std::sync::{Arc, Mutex};
 use async_trait::async_trait;
 use clap::Args;
 use forge_domain::{FSRead, FSSearch, FSWrite, NetFetch, ToolOutput};
+use futures::StreamExt;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -97,6 +98,7 @@ use kay_core::control::{control_channel, install_ctrl_c_handler};
 use kay_core::r#loop::{RunTurnArgs, run_turn};
 use kay_core::persona::Persona;
 use kay_provider_errors::ProviderError;
+use kay_provider_openrouter as minimax;
 use kay_tools::events_wire::AgentEventWire;
 use kay_tools::{
     AgentEvent, ImageQuota, NoOpSandbox, NoOpVerifier, ServicesHandle, ToolCallContext,
@@ -135,6 +137,18 @@ pub struct RunArgs {
     /// two modes once the OpenRouter adapter is ready.
     #[arg(long, default_value_t = false)]
     pub offline: bool,
+
+    /// Use the live MiniMax API provider (MiniMax-M2.7 by default).
+    /// Reads `MINIMAX_API_KEY` from the environment.
+    /// Falls back to `OPENROUTER_API_KEY` if MINIMAX_API_KEY is unset.
+    /// Mutually exclusive with `--offline`.
+    #[arg(long, default_value_t = false)]
+    pub live: bool,
+
+    /// Model to use with the live provider. Defaults to
+    /// `minimax/MiniMax-M2.7` per Phase 12 EVAL-01a entry gate.
+    #[arg(long, value_name = "MODEL")]
+    pub model: Option<String>,
 
     /// Upper bound on agent turns before the loop exits with code 1
     /// (bounded-loop exit — distinct from 0/2/3/130). Absent =
@@ -205,6 +219,11 @@ pub fn execute(args: RunArgs) -> anyhow::Result<ExitCode> {
         anyhow::bail!("max turns exceeded (budget: 0)");
     }
 
+    // ── Mutual exclusion: --offline and --live ───────────────────
+    if args.offline && args.live {
+        anyhow::bail!("--offline and --live are mutually exclusive");
+    }
+
     // Load the persona synchronously so a bad `--persona` path fails
     // before we pay for the runtime. `PersonaError` is `thiserror`
     // so `?` converts to `anyhow::Error` automatically. The
@@ -225,7 +244,7 @@ pub fn execute(args: RunArgs) -> anyhow::Result<ExitCode> {
         .enable_all()
         .build()?;
 
-    runtime.block_on(run_async(args.prompt, persona, args.resume))
+    runtime.block_on(run_async(args.prompt, persona, args.resume, args.live, args.model))
 }
 
 /// The async half of `execute` — builds channels, spawns the offline
@@ -260,6 +279,8 @@ async fn run_async(
     prompt: String,
     persona: Persona,
     resume: Option<uuid::Uuid>,
+    live: bool,
+    model: Option<String>,
 ) -> anyhow::Result<ExitCode> {
     // ── Channel topology ────────────────────────────────────────
     //
@@ -294,16 +315,19 @@ async fn run_async(
     let (model_tx, model_rx) = mpsc::channel::<Result<AgentEvent, ProviderError>>(32);
     let (event_tx, mut event_rx) = mpsc::channel::<AgentEvent>(32);
 
-    // ── Offline provider ────────────────────────────────────────
-    // Dedicated task so the provider's `send().await` interleaves
-    // cooperatively with the loop's `select!`. Inlining would
-    // serialize production + forwarding and defeat the whole point
-    // of a biased select.
-    // Pre-compute session title from prompt before prompt is moved into the provider task.
+    // ── Provider selection ──────────────────────────────────────
+    //
+    // `live` flag selects the MiniMax (OpenRouter-compatible) provider;
+    // `--offline` (default) selects the in-memory mock provider.
+    // Both providers run as a dedicated tokio task so the loop's biased
+    // `select!` retains priority over the model frame channel.
     let session_title: String = prompt.chars().take(120).collect();
-    // Save a copy for RunTurnArgs::initial_prompt before prompt is moved.
     let initial_prompt = prompt.clone();
-    tokio::spawn(offline_provider(prompt, model_tx));
+    if live {
+        tokio::spawn(live_provider(prompt, model_tx, model)).await??;
+    } else {
+        tokio::spawn(offline_provider(prompt, model_tx));
+    }
 
     // ── Empty registry + minimal context ────────────────────────
     // T7.3 offline scenarios never emit `ToolCallComplete`, so the
@@ -476,6 +500,55 @@ async fn run_async(
     } else {
         Ok(ExitCode::Success)
     }
+}
+
+/// Live provider task — streams real `AgentEvent` frames from the MiniMax
+/// API (OpenRouter-compatible) via `kay_provider_openrouter`.
+///
+/// API key resolution (in priority order):
+///   1. `MINIMAX_API_KEY` env var (Kay's primary)
+///   2. `OPENROUTER_API_KEY` env var (legacy ForgeCode compat)
+///
+/// Default model: `minimax/MiniMax-M2.7` (Phase 12 EVAL-01a entry gate).
+/// Override with the `--model` CLI flag.
+///
+/// All send errors are silently dropped — same as `offline_provider`.
+async fn live_provider(
+    prompt: String,
+    model_tx: mpsc::Sender<Result<AgentEvent, ProviderError>>,
+    model_override: Option<String>,
+) -> Result<(), ProviderError> {
+    use kay_provider_openrouter::openrouter_provider::OpenRouterProviderBuilder;
+    use kay_provider_openrouter::provider::ChatRequest;
+
+    let model = model_override.unwrap_or_else(|| "minimax/MiniMax-M2.7".to_string());
+
+    let provider = OpenRouterProviderBuilder::default()
+        .endpoint("https://api.minimax.io/v1/realtime/generation".to_string())
+        .allowlist(minimax::Allowlist::from_models(vec![model.clone()]))
+        .build()?;
+
+    let request = ChatRequest {
+        model: model.clone(),
+        messages: vec![minimax::provider::Message {
+            role: "user".to_string(),
+            content: prompt,
+        }],
+        tools: None,
+    };
+
+    let mut stream = provider.chat(request).await?;
+    while let Some(event_result) = stream.next().await {
+        let event = match event_result {
+            Ok(ev) => ev,
+            Err(e) => {
+                let _ = model_tx.send(Err(e)).await;
+                return Err(e);
+            }
+        };
+        let _ = model_tx.send(Ok(event)).await;
+    }
+    Ok(())
 }
 
 /// Offline provider task — emits canned `AgentEvent` sequences keyed
