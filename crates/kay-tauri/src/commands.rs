@@ -24,6 +24,9 @@ use crate::flush::flush_task;
 use crate::ipc_event::IpcAgentEvent;
 use crate::state::AppState;
 
+// Re-export SessionStatus from session_manager for backward compatibility
+pub use crate::session_manager::SessionStatus;
+
 // ── Specta builder (same crate as #[tauri::command] so __cmd__ macros resolve) ──
 
 /// Constructs the tauri-specta `Builder` for Phase 9 IPC commands.
@@ -36,9 +39,21 @@ use crate::state::AppState;
 /// both are in the same crate.
 pub fn specta_builder<R: tauri::Runtime>() -> Builder<R> {
     Builder::<R>::new().commands(tauri_specta::collect_commands![
+        // Phase 9 commands
         start_session,
         stop_session,
         get_session_status,
+        // Phase 10 WAVE 2 commands — added in GREEN wave
+        // list_sessions,
+        // pause_session,
+        // resume_session,
+        // fork_session,
+        // kill_session,
+        // get_session_events,
+        // save_project_settings,
+        // load_project_settings,
+        // bind_api_key,
+        // get_api_key_fingerprint,
     ])
 }
 
@@ -90,14 +105,109 @@ pub async fn get_session_status(
 ) -> Result<SessionStatus, String> {
     match state.sessions.contains_key(&session_id) {
         true => Ok(SessionStatus::Running),
-        false => Ok(SessionStatus::Complete),
+        false => Ok(SessionStatus::Completed),
     }
 }
 
-/// Phase 9 session status — Running or Complete.
-/// Phase 10 will add Aborted with a reason field.
-#[derive(Debug, Clone, Serialize, Type)]
-pub enum SessionStatus {
-    Running,
-    Complete,
+// ── WAVE 2: SessionManager commands (Phase 10) ──────────────────────────────
+// Note: These are RED stubs. Real implementations added in GREEN wave.
+// Commands are commented out from specta_builder to allow compilation.
+
+/// List all active sessions sorted by last_active descending.
+#[tauri::command]
+#[specta::specta]
+pub async fn list_sessions(
+    _state: tauri::State<'_, AppState>,
+) -> Result<Vec<crate::session_manager::SessionInfo>, String> {
+    todo!("WAVE 2 (RED): list_sessions returns todo!()")
+}
+
+/// Pause an active session by ID.
+#[tauri::command]
+#[specta::specta]
+pub async fn pause_session(
+    _session_id: String,
+    _state: tauri::State<'_, AppState>,
+) -> Result<(), String> {
+    todo!("WAVE 2 (RED): pause_session returns todo!()")
+}
+
+/// Resume a paused session by ID.
+#[tauri::command]
+#[specta::specta]
+pub async fn resume_session(
+    _session_id: String,
+    _state: tauri::State<'_, AppState>,
+) -> Result<(), String> {
+    todo!("WAVE 2 (RED): resume_session returns todo!()")
+}
+
+/// Fork a session by ID, optionally with a different persona.
+/// Returns the new session ID.
+#[tauri::command]
+#[specta::specta]
+pub async fn fork_session(
+    _session_id: String,
+    _persona: Option<String>,
+    _state: tauri::State<'_, AppState>,
+) -> Result<String, String> {
+    todo!("WAVE 2 (RED): fork_session returns todo!()")
+}
+
+/// Kill (terminate) a session by ID.
+#[tauri::command]
+#[specta::specta]
+pub async fn kill_session(
+    _session_id: String,
+    _state: tauri::State<'_, AppState>,
+) -> Result<(), String> {
+    todo!("WAVE 2 (RED): kill_session returns todo!()")
+}
+
+/// Get session events from a specific turn onward.
+#[tauri::command]
+#[specta::specta]
+pub async fn get_session_events(
+    _session_id: String,
+    _from_turn: Option<u32>,
+    _state: tauri::State<'_, AppState>,
+) -> Result<Vec<IpcAgentEvent>, String> {
+    todo!("WAVE 2 (RED): get_session_events returns todo!()")
+}
+
+/// Save project settings to disk.
+#[tauri::command]
+#[specta::specta]
+pub async fn save_project_settings(
+    _settings: crate::project_settings::ProjectSettings,
+) -> Result<(), String> {
+    todo!("WAVE 2 (RED): save_project_settings returns todo!()")
+}
+
+/// Load project settings from disk.
+#[tauri::command]
+#[specta::specta]
+pub async fn load_project_settings(
+    _project_path: String,
+) -> Result<Option<crate::project_settings::ProjectSettings>, String> {
+    todo!("WAVE 2 (RED): load_project_settings returns todo!()")
+}
+
+/// Bind an API key to the OS keychain.
+#[tauri::command]
+#[specta::specta]
+pub async fn bind_api_key(
+    _provider: String,
+    _key: String,
+) -> Result<(), String> {
+    todo!("WAVE 2 (RED): bind_api_key returns todo!()")
+}
+
+/// Get the fingerprint of a bound API key (checks if key exists).
+#[tauri::command]
+#[specta::specta]
+pub async fn get_api_key_fingerprint(
+    _provider: String,
+) -> Result<Option<String>, String> {
+    todo!("WAVE 2 (RED): get_api_key_fingerprint returns todo!()")
 }

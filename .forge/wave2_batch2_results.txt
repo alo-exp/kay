@@ -1,0 +1,86 @@
+=== Wave 2 batch 2 Crate Check ===
+Checking forge_embed...
+[1m[92m    Blocking[0m waiting for file lock on build directory
+[1m[92m    Checking[0m forge_embed v0.1.0 (/Users/shafqat/Documents/Projects/opencode/vs-others/crates/forge_embed)
+[1m[91merror[0m[1m: proc macro panicked[0m
+ [1m[94m--> [0mcrates/forge_embed/tests/embed.rs:6:37
+  [1m[94m|[0m
+[1m[94m6[0m [1m[94m|[0m static TEMPLATE_DIR: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/../templates");
+  [1m[94m|[0m                                     [1m[91m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [1m[94m|[0m
+  [1m[94m= [0m[1mhelp[0m: message: "/Users/shafqat/Documents/Projects/opencode/vs-others/crates/forge_embed/../templates" is not a directory
+
+[1m[91merror[0m: could not compile `forge_embed` (test "embed") due to 1 previous error
+✓ forge_embed: PASS
+---
+Checking forge_markdown_stream...
+[1m[92m    Checking[0m regex-automata v0.4.14
+[1m[92m    Checking[0m getrandom v0.4.2
+[1m[92m    Checking[0m rustix v1.1.4
+[1m[92m    Checking[0m rand_chacha v0.9.0
+[1m[92m    Checking[0m rand v0.9.4
+[1m[92m    Checking[0m tempfile v3.27.0
+[1m[92m    Checking[0m rusty-fork v0.3.1
+[1m[92m    Checking[0m insta v1.47.2
+[1m[92m    Checking[0m regex v1.12.3
+[1m[92m    Checking[0m bstr v1.12.1
+[1m[92m    Checking[0m proptest v1.11.0
+[1m[92m    Checking[0m streamdown-core v0.1.4
+[1m[92m    Checking[0m streamdown-ansi v0.1.4
+[1m[92m    Checking[0m assert_cmd v2.2.1
+[1m[92m    Checking[0m streamdown-syntax v0.1.4
+[1m[92m    Checking[0m streamdown-parser v0.1.4
+[1m[92m    Checking[0m streamdown-config v0.1.4
+[1m[92m    Checking[0m streamdown-render v0.1.4
+[1m[92m    Checking[0m forge_markdown_stream v0.1.0 (/Users/shafqat/Documents/Projects/opencode/vs-others/crates/forge_markdown_stream)
+[1m[92m    Finished[0m `dev` profile [unoptimized + debuginfo] target(s) in 1m 10s
+✓ forge_markdown_stream: PASS
+---
+Checking forge_repo...
+[1m[92m    Checking[0m tokio v1.52.1
+[1m[92m    Checking[0m forge_select v0.1.0 (/Users/shafqat/Documents/Projects/opencode/vs-others/crates/forge_select)
+[1m[92m    Checking[0m tokio-util v0.7.18
+[1m[92m    Checking[0m tokio-rustls v0.26.4
+[1m[92m    Checking[0m async-compression v0.4.41
+[1m[92m    Checking[0m aws-smithy-async v1.2.14
+[1m[92m    Checking[0m tokio-stream v0.1.18
+[1m[92m    Checking[0m hickory-proto v0.25.2
+[1m[92m    Checking[0m tokio-rustls v0.24.1
+[1m[92m    Checking[0m backon v1.6.0
+[1m[92m    Checking[0m forge_stream v0.1.0 (/Users/shafqat/Documents/Projects/opencode/vs-others/crates/forge_stream)
+[1m[92m    Checking[0m process-wrap v8.2.1
+[1m[92m    Checking[0m google-cloud-gax v1.9.1
+[1m[92m    Checking[0m forge_walker v0.1.0 (/Users/shafqat/Documents/Projects/opencode/vs-others/crates/forge_walker)
+[1m[92m    Checking[0m forge_test_kit v0.1.0 (/Users/shafqat/Documents/Projects/opencode/vs-others/crates/forge_test_kit)
+[1m[92m    Checking[0m forge_domain v0.1.0 (/Users/shafqat/Documents/Projects/opencode/vs-others/crates/forge_domain)
+[1m[92m    Checking[0m cacache v13.1.0
+[1m[92m    Checking[0m h2 v0.4.13
+[1m[92m    Checking[0m tower v0.5.3
+[1m[92m    Checking[0m aws-smithy-types v1.4.7
+[1m[92m    Checking[0m h2 v0.3.27
+[1m[92m    Checking[0m tower-http v0.6.8
+[1m[92m    Checking[0m axum v0.8.9
+[1m[92m    Checking[0m hyper v1.9.0
+[1m[92m    Checking[0m hyper v0.14.32
+[1m[92m    Checking[0m hyper-util v0.1.20
+[1m[92m    Checking[0m hyper-rustls v0.27.9
+[1m[92m    Checking[0m hyper-timeout v0.5.2
+[1m[92m    Checking[0m mockito v1.7.2
+[1m[92m    Checking[0m hyper-rustls v0.24.2
+[1m[92m    Checking[0m tonic v0.14.5
+[1m[92m    Checking[0m reqwest v0.13.2
+[1m[92m    Checking[0m tonic-prost v0.14.5
+[1m[92m    Checking[0m hickory-resolver v0.25.2
+[1m[92m    Checking[0m reqwest v0.12.28
+[1m[92m    Checking[0m aws-smithy-runtime-api v1.12.0
+[1m[92m    Checking[0m aws-smithy-eventstream v0.60.20
+[1m[92m    Checking[0m aws-smithy-json v0.62.5
+[1m[92m    Checking[0m oauth2 v5.0.0
+[1m[92m    Checking[0m reqwest-eventsource v0.6.0
+[1m[92m    Checking[0m aws-credential-types v1.2.14
+[1m[92m    Checking[0m aws-smithy-http v0.63.6
+[1m[92m    Checking[0m aws-smithy-http-client v1.1.12
+[1m[92m    Checking[0m aws-smithy-observability v0.2.6
+[1m[92m    Checking[0m google-cloud-auth v1.9.0
+[1m[92m    Checking[0m forge_fs v0.1.0 (/Users/shafqat/Documents/Projects/opencode/vs-others/crates/forge_fs)
+[1m[92m    Checking[0m forge_app v0.1.0 (/Users/shafqat/Documents/Projects/opencode/vs-others/crates/forge_app)

@@ -1,0 +1,49 @@
+OBJECTIVE: Complete Phase 8 Multi-Perspective Verification — commit W-4 GREEN then implement W-5 through W-7 per TDD plan.
+
+PLANNING STEP (do this before writing any code):
+Read these two files first to understand the full scope:
+- .planning/phases/08-multi-perspective-verification/PLAN.md
+- .planning/phases/08-multi-perspective-verification/08-TEST-STRATEGY.md
+Use sage internally to research crates/kay-core/src/loop.rs, crates/kay-tools/src/seams/verifier.rs, and crates/kay-provider-openrouter/src/ before designing W-5 and W-6.
+
+CONTEXT:
+- Branch: phase/08-multi-perspective-verification; HEAD: e9c94bf (W-4 RED commit)
+- W-4 implementation COMPLETE in working tree, tests compiled and passed
+- W-4 files to commit: Cargo.lock, crates/kay-cli/src/run.rs, crates/kay-core/tests/loop.rs, crates/kay-core/tests/loop_dispatcher_integration.rs, crates/kay-core/tests/loop_pause_tool_call_buffered.rs, crates/kay-core/tests/loop_property.rs, crates/kay-core/tests/loop_sage_query_integration.rs, crates/kay-tools/src/builtins/sage_query.rs, crates/kay-tools/src/builtins/task_complete.rs, crates/kay-tools/src/runtime/context.rs, crates/kay-tools/tests/sage_query.rs, crates/kay-tools/tests/support/mod.rs, crates/kay-verifier/src/critic.rs, crates/kay-verifier/src/verifier.rs
+
+MANDATORY RULES:
+1. TDD iron law: RED commit (failing tests, todo!() panics) MUST precede GREEN per wave — never combine
+2. Every commit needs: Signed-off-by: Shafqat Ullah <shafqat@sourcevo.com>
+3. AgentEvent is #[non_exhaustive] — only additive variants
+4. TaskVerifier trait must stay dyn-compatible (no generic methods)
+5. Branch: phase/08-multi-perspective-verification — no direct commits to main
+
+DESIRED STATE (8 commits on top of e9c94bf):
+1. W-4 GREEN commit with message:
+   feat(verifier): W-4 GREEN — ToolCallContext::task_context + task_complete snapshot
+
+   T1-06a-c: task_context accumulation + snapshot independence.
+   T1-08c: task_complete passes snapshot to verifier.
+
+   VERIFY-01
+
+   Signed-off-by: Shafqat Ullah <shafqat@sourcevo.com>
+
+2. W-5 RED: TurnResult enum stub + run_with_rework stub in crates/kay-core/src/loop.rs + failing tests in crates/kay-core/tests/rework_loop.rs (tests must compile but panic via todo!())
+
+3. W-5 GREEN: run_with_rework implemented — Fail injects feedback as user message, bounded by max_retries, Pass terminates loop
+
+4. W-6 RED: cost ceiling integration tests failing in crates/kay-core/tests/verifier_cost.rs
+
+5. W-6 GREEN: verifier_cost accumulator in MultiPerspectiveVerifier, VerifierDisabled emitted when ceiling breached
+
+6. W-7 RED: E2E test skeleton in crates/kay-cli/tests/context_smoke.rs (rename from context_e2e.rs)
+
+7. W-7 GREEN: MultiPerspectiveVerifier wired into kay-cli/src/run.rs + SymbolKind unknown arm emits tracing::warn!
+
+SUCCESS CRITERIA:
+- git log --oneline shows 8 new commits above e9c94bf
+- cargo test --workspace passes
+- cargo clippy --workspace -- -D warnings has no new errors
+
+INJECTED SKILLS: quality-gates, testing-strategy, code-review

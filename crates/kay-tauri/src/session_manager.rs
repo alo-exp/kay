@@ -3,22 +3,27 @@
 //
 // WAVE 1 (GREEN): Full SessionManagerImpl backed by kay-session SessionStore.
 
-use chrono::{DateTime, Utc};
+use chrono::Utc;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::sync::Mutex;
 
 /// Information about a session for listing/display.
-#[derive(Debug, Clone)]
+/// Timestamps use i64 Unix seconds for Tauri IPC compatibility.
+#[derive(Debug, Clone, specta::Type, Serialize, Deserialize)]
 pub struct SessionInfo {
     pub id: String,
     pub status: SessionStatus,
-    pub created_at: DateTime<Utc>,
-    pub last_active: DateTime<Utc>,
+    #[specta(type = i64)]
+    pub created_at: i64,  // Unix timestamp seconds
+    #[specta(type = i64)]
+    pub last_active: i64, // Unix timestamp seconds
     pub persona: String,
     pub prompt_preview: String,
 }
 
 /// Session lifecycle status.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, specta::Type, Serialize, Deserialize)]
 pub enum SessionStatus {
     Running,
     Paused,
@@ -49,37 +54,38 @@ pub trait SessionManager: Send + Sync {
 }
 
 /// In-memory session manager backed by Phase 6 SessionStore.
-/// Use this for Tauri — it holds live session state in a RwLock.
+/// Use this for Tauri — it holds live session state.
+/// Uses interior mutability via Mutex for thread-safety.
 pub struct SessionManagerImpl {
     /// Active sessions: session_id -> metadata.
     /// For Phase 9 compatibility, we track running sessions here.
     /// Phase 10 Wave 4 will add persistence via SessionStore.
-    sessions: HashMap<String, SessionInfo>,
+    sessions: Mutex<HashMap<String, SessionInfo>>,
 }
 
 impl SessionManagerImpl {
     pub fn new() -> Self {
         Self {
-            sessions: HashMap::new(),
+            sessions: Mutex::new(HashMap::new()),
         }
     }
 
     /// Register a new session with its metadata.
-    pub fn register(&mut self, info: SessionInfo) {
-        self.sessions.insert(info.id.clone(), info);
+    pub fn register(&self, info: SessionInfo) {
+        self.sessions.lock().unwrap().insert(info.id.clone(), info);
     }
 
     /// Check if a session exists and return its status.
     #[allow(dead_code)]
     pub fn get_status(&self, id: &str) -> Option<SessionStatus> {
-        self.sessions.get(id).map(|s| s.status.clone())
+        self.sessions.lock().unwrap().get(id).map(|s| s.status)
     }
 
     /// Update last_active timestamp for a session.
     #[allow(dead_code)]
-    pub fn touch(&mut self, id: &str) {
-        if let Some(info) = self.sessions.get_mut(id) {
-            info.last_active = Utc::now();
+    pub fn touch(&self, id: &str) {
+        if let Some(info) = self.sessions.lock().unwrap().get_mut(id) {
+            info.last_active = Utc::now().timestamp();
         }
     }
 }
@@ -93,13 +99,14 @@ impl Default for SessionManagerImpl {
 impl SessionManager for SessionManagerImpl {
     fn list_sessions(&self) -> Vec<SessionInfo> {
         // Sort by last_active descending (most recently active first)
-        let mut sessions: Vec<_> = self.sessions.values().cloned().collect();
-        sessions.sort_by(|a, b| b.last_active.cmp(&a.last_active));
-        sessions
+        let sessions: Vec<_> = self.sessions.lock().unwrap().values().cloned().collect();
+        let mut sorted = sessions;
+        sorted.sort_by(|a, b| b.last_active.cmp(&a.last_active));
+        sorted
     }
 
     fn pause_session(&self, id: &str) -> Result<(), SessionManagerError> {
-        match self.sessions.get(id) {
+        match self.sessions.lock().unwrap().get_mut(id) {
             Some(info) => {
                 if info.status != SessionStatus::Running {
                     return Err(SessionManagerError::WrongState(format!(
@@ -107,8 +114,9 @@ impl SessionManager for SessionManagerImpl {
                         info.status
                     )));
                 }
+                info.status = SessionStatus::Paused;
+                info.last_active = Utc::now().timestamp();
                 // Note: actual token cancellation is handled by AppState via IPC
-                // This updates the metadata only
                 Ok(())
             }
             None => Err(SessionManagerError::NotFound(id.to_string())),
@@ -116,7 +124,7 @@ impl SessionManager for SessionManagerImpl {
     }
 
     fn resume_session(&self, id: &str) -> Result<(), SessionManagerError> {
-        match self.sessions.get(id) {
+        match self.sessions.lock().unwrap().get_mut(id) {
             Some(info) => {
                 if info.status != SessionStatus::Paused {
                     return Err(SessionManagerError::WrongState(format!(
@@ -124,26 +132,39 @@ impl SessionManager for SessionManagerImpl {
                         info.status
                     )));
                 }
+                info.status = SessionStatus::Running;
+                info.last_active = Utc::now().timestamp();
                 Ok(())
             }
             None => Err(SessionManagerError::NotFound(id.to_string())),
         }
     }
 
-    fn fork_session(&self, id: &str, _persona: Option<String>) -> Result<String, SessionManagerError> {
-        match self.sessions.get(id) {
-            Some(_info) => {
-                // Fork creates a new session with a new ID
-                let new_id = uuid::Uuid::new_v4().to_string();
-                Ok(new_id)
-            }
-            None => Err(SessionManagerError::NotFound(id.to_string())),
-        }
+    fn fork_session(&self, id: &str, persona: Option<String>) -> Result<String, SessionManagerError> {
+        let info = match self.sessions.lock().unwrap().get(id).cloned() {
+            Some(info) => info,
+            None => return Err(SessionManagerError::NotFound(id.to_string())),
+        };
+        // Create new session as a fork
+        let new_id = uuid::Uuid::new_v4().to_string();
+        let forked = SessionInfo {
+            id: new_id.clone(),
+            status: SessionStatus::Running,
+            created_at: Utc::now().timestamp(),
+            last_active: Utc::now().timestamp(),
+            persona: persona.unwrap_or_else(|| info.persona.clone()),
+            prompt_preview: info.prompt_preview.clone(),
+        };
+        self.sessions.lock().unwrap().insert(new_id.clone(), forked);
+        Ok(new_id)
     }
 
     fn kill_session(&self, id: &str) -> Result<(), SessionManagerError> {
-        match self.sessions.get(id) {
-            Some(_info) => {
+        match self.sessions.lock().unwrap().get_mut(id) {
+            Some(info) => {
+                // Mark as killed
+                info.status = SessionStatus::Killed;
+                info.last_active = Utc::now().timestamp();
                 // Note: actual token cancellation is handled by AppState via IPC
                 Ok(())
             }
@@ -157,11 +178,12 @@ mod tests {
     use super::*;
 
     fn make_info(id: &str, status: SessionStatus) -> SessionInfo {
+        let now = Utc::now().timestamp();
         SessionInfo {
             id: id.to_string(),
             status,
-            created_at: Utc::now(),
-            last_active: Utc::now(),
+            created_at: now,
+            last_active: now,
             persona: "forge".to_string(),
             prompt_preview: "test prompt".to_string(),
         }
@@ -176,20 +198,39 @@ mod tests {
 
     #[test]
     fn list_sessions_with_active_sessions_returns_all_sorted() {
-        let mut mgr = SessionManagerImpl::new();
-        // Add sessions in non-sorted order
-        mgr.register(make_info("session-2", SessionStatus::Running));
-        std::thread::sleep(std::time::Duration::from_millis(10));
-        mgr.register(make_info("session-1", SessionStatus::Running));
-        std::thread::sleep(std::time::Duration::from_millis(10));
-        mgr.register(make_info("session-3", SessionStatus::Running));
+        let mgr = SessionManagerImpl::new();
+        // Add sessions with explicit timestamps to guarantee sort order
+        mgr.register(SessionInfo {
+            id: "session-1".to_string(),
+            status: SessionStatus::Running,
+            created_at: 1000,
+            last_active: 1000,
+            persona: "forge".to_string(),
+            prompt_preview: "test".to_string(),
+        });
+        mgr.register(SessionInfo {
+            id: "session-2".to_string(),
+            status: SessionStatus::Running,
+            created_at: 2000,
+            last_active: 2000,
+            persona: "forge".to_string(),
+            prompt_preview: "test".to_string(),
+        });
+        mgr.register(SessionInfo {
+            id: "session-3".to_string(),
+            status: SessionStatus::Running,
+            created_at: 3000,
+            last_active: 3000,
+            persona: "forge".to_string(),
+            prompt_preview: "test".to_string(),
+        });
 
         let result = mgr.list_sessions();
         assert_eq!(result.len(), 3, "expected 3 sessions");
-        // Most recently active should be first
+        // Most recently active should be first (descending order by last_active)
         assert_eq!(result[0].id, "session-3");
-        assert_eq!(result[1].id, "session-1");
-        assert_eq!(result[2].id, "session-2");
+        assert_eq!(result[1].id, "session-2");
+        assert_eq!(result[2].id, "session-1");
     }
 
     #[test]
@@ -202,7 +243,7 @@ mod tests {
 
     #[test]
     fn pause_running_session_succeeds() {
-        let mut mgr = SessionManagerImpl::new();
+        let mgr = SessionManagerImpl::new();
         mgr.register(make_info("session-1", SessionStatus::Running));
 
         let result = mgr.pause_session("session-1");
@@ -211,7 +252,7 @@ mod tests {
 
     #[test]
     fn pause_paused_session_returns_error() {
-        let mut mgr = SessionManagerImpl::new();
+        let mgr = SessionManagerImpl::new();
         mgr.register(make_info("session-1", SessionStatus::Paused));
 
         let result = mgr.pause_session("session-1");
@@ -221,7 +262,7 @@ mod tests {
 
     #[test]
     fn resume_paused_session_succeeds() {
-        let mut mgr = SessionManagerImpl::new();
+        let mgr = SessionManagerImpl::new();
         mgr.register(make_info("session-1", SessionStatus::Paused));
 
         let result = mgr.resume_session("session-1");
@@ -230,7 +271,7 @@ mod tests {
 
     #[test]
     fn resume_running_session_returns_error() {
-        let mut mgr = SessionManagerImpl::new();
+        let mgr = SessionManagerImpl::new();
         mgr.register(make_info("session-1", SessionStatus::Running));
 
         let result = mgr.resume_session("session-1");
@@ -254,7 +295,7 @@ mod tests {
 
     #[test]
     fn fork_existing_session_returns_new_id() {
-        let mut mgr = SessionManagerImpl::new();
+        let mgr = SessionManagerImpl::new();
         mgr.register(make_info("session-1", SessionStatus::Running));
 
         let result = mgr.fork_session("session-1", None);
