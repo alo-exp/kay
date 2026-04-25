@@ -16,6 +16,8 @@ interface ProjectSettings {
 interface SettingsPanelProps {
   projectPath: string;
   onClose: () => void;
+  activeTab?: TabId;
+  onTabChange?: (tab: TabId) => void;
 }
 
 type TabId = "session" | "model" | "verifier" | "sandbox";
@@ -33,12 +35,22 @@ const approvalModes: { value: ProjectSettings["approval_mode"]; label: string }[
   { value: "always", label: "Always approve" },
 ];
 
-export function SettingsPanel({ projectPath, onClose }: SettingsPanelProps) {
-  const [activeTab, setActiveTab] = useState<TabId>("session");
+export function SettingsPanel({ projectPath, onClose, activeTab = "session", onTabChange }: SettingsPanelProps) {
+  const [internalActiveTab, setInternalActiveTab] = useState<TabId>("session");
   const [settings, setSettings] = useState<ProjectSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const currentTab = onTabChange ? activeTab : internalActiveTab;
+
+  function handleTabChange(tab: TabId) {
+    if (onTabChange) {
+      onTabChange(tab);
+    } else {
+      setInternalActiveTab(tab);
+    }
+  }
 
   // Load settings on mount
   useEffect(() => {
@@ -125,8 +137,8 @@ export function SettingsPanel({ projectPath, onClose }: SettingsPanelProps) {
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            className={`settings-tab ${activeTab === tab.id ? "active" : ""}`}
-            onClick={() => setActiveTab(tab.id)}
+            className={`settings-tab ${currentTab === tab.id ? "active" : ""}`}
+            onClick={() => handleTabChange(tab.id)}
           >
             {tab.label}
           </button>
@@ -136,7 +148,7 @@ export function SettingsPanel({ projectPath, onClose }: SettingsPanelProps) {
       <div className="settings-content">
         {error && <div className="settings-error">{error}</div>}
 
-        {activeTab === "session" && (
+        {currentTab === "session" && (
           <div className="settings-section">
             <h3>Session Settings</h3>
             <p className="settings-description">
@@ -164,7 +176,7 @@ export function SettingsPanel({ projectPath, onClose }: SettingsPanelProps) {
           </div>
         )}
 
-        {activeTab === "model" && (
+        {currentTab === "model" && (
           <div className="settings-section">
             <h3>Model Settings</h3>
             <p className="settings-description">
@@ -211,7 +223,7 @@ export function SettingsPanel({ projectPath, onClose }: SettingsPanelProps) {
           </div>
         )}
 
-        {activeTab === "verifier" && (
+        {currentTab === "verifier" && (
           <div className="settings-section">
             <h3>Verifier Settings</h3>
             <p className="settings-description">
@@ -229,7 +241,7 @@ export function SettingsPanel({ projectPath, onClose }: SettingsPanelProps) {
           </div>
         )}
 
-        {activeTab === "sandbox" && (
+        {currentTab === "sandbox" && (
           <div className="settings-section">
             <h3>Sandbox Settings</h3>
             <p className="settings-description">

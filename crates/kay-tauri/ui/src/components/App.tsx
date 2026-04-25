@@ -1,9 +1,21 @@
-import { useReducer, useCallback } from 'react';
+// Tauri UI — Main App Component
+// Phase 10: Multi-session manager integration
+
+import React, { useReducer, useCallback, useState } from 'react';
 import { Channel } from '@tauri-apps/api/core';
 import type { IpcAgentEvent } from '../bindings';
 import { commands } from '../bindings';
 import { SessionView } from './SessionView';
 import { PromptInput } from './PromptInput';
+import { SessionList } from './SessionList';
+import { SettingsPanel } from './SettingsPanel';
+import { ModelPicker, useModelPicker } from './ModelPicker';
+import {
+  CommandApprovalDialog,
+  useApprovalDialog,
+} from './CommandApprovalDialog';
+import type { SessionInfo } from './SessionList';
+import type { ModelTier } from './ModelPicker';
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -65,6 +77,23 @@ function reducer(state: SessionState, action: Action): SessionState {
 
 export function App() {
   const [state, dispatch] = useReducer(reducer, initial);
+  const [showSettings, setShowSettings] = useState(false);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [activeSettingsTab, setActiveSettingsTab] = useState<'session' | 'model' | 'verifier' | 'sandbox'>('session');
+
+  // Model picker state
+  const { selectedModel, selectedTier, onModelSelect, onTierChange } = useModelPicker();
+
+  // Command approval state
+  const {
+    currentRequest,
+    approvedTools,
+    mode: approvalMode,
+    setMode: setApprovalMode,
+    requestApproval,
+    handleApprove,
+    handleDeny,
+  } = useApprovalDialog();
 
   const handleStart = useCallback(async (prompt: string, persona: string) => {
     const channel = new Channel<IpcAgentEvent>();
@@ -92,6 +121,13 @@ export function App() {
         scheduleFlush();
       }
 
+      // Handle ApprovalRequested events from the backend
+      if (ev.type === 'ApprovalRequested') {
+        const toolName = (ev.data as { tool_name: string }).tool_name;
+        const command = (ev.data as { command: string }).command;
+        requestApproval(toolName, command, 'warning', state.sessionId || '');
+      }
+
       // Session ends on terminal events
       if (ev.type === 'TaskComplete' || ev.type === 'Aborted' || ev.type === 'Error') {
         setTimeout(() => dispatch({ type: 'SESSION_ENDED' }), 100);
@@ -105,10 +141,11 @@ export function App() {
         return;
       }
       dispatch({ type: 'SESSION_STARTED', sessionId: result.data });
+      setSelectedSessionId(result.data);
     } catch (err) {
       console.error('start_session failed:', err);
     }
-  }, []);
+  }, [state.sessionId, requestApproval]);
 
   const handleStop = useCallback(async () => {
     if (state.sessionId) {
@@ -116,22 +153,82 @@ export function App() {
     }
   }, [state.sessionId]);
 
+  const handleSessionSelect = useCallback((sessionId: string) => {
+    setSelectedSessionId(sessionId);
+  }, []);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      {state.status !== 'idle' && (
-        <SessionView
-          events={state.events}
-          totalCostUsd={state.totalCostUsd}
-          totalTokensIn={state.totalTokensIn}
-          totalTokensOut={state.totalTokensOut}
-          status={state.status}
+    <div className="app-container">
+      {/* Command Approval Dialog (overlay) */}
+      <CommandApprovalDialog
+        request={currentRequest}
+        onApprove={handleApprove}
+        onDeny={handleDeny}
+        mode={approvalMode === 'always' ? 'always' : 'on_first_use'}
+        approvedTools={approvedTools}
+      />
+
+      {/* Settings Panel (overlay) */}
+      {showSettings && (
+        <SettingsPanel
+          projectPath={window.location.pathname}
+          onClose={() => setShowSettings(false)}
+          activeTab={activeSettingsTab}
+          onTabChange={setActiveSettingsTab}
         />
       )}
-      <PromptInput
-        onStart={handleStart}
-        onStop={handleStop}
-        status={state.status}
-      />
+
+      {/* Main layout */}
+      <div className="app-layout">
+        {/* Sidebar - Session List */}
+        <div className="app-sidebar">
+          <SessionList
+            onSessionSelect={handleSessionSelect}
+            selectedSessionId={selectedSessionId}
+          />
+        </div>
+
+        {/* Main content area */}
+        <div className="app-main">
+          {state.status !== 'idle' && selectedSessionId === state.sessionId ? (
+            <SessionView
+              events={state.events}
+              totalCostUsd={state.totalCostUsd}
+              totalTokensIn={state.totalTokensIn}
+              totalTokensOut={state.totalTokensOut}
+              status={state.status}
+            />
+          ) : (
+            <div className="app-welcome">
+              <h2>Welcome to Kay</h2>
+              <p>Select a session from the sidebar or start a new one.</p>
+            </div>
+          )}
+
+          {/* Prompt Input - always visible at bottom */}
+          <div className="app-prompt-area">
+            <PromptInput
+              onStart={handleStart}
+              onStop={handleStop}
+              status={state.status}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Header bar with settings toggle */}
+      <div className="app-header-bar">
+        <span className="app-title">Kay</span>
+        <div className="app-header-actions">
+          <button
+            className="header-btn"
+            onClick={() => setShowSettings(true)}
+            title="Settings"
+          >
+            ⚙️
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
