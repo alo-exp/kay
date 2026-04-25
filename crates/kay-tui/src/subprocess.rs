@@ -47,16 +47,25 @@ impl KaySubprocess {
         args: &[String],
     ) -> Result<(Self, mpsc::Receiver<TuiEvent>), SubprocessError> {
         let binary = kay_cli_binary();
+        Self::spawn_with_cli_path(args, &binary).await
+    }
 
+    /// Spawn a subprocess with an explicit binary path.
+    /// This variant is useful for testing with mock scripts.
+    pub async fn spawn_with_cli_path(
+        args: &[String],
+        binary: &std::path::Path,
+    ) -> Result<(Self, mpsc::Receiver<TuiEvent>), SubprocessError> {
+        let binary = binary.to_path_buf();
         if !binary.exists() {
-            return Err(SubprocessError::BinaryNotFound(binary));
+            return Err(SubprocessError::BinaryNotFound(binary.clone()));
         }
 
         let mut child = Command::new(&binary)
             .args(["--output-format", "jsonl"])
             .args(args)
             .stdout(Stdio::piped())
-            .stderr(Stdio::inherit()) // stderr goes to terminal (not shown in TUI)
+            .stderr(Stdio::inherit())
             .kill_on_drop(true)
             .spawn()
             .map_err(|e| SubprocessError::SpawnFailed(binary.clone(), e))?;
@@ -70,7 +79,6 @@ impl KaySubprocess {
 
         let (event_tx, event_rx) = mpsc::channel(1024);
 
-        // Spawn async task to read stdout and forward JSONL lines to channel
         tokio::spawn(Self::read_stdout(stdout, event_tx));
 
         Ok((Self { child }, event_rx))

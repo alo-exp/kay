@@ -36,6 +36,7 @@ pub struct App {
     /// Whether the app is running.
     running: bool,
     /// Subprocess handle (if spawned).
+    #[allow(unused)]
     subprocess: Option<crate::subprocess::KaySubprocess>,
 }
 
@@ -62,11 +63,17 @@ impl App {
     pub fn handle_event(&mut self, event: TuiEvent) {
         self.session.push_event(&event);
 
-        // Update selection when new events arrive
+        // Update selection to last event when new events arrive
         let n = self.session.event_log.len();
-        if self.selected_index >= n {
-            self.selected_index = n.saturating_sub(1);
+        if n > 0 {
+            self.selected_index = n - 1;
         }
+    }
+
+    /// Access the session state (for testing only).
+    #[cfg(test)]
+    pub fn session(&self) -> &SessionState {
+        &self.session
     }
 
     /// Handle terminal key input.
@@ -102,6 +109,16 @@ impl App {
     /// True if the app is still running.
     pub fn is_running(&self) -> bool {
         self.running
+    }
+
+    /// True if the app has stopped.
+    pub fn stopped(&self) -> bool {
+        !self.running
+    }
+
+    /// Get the currently selected event index.
+    pub fn selected_index(&self) -> usize {
+        self.selected_index
     }
 
     /// Stop the app loop.

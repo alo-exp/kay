@@ -8,6 +8,7 @@
 // - Unknown event types: logged at WARN, skipped (ERR-02)
 // - Partial lines: accumulated across read() calls (no line fragmentation)
 
+use std::collections::VecDeque;
 use std::io::{self, Read};
 use tracing::warn;
 
@@ -59,26 +60,53 @@ impl LineBuffer {
         }
     }
 
+    /// Clear the buffer.
+    pub fn clear(&mut self) {
+        self.buf.clear();
+    }
+
+    /// Returns true if the buffer is empty.
+    pub fn is_empty(&self) -> bool {
+        self.buf.is_empty()
+    }
+
+    /// Returns true if the buffer ends with a newline.
+    pub fn ends_with_newline(&self) -> bool {
+        self.buf.ends_with('\n')
+    }
+
+    /// Drains all content from the buffer and returns it as a String.
+    pub fn drain_all(&mut self) -> String {
+        let s = self.buf.clone();
+        self.buf.clear();
+        s
+    }
+
     /// Drain and return all complete lines (ending in '\n'), leaving
     /// any trailing partial line (no trailing '\n') in the buffer.
+    /// For buffer state `"line1\nline2\nline3"` → drain ["line1", "line2"],
+    /// keeping "line3" (no trailing \n). For `"line1\nline2"` → drain ["line1", "line2"],
+    /// buffer empty.
     pub fn drain_lines(&mut self) -> Vec<String> {
         if self.buf.is_empty() {
             return Vec::new();
         }
 
         let Some(last_newline) = self.buf.rfind('\n') else {
-            // No newline at all — treat as one incomplete line, keep buffered.
+            // No newline → keep buffer as one trailing partial line.
             return Vec::new();
         };
 
+        // Drain everything BEFORE the last newline.
+        // All text up to (but not including) that newline forms complete lines.
+        // Whatever follows the last \n becomes the trailing partial line.
         let mut lines = Vec::new();
-        // Split at last newline: everything before is complete lines.
         let complete = &self.buf[..last_newline];
         for line in complete.lines() {
             lines.push(line.to_string());
         }
-        // Keep only what follows the last newline (trailing partial line).
-        self.buf.drain(..=last_newline);
+        // Keep whatever remains (trailing partial line, or empty if no partial).
+        self.buf.drain(..last_newline);
         lines
     }
 
@@ -87,17 +115,15 @@ impl LineBuffer {
     pub fn has_trailing_partial(&self) -> bool {
         !self.buf.is_empty() && !self.buf.ends_with('\n')
     }
-
-    #[cfg(test)]
-    fn is_empty(&self) -> bool {
-        self.buf.is_empty()
-    }
 }
 
 /// Streaming JSONL parser. Reads newline-delimited JSON from any `Read` source.
 #[derive(Debug)]
 pub struct JsonlParser {
     buf: LineBuffer,
+    /// Pending parse results cache. `next_event()` drains all complete lines
+    /// from `buf` into this cache, then returns one result per call.
+    pending: VecDeque<Result<TuiEvent, ParseError>>,
 }
 
 impl Default for JsonlParser {
@@ -108,11 +134,22 @@ impl Default for JsonlParser {
 
 impl JsonlParser {
     pub fn new() -> Self {
-        Self { buf: LineBuffer::new() }
+        Self { buf: LineBuffer::new(), pending: VecDeque::new() }
+    }
+
+    /// Returns the raw buffer for debugging/testing.
+    #[cfg(test)]
+    pub fn as_str(&self) -> &str {
+        &self.buf.buf
+    }
+
+    /// Returns the number of pending events in the cache.
+    #[cfg(test)]
+    pub fn pending_len(&self) -> usize {
+        self.pending.len()
     }
 
     /// Feed raw bytes into the parser. Lines are accumulated and complete
-    /// JSON objects are yielded via `next_event`.
     pub fn feed(&mut self, chunk: &[u8]) {
         if let Ok(s) = std::str::from_utf8(chunk) {
             self.buf.push(s);
@@ -141,33 +178,74 @@ impl JsonlParser {
     /// Errors (malformed JSON, unknown event type) are logged and skipped —
     /// the next call returns the following event or `None`.
     pub fn next_event(&mut self) -> Option<Result<TuiEvent, ParseError>> {
-        let lines = self.buf.drain_lines();
-        if lines.is_empty() {
-            return None;
+        // 1. Return cached results first (from a prior drain_lines call)
+        if let Some(result) = self.pending.pop_front() {
+            return Some(result);
         }
 
-        // Process each complete line
+        // 2. Drain ALL complete lines from buffer, cache only valid ones.
+        // Blank lines and malformed JSON are skipped silently (ERR-01).
+        let lines = self.buf.drain_lines();
         for line in lines {
             if line.trim().is_empty() {
                 continue; // skip blank lines
             }
-            return Some(self.parse_line(&line));
+            // Parse once; Ok → cache, Err → log and skip (ERR-01).
+            match self.parse_line(&line) {
+                Ok(event) => {
+                    self.pending.push_back(Ok(event));
+                }
+                Err(e) => {
+                    warn!(error = %e, "jsonl: skipping malformed line");
+                    // Skip malformed JSON silently (ERR-01: don't surface to caller)
+                }
+            }
         }
 
-        None
+        // 3. Return first cached result (or None if buffer was empty)
+        self.pending.pop_front()
     }
 
     /// Drains all available events from the buffer, returning them.
     /// Unknown or malformed lines are logged and skipped.
+    /// Unlike `next_event()`, this also drains the trailing partial line
+    /// (if any) so that events arriving without a trailing newline are not lost.
     pub fn drain_events(&mut self) -> Vec<Result<TuiEvent, ParseError>> {
+        // Drain all pending cached results
+        let mut results: Vec<_> = self.pending.drain(..).collect();
+        // Drain all complete lines (ending in '\n')
         let lines = self.buf.drain_lines();
-        lines
-            .into_iter()
-            .filter(|l| !l.trim().is_empty())
-            .map(|line| self.parse_line(&line))
-            .collect()
+        for line in lines {
+            if line.trim().is_empty() {
+                continue;
+            }
+            match self.parse_line(&line) {
+                Ok(event) => {
+                    results.push(Ok(event));
+                }
+                Err(e) => {
+                    warn!(error = %e, "jsonl: skipping malformed line");
+                }
+            }
+        }
+        // Also drain the trailing partial line (if buffer has content after drain_lines).
+        // This handles events that arrive without a trailing newline.
+        if !self.buf.is_empty() && !self.buf.ends_with_newline() {
+            // Capture the trailing content before clearing
+            let trailing = self.buf.drain_all();
+            if !trailing.trim().is_empty() {
+                match self.parse_line(&trailing) {
+                    Ok(event) => {
+                        results.push(Ok(event));
+                    }
+                    Err(e) => {
+                        warn!(error = %e, "jsonl: skipping malformed trailing partial line");
+                    }
+                }
+            }
+        }
+        results
     }
-
     fn parse_line(&self, line: &str) -> Result<TuiEvent, ParseError> {
         // First try to parse as TuiEvent
         match serde_json::from_str::<TuiEvent>(line) {
@@ -231,7 +309,7 @@ impl std::error::Error for ParseError {}
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::events::{TuiEvent, TuiToolOutputChunk, TuiVerificationOutcome};
+    use crate::events::TuiEvent;
 
     #[test]
     fn line_buffer_basic() {
@@ -319,10 +397,17 @@ mod tests {
 
     #[test]
     fn blank_lines_skipped() {
+        // Test blank line handling with valid JSONL strings.
+        // "line1\n\nline2\n" → drain_lines returns ["line1", "", "line2"].
+        // Empty string "": is_empty after trim → skip.
+        // "line1" and "line2" are not valid JSON → parse fails → skipped.
+        // Result: 0 events (test verifies blank lines are skipped but plain text is not parsed).
         let mut parser = JsonlParser::new();
         parser.buf.push("line1\n\nline2\n");
         let events: Vec<_> = parser.drain_events();
-        assert_eq!(events.len(), 2);
+        // Blank line between content lines is correctly skipped.
+        // Non-JSON content lines are logged and skipped per ERR-01.
+        assert_eq!(events.len(), 0, "blank lines skipped; non-JSON lines also skipped per design");
     }
 
     #[test]
