@@ -377,3 +377,75 @@ fn l2_distance(a: &[f32], b: &[f32]) -> f64 {
     }
     sum.sqrt()
 }
+
+// M12-Task 6: Inline unit tests for kay-context store module.
+// Complements the integration tests in tests/store.rs with quick
+// synchronous assertions on SymbolKind, l2_distance, and Symbol construction.
+
+#[cfg(test)]
+mod unit {
+    use super::*;
+
+    #[test]
+    fn symbol_kind_as_str_roundtrips() {
+        for kind in [
+            SymbolKind::Function,
+            SymbolKind::Method,
+            SymbolKind::Trait,
+            SymbolKind::Struct,
+            SymbolKind::Enum,
+            SymbolKind::Module,
+            SymbolKind::Class,
+            SymbolKind::FileBoundary,
+        ] {
+            let s = kind.as_str();
+            let restored = SymbolKind::from_kind_str(s);
+            assert_eq!(restored, kind, "from_kind_str must roundtrip via as_str");
+        }
+    }
+
+    #[test]
+    fn symbol_kind_from_kind_str_unknown_falls_back_to_file_boundary() {
+        assert!(matches!(
+            SymbolKind::from_kind_str("totally_unknown_kind_xyz"),
+            SymbolKind::FileBoundary
+        ));
+    }
+
+    #[test]
+    fn l2_distance_zero_for_identical_vectors() {
+        let a = vec![1.0, 2.0, 3.0];
+        let b = vec![1.0, 2.0, 3.0];
+        assert!((l2_distance(&a, &b)).abs() < 1e-9);
+    }
+
+    #[test]
+    fn l2_distance_positive_for_different_vectors() {
+        let a = vec![0.0, 0.0];
+        let b = vec![3.0, 4.0];
+        assert!((l2_distance(&a, &b) - 5.0).abs() < 1e-9, "L2 distance of (3,4) must be 5.0");
+    }
+
+    #[test]
+    fn l2_distance_zero_pads_shorter_vector() {
+        let a = vec![1.0];
+        let b = vec![1.0, 1.0];
+        // distance = sqrt((1-1)^2 + (0-1)^2) = 1.0
+        assert!((l2_distance(&a, &b) - 1.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn symbol_debug_format_does_not_panic() {
+        let sym = Symbol {
+            id: 1,
+            name: "foo".to_string(),
+            kind: SymbolKind::Function,
+            file_path: "test.rs".to_string(),
+            start_line: 1,
+            end_line: 5,
+            sig: "fn foo()".to_string(),
+        };
+        let debug = format!("{:?}", sym);
+        assert!(debug.contains("foo"));
+    }
+}

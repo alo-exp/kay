@@ -78,3 +78,88 @@ impl ContextPacket {
 pub fn estimate_tokens(name: &str, sig: &str) -> usize {
     (name.chars().count() + sig.chars().count() + 10) / 4
 }
+
+// M12-Task 6: Inline unit tests for kay-context budget module.
+// Complements the integration tests in tests/budget.rs with quick
+// synchronous assertions on ContextBudget and estimate_tokens.
+
+#[cfg(test)]
+mod unit {
+    use super::*;
+
+    #[test]
+    fn context_budget_default_values() {
+        let b = ContextBudget::default();
+        assert_eq!(b.max_tokens, 8192, "default max_tokens must be 8192");
+        assert_eq!(b.reserve_tokens, 1024, "default reserve_tokens must be 1024");
+    }
+
+    #[test]
+    fn context_budget_available_is_max_minus_reserve() {
+        let b = ContextBudget::new(8192, 1024);
+        assert_eq!(b.available(), 7168);
+    }
+
+    #[test]
+    fn context_budget_available_saturates_on_zero_reserve() {
+        let b = ContextBudget::new(8192, 8192);
+        assert_eq!(b.available(), 0);
+    }
+
+    #[test]
+    fn context_budget_available_never_negative() {
+        let b = ContextBudget::new(100, 200);
+        assert_eq!(b.available(), 0, "saturating_sub must prevent negative");
+    }
+
+    #[test]
+    fn context_packet_truncated_when_dropped_symbols() {
+        let packet = ContextPacket {
+            symbols: vec![],
+            dropped_symbols: 5,
+            budget_tokens: 8192,
+            hardened_schemas: vec![],
+        };
+        assert!(packet.truncated());
+    }
+
+    #[test]
+    fn context_packet_not_truncated_when_no_dropped() {
+        let packet = ContextPacket {
+            symbols: vec![],
+            dropped_symbols: 0,
+            budget_tokens: 8192,
+            hardened_schemas: vec![],
+        };
+        assert!(!packet.truncated());
+    }
+
+    #[test]
+    fn estimate_tokens_formula() {
+        // (name_len + sig_len + 10) / 4
+        assert_eq!(estimate_tokens("", ""), 2);   // (0 + 0 + 10) / 4 = 2
+        assert_eq!(estimate_tokens("foo", ""), 3); // (3 + 0 + 10) / 4 = 3
+        assert_eq!(estimate_tokens("", "()"), 3);  // (0 + 2 + 10) / 4 = 3
+        assert_eq!(estimate_tokens("fn", "i32"), 4); // (2 + 3 + 10) / 4 = 3.75 → 3
+    }
+
+    #[test]
+    fn context_budget_assemble_with_zero_budget() {
+        let b = ContextBudget::new(100, 200);
+        let syms = vec![];
+        let packet = b.assemble(syms.clone(), &[]);
+        assert!(packet.symbols.is_empty());
+        assert_eq!(packet.dropped_symbols, 0, "zero budget: nothing is dropped");
+        assert_eq!(packet.budget_tokens, 0);
+    }
+
+    #[test]
+    fn context_budget_assemble_preserves_schema() {
+        use crate::store::Symbol;
+        let b = ContextBudget::new(8192, 0);
+        let schema = serde_json::json!({"type": "object"});
+        let sym = Symbol { id: 1, name: "foo".to_string(), sig: "()".to_string(), file: "test.rs".to_string(), kind: crate::store::SymbolKind::Function };
+        let packet = b.assemble(vec![sym], &[schema.clone()]);
+        assert_eq!(packet.hardened_schemas, vec![schema]);
+    }
+}

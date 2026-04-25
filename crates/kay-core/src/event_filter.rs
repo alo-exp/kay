@@ -92,3 +92,102 @@ use kay_tools::events::AgentEvent;
 pub fn for_model_context(event: &AgentEvent) -> bool {
     !matches!(event, AgentEvent::SandboxViolation { .. })
 }
+
+// M12-Task 6: Inline unit tests for kay-core event_filter module.
+// These complement the exhaustive integration tests in tests/event_filter.rs
+// with quick synchronous assertions on the QG-C4 invariant.
+
+#[cfg(test)]
+mod unit {
+    use super::*;
+    use kay_tools::events::AgentEvent;
+    use kay_tools::seams::verifier::VerificationOutcome;
+
+    // QG-C4: SandboxViolation MUST return false from for_model_context.
+    #[test]
+    fn sandbox_violation_denied_from_model_context() {
+        let ev = AgentEvent::SandboxViolation {
+            call_id: "c1".to_string(),
+            tool_name: "fs_write".to_string(),
+            resource: "/etc/passwd".to_string(),
+            policy_rule: "project_root_only".to_string(),
+            os_error: Some(13),
+        };
+        assert!(!for_model_context(&ev), "QG-C4: SandboxViolation must be blocked from model context");
+    }
+
+    #[test]
+    fn sandbox_violation_without_os_error_denied() {
+        // os_error=None case — pre-flight denial — also must be blocked.
+        let ev = AgentEvent::SandboxViolation {
+            call_id: "c2".to_string(),
+            tool_name: "fs_write".to_string(),
+            resource: "/etc/evil".to_string(),
+            policy_rule: "project_root_only".to_string(),
+            os_error: None,
+        };
+        assert!(!for_model_context(&ev), "QG-C4: pre-flight SandboxViolation must also be blocked");
+    }
+
+    // All other variants must be allowed.
+    #[test]
+    fn text_delta_allowed() {
+        let ev = AgentEvent::TextDelta { content: "hello".to_string() };
+        assert!(for_model_context(&ev));
+    }
+
+    #[test]
+    fn task_complete_pass_allowed() {
+        let ev = AgentEvent::TaskComplete {
+            call_id: "done".to_string(),
+            verified: true,
+            outcome: VerificationOutcome::Pass { note: "ok".to_string() },
+        };
+        assert!(for_model_context(&ev));
+    }
+
+    #[test]
+    fn task_complete_fail_allowed() {
+        let ev = AgentEvent::TaskComplete {
+            call_id: "fail".to_string(),
+            verified: false,
+            outcome: VerificationOutcome::Fail { reason: "assertion mismatch".to_string() },
+        };
+        // Even a failing task outcome is safe to show the model (it describes what went wrong).
+        assert!(for_model_context(&ev));
+    }
+
+    #[test]
+    fn usage_allowed() {
+        let ev = AgentEvent::Usage { prompt_tokens: 100, completion_tokens: 50, cost_usd: 0.002 };
+        assert!(for_model_context(&ev));
+    }
+
+    #[test]
+    fn retry_allowed() {
+        use kay_provider_errors::RetryReason;
+        let ev = AgentEvent::Retry { attempt: 1, delay_ms: 500, reason: RetryReason::RateLimited };
+        assert!(for_model_context(&ev));
+    }
+
+    #[test]
+    fn aborted_allowed() {
+        let ev = AgentEvent::Aborted { reason: "user_abort".to_string() };
+        assert!(for_model_context(&ev));
+    }
+
+    #[test]
+    fn tool_call_start_allowed() {
+        let ev = AgentEvent::ToolCallStart {
+            id: "call_1".to_string(),
+            name: "fs_read".to_string(),
+        };
+        assert!(for_model_context(&ev));
+    }
+
+    #[test]
+    fn context_truncated_allowed() {
+        let ev = AgentEvent::ContextTruncated { dropped_symbols: 512, budget_tokens: 8192 };
+        assert!(for_model_context(&ev));
+    }
+}

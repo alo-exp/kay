@@ -199,3 +199,87 @@ pub fn install_ctrl_c_handler(tx: mpsc::Sender<ControlMsg>) -> std::io::Result<(
 
     Ok(())
 }
+
+// M12-Task 6: Inline unit tests for kay-core control module.
+// These complement the integration tests in tests/control.rs with
+// pure synchronous assertions on the ControlMsg type and channel capacity.
+
+#[cfg(test)]
+mod unit {
+    use super::*;
+
+    #[test]
+    fn control_msg_is_copy() {
+        // ControlMsg must be Copy so the select! arm can match without ownership.
+        fn assert_copy<T: Copy>() {}
+        assert_copy::<ControlMsg>();
+    }
+
+    #[test]
+    fn control_msg_variants() {
+        assert!(matches!(ControlMsg::Pause, ControlMsg::Pause));
+        assert!(matches!(ControlMsg::Resume, ControlMsg::Resume));
+        assert!(matches!(ControlMsg::Abort, ControlMsg::Abort));
+    }
+
+    #[test]
+    fn control_msg_partial_eq() {
+        assert_eq!(ControlMsg::Pause, ControlMsg::Pause);
+        assert_ne!(ControlMsg::Pause, ControlMsg::Resume);
+        assert_ne!(ControlMsg::Abort, ControlMsg::Pause);
+    }
+
+    #[test]
+    fn control_channel_capacity_is_32() {
+        assert_eq!(CONTROL_CHANNEL_CAPACITY, 32);
+    }
+
+    #[test]
+    fn control_channel_constructs_sender_receiver() {
+        let (tx, rx) = control_channel();
+        assert_eq!(tx.capacity(), CONTROL_CHANNEL_CAPACITY);
+        // rx doesn't have a capacity() method; just assert construction doesn't panic
+        let _ = rx;
+    }
+
+    #[tokio::test]
+    async fn control_channel_send_and_receive_pause() {
+        let (tx, mut rx) = control_channel();
+        tx.send(ControlMsg::Pause).await.expect("send must succeed");
+        let received = rx.recv().await;
+        assert_eq!(received, Some(ControlMsg::Pause));
+    }
+
+    #[tokio::test]
+    async fn control_channel_send_and_receive_resume() {
+        let (tx, mut rx) = control_channel();
+        tx.send(ControlMsg::Resume).await.expect("send must succeed");
+        let received = rx.recv().await;
+        assert_eq!(received, Some(ControlMsg::Resume));
+    }
+
+    #[tokio::test]
+    async fn control_channel_send_and_receive_abort() {
+        let (tx, mut rx) = control_channel();
+        tx.send(ControlMsg::Abort).await.expect("send must succeed");
+        let received = rx.recv().await;
+        assert_eq!(received, Some(ControlMsg::Abort));
+    }
+
+    #[tokio::test]
+    async fn control_channel_closes_on_drop() {
+        let (tx, mut rx) = control_channel();
+        drop(tx);
+        assert_eq!(rx.recv().await, None);
+    }
+
+    #[test]
+    fn install_ctrl_c_handler_returns_ok() {
+        // install_ctrl_c_handler must not panic — it installs the signal handler.
+        // The actual SIGINT delivery is tested by kay-cli's
+        // exit_code_130_on_sigint_nix E2E subprocess test.
+        let (tx, _rx) = control_channel();
+        let result = install_ctrl_c_handler(tx);
+        assert!(result.is_ok(), "install_ctrl_c_handler must succeed: {:?}", result);
+    }
+}
