@@ -1,18 +1,18 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.3.0
-milestone_name: Agent Loop + Canonical CLI
+milestone: v0.4.0
+milestone_name: Tauri Desktop Shell + TUI Frontend
 status: in_progress
-stopped_at: "Phase 8 shipped — PR #17 squash-merged (b21897a2). KIRA Critics (test-engineer + QA + end-user) live. VERIFY-01..04 closed. Ready for Phase 9: Tauri Desktop Shell."
-last_updated: "2026-04-23T00:00:00Z"
-next_phase: 9
-next_action: "/silver:feature Phase 9: Tauri Desktop Shell"
-last_activity: "2026-04-22 -- Phase 7 SHIPPED. kay-context crate (10 modules): tree-sitter symbol store + SQLite FTS5 + sqlite-vec hybrid retrieval, per-turn ContextBudget, SchemaHardener (ForgeCode hardening), FileWatcher 500ms debounce. 39 commits, 70 tests green. PR #13 open against main. 5 REQs closed: CTX-01..05. Key decisions: sqlite-vec =0.1.10-alpha.3 exact pin, FakeEmbedder always-compiled, Arc<dyn Fn()> watcher, insert_symbol (not upsert), KayContextEngine pub-removed until Phase 8, _ctx_packet unused Phase 7. Full /silver:feature pipeline executed. Security: 7/7 SECURED. Nyquist: 6/6 COVERED. Quality gates: 9/9 adversarial PASS. Code review: 5/5 warnings fixed."
+stopped_at: "Phase 9.5 shipped — PR #19 squash-merged. ratatui TUI frontend consuming kay-cli JSONL event contract live. Phase 10 planning done. Ready for Phase 10 execution."
+last_updated: "2026-04-25T00:00:00Z"
+next_phase: 10
+next_action: "/silver:feature Phase 10: Multi-Session Manager + Project Settings"
+last_activity: "2026-04-24 -- Phase 9 shipped (PR #18) + Phase 9.5 shipped (PR #19). ratatui TUI consuming the same kay-cli JSONL contract as kay-tauri. 4h memory canary live. TUI keyboard-driven, SSH-friendly. Phase 10 plan (10-PLAN.md) exists at .planning/phases/10-multi-session-manager/. Branch cut from main. 8-wave TDD plan ready to execute."
 progress:
   total_phases: 17
-  completed_phases: 6
-  total_plans: 26
-  completed_plans: 26
+  completed_phases: 9
+  total_plans: 28
+  completed_plans: 28
   percent: 100
 ---
 
@@ -27,23 +27,15 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 
 ## Current Position
 
-Phase: Phase 4 CLOSED (v0.2.0 signed tag shipped). Active: **Phase 5** (Agent Loop + Canonical CLI — streaming tool-call turn loop, `kay` CLI binary, TUI smoke path).
-Status: Phase 4 SHIPPED 2026-04-21. PR #5 open against main. 10 decisions locked in `.planning/phases/04-sandbox/04-CONTEXT.md`:
-  - D-01 Sandbox backend split: four crates (`kay-sandbox-policy` shared type + three platform crates `kay-sandbox-macos/linux/windows`) so Linux Landlock can't leak into macOS/Windows builds.
-  - D-02 macOS: inline `sandbox-exec -p <profile>` (no tempfile); policy cached once per process by hash.
-  - D-03 Linux: Landlock ruleset v2 with graceful `ENOSYS` fallback to seccomp-BPF-only on kernels <5.13 (emits `AgentEvent::SandboxViolation` at startup — never silently drops enforcement).
-  - D-04 Windows: Job Object with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` + `CreateRestrictedToken(DISABLE_MAX_PRIVILEGE)`; RAII `JobHandle` closes handle on drop → kills entire descendant tree (R-4 closed).
-  - D-05 `SandboxPolicy` struct in `kay-sandbox-policy` crate: serde-deserializable + `default_for_project(root)` helper; `allows_read/write/net(host, port)` predicates; `NetAllow` per-host+port matcher.
-  - D-06 `AgentEvent::SandboxViolation { call_id, tool_name, resource, policy_rule, os_error }` — 5-field variant, `#[non_exhaustive]`. QG-C4: MUST NOT be re-injected into model context (enforced by Phase 5 loop).
-  - D-07 `dispatcher::dispatch()` populated — registry lookup + `tool.invoke(args, ctx, call_id)` with `ToolError::NotFound` for unknown. Each tool self-checks `ctx.sandbox` before acting (no retrofit of tool code).
-  - D-08 `RngSeam` trait populated: `OsRngSeam` wraps rand 0.10 `SysRng::try_fill_bytes` (panics on catastrophic OS entropy failure — documented in source as unavoidable); `DeterministicRng` LCG for tests.
-  - D-09 CI matrix: macos-14 (arm64 M1), ubuntu-latest, windows-latest — all three run the escape suite (real subprocesses attempting out-of-bounds writes/reads/net).
-  - D-10 Escape suite architecture: user-space subprocesses — no root required; subprocess is spawned with sandbox active, asserts kernel denies the operation via exit code + `AgentEvent::SandboxViolation` emission.
-Artifacts: `04-BRAINSTORM.md`, `04-CONTEXT.md`, `04-DEPENDENCIES.md`, `04-PLAN.md`, `04-QUALITY-GATES.md`, `04-TEST-STRATEGY.md`, `04-VERIFICATION.md` (7/7 SC PASS), `04-SECURITY.md` (10-threat model, all NN-compliant), `04-NYQUIST.md` (coverage audit PASS). 60 DCO-signed commits on `phase/04-sandbox`; signed tag `v0.2.0` on HEAD. PR #5 going through final CI verification (DCO check replaced with inline shell script after tim-actions/dco crashed on argv length).
-Last activity: 2026-04-21 -- Phase 4 closure + CI red cleanup. Four CI issues landed in fix commits: (1) Windows HANDLE `job == 0` replaced with `.is_null()` (windows-sys HANDLE is raw pointer); (2) workspace fmt sweep for accumulated debt; (3) unused `use std::sync::Arc` removed from `runtime/dispatcher.rs`; (4) `let pty_pid: Option<i32>` gated `#[cfg(unix)]` because consumers are unix-only. DCO action replaced with inline `git rev-list` shell check because `tim-actions/dco` crashed with "Argument list too long" on 60-commit PR. Next: `/silver:feature Phase 5` after CI is green.
+Phase: **Phase 9.5 CLOSED (v0.4.0)** — ratatui TUI frontend shipped as PR #19. Both frontends (kay-tauri + kay-tui) consuming the same kay-cli JSONL event contract. Phase 10 plan ready at `.planning/phases/10-multi-session-manager/10-PLAN.md`.
 
-Progress: [████████░░░░░░] 31% (4 of 13 phases done; Phase 2.5 interim complete; v0.2.0 tag signed)
+**Phase 9 shipped (PR #18, 2026-04-24):** Tauri 2.x desktop shell with specta-typed IPC, `Channel<AgentEvent>` streaming, session view with tool-call timeline + token/cost meter, 4h memory canary.
 
+**Phase 9.5 shipped (PR #19, 2026-04-24):** Full-screen ratatui terminal UI consuming the same JSONL contract as kay-tauri. Multi-pane layout, keyboard-first, SSH-friendly.
+
+**Phase 10 next:** Multi-Session Manager + Project Settings — spawn/pause/resume/fork sessions, OS keyring binding, model allowlist picker, command-approval dialog, settings panel.
+
+Progress: [████████████████████] 53% (9 of 17 phases done; v0.4.0 tag ready; Phase 10 execution ready)
 ## Performance Metrics
 
 **Velocity:**
@@ -54,19 +46,24 @@ Progress: [████████░░░░░░] 31% (4 of 13 phases done;
 
 **By Phase:**
 
-| Phase | Plans  | Description                       | Notes |
-|-------|--------|-----------------------------------|-------|
-| 01    | 6      | Fork + parity scaffold            | EVAL-01 baseline deferred to EVAL-01a |
-| 02    | 9      | Provider HAL + SSE + retry        | PROV-01..PROV-08 shipped |
-| 02.5  | 4      | kay-core sub-crate split          | 23 workspace crates |
-| 03    | 5      | Tool registry + KIRA core         | v0.1.1 shipped; 174 tests green |
-| 04    | 7w     | Sandbox — 3 platforms             | v0.2.0 shipped; R-4+R-5 closed |
+| Phase | Plans | Description | Notes |
+|-------|-------|-------------|-------|
+| 01 | 6 | Fork + parity scaffold | EVAL-01 baseline deferred to EVAL-01a |
+| 02 | 9 | Provider HAL + SSE + retry | PROV-01..PROV-08 shipped |
+| 02.5 | 4 | kay-core sub-crate split | 23 workspace crates |
+| 03 | 5 | Tool registry + KIRA core | v0.1.1 shipped; 174 tests green |
+| 04 | 7w | Sandbox — 3 platforms | v0.2.0 shipped; R-4+R-5 closed |
+| 05 | TBD | Agent Loop + Canonical CLI | PR #8 shipped; 236 tests green |
+| 06 | TBD | Session Store + Transcript | PR #12 shipped; 91 tests green |
+| 07 | TBD | Context Engine | PR #13 shipped; 70 tests green |
+| 08 | TBD | Multi-Perspective Verification | PR #17 shipped; VERIFY-01..04 closed |
+| 09 | TBD | Tauri Desktop Shell | PR #18 shipped; 4h memory canary |
+| 09.5 | TBD | TUI Frontend (ratatui) | PR #19 shipped; JSONL contract live |
 
 **Recent Trend:**
 
-- Last 5 phase deliverables: 04-W0 (kay-sandbox-policy scaffold) → 04-W1 (AgentEvent::SandboxViolation) → 04-W2 (RngSeam + dispatch — closed R-5) → 04-W3-W6 (three platform backends + CI matrix) → closure (verify + secure + Nyquist + signed tag v0.2.0).
-- Trend: Phase 4 shipped cleanly under TDD discipline — 6 waves, 68 tests, 10-threat model, 7/7 SC PASS. Key architectural finding: **`JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` is the only reliable cross-platform way to ensure grandchild cleanup on Windows** (R-4). The `JobHandle` RAII wrapper makes this automatic from Rust. On Linux, **Landlock ENOSYS fallback** to seccomp-BPF-only must emit a startup `SandboxViolation` event — silently dropping enforcement is a policy bug that masquerades as a no-op. On macOS, **inline `sandbox-exec -p <profile>`** with per-process SBPL hash caching outperformed the tempfile approach (no filesystem I/O per subprocess). Post-closure CI-red cleanup required 4 fixes: (1) Windows HANDLE `is_null()` (not `== 0` — HANDLE is `*mut c_void`); (2) workspace fmt sweep; (3) unused `Arc` import; (4) `pty_pid` `#[cfg(unix)]` gate. DCO CI action (`tim-actions/dco`) replaced with inline shell loop because it crashes with "Argument list too long" on PRs with many commits.
-
+- Last 10 phase deliverables: Phase 5 (agent loop + CLI) → Phase 6 (session store) → Phase 7 (context engine) → Phase 8 (KIRA critics) → Phase 9 (Tauri shell) → Phase 9.5 (ratatui TUI). All shipped cleanly.
+- Current uncommitted work: kay-tui improvements (jsonl.rs buffering fix, subprocess.rs, ui.rs additions) in working tree. Not yet committed.
 *Updated after each plan completion*
 
 ## Accumulated Context
@@ -139,6 +136,8 @@ Items acknowledged and carried forward:
 
 ## Session Continuity
 
-Last session: 2026-04-21 — Phase 4 shipped (v0.2.0 signed) and CI red cleanup on PR #5. Executed full 19-flow `/silver:feature` pipeline from brainstorm through signed-tag ship. Post-ship cleanup: diagnosed three CI failures (Windows HANDLE pointer-type mismatch, fmt debt, unused imports/variables) + one CI infra failure (tim-actions/dco crashes with argv overflow on 60-commit PRs). All four fixed in two commits (`6498fcc` code fixes, `d1c51b7` inline DCO shell check). Final CI verification in progress: DCO ✅, Lint ✅, Ubuntu ✅, macOS ✅, Windows ⏳. Escape suite ran real kernel-enforced subprocess denials on all three OSes.
-Stopped at: Phase 4 closure complete. PR #5 going green. v0.2.0 signed tag pushed. Awaiting final Windows CI pass, then merge + Phase 5 entry.
-Resume file: `/silver:feature Phase 5: Agent Loop + Canonical CLI` (per `next_action` in frontmatter; chains automatically per standing autonomous directive; Phase 4 artifacts + QG-C4 carry-forward feed Phase 5 planning).
+Last session: 2026-04-24 — Phase 9 shipped (PR #18) + Phase 9.5 shipped (PR #19). Tauri desktop shell and ratatui TUI frontend both live, consuming the same kay-cli JSONL event contract. Phase 10 plan ready at `.planning/phases/10-multi-session-manager/10-PLAN.md`. 8-wave TDD plan for Multi-Session Manager + Project Settings. Uncommitted work in kay-tui: jsonl.rs buffering fix, subprocess.rs improvements, ui.rs additions.
+
+Stopped at: Phase 9.5 closure complete. Both frontends shipped. Phase 10 plan approved and ready for execution.
+
+Resume action: `/silver:feature Phase 10: Multi-Session Manager + Project Settings` (per `next_action` in frontmatter; Phase 10 plan at `.planning/phases/10-multi-session-manager/10-PLAN.md`; branch `phase/10-multi-session-manager` cut from main).
