@@ -84,24 +84,24 @@ Note: kay-tauri exists but has no React/TypeScript UI. UI smoke suite deferred.
 ---
 
 ## Kay-Specific Gaps (Not in Phase 09.1)
+## Kay-Specific Gaps (Not in Phase 09.1)
 
 Phase 09.1 focused on forge_* crates. Kay-specific gaps not covered:
 
-| Crate | Gap | Severity |
-|-------|-----|----------|
-| kay-core | 11 integration tests exist (tests/ dir) but ZERO inline #[cfg(test)] unit tests | HIGH |
-| kay-context | 7 integration tests exist but ZERO inline #[cfg(test)] unit tests | HIGH |
-| kay-tools | NO tests at all (tests/ dir, inline #[test]) | CRITICAL |
-| kay-verifier | NO tests at all | CRITICAL |
-| kay-session | NO tests at all | CRITICAL |
-| kay-provider-openrouter | 8 integration tests + 12 unit tests — GOOD | ✅ DONE |
-| kay-cli | 4 integration tests + 6 E2E subprocess tests — GOOD | ✅ DONE |
-
+| Crate | Gap | Severity | Status |
+|-------|-----|----------|--------|
+| kay-core | 11 integration tests exist (tests/ dir) but ZERO inline #[cfg(test)] unit tests | HIGH | ❌ PENDING |
+| kay-context | 7 integration tests exist but ZERO inline #[cfg(test)] unit tests | HIGH | ❌ PENDING |
+| kay-tools | NO tests at all (tests/ dir, inline #[test]) | CRITICAL | ❌ PENDING |
+| kay-verifier | NO tests at all | CRITICAL | ❌ PENDING |
+| kay-session | NO tests at all | CRITICAL | ✅ Added in M12 Phase 1 (`session_store.rs`, `session_index.rs`) |
+| kay-provider-openrouter | 8 integration tests + 12 unit tests — GOOD | ✅ DONE | ✅ DONE |
+| kay-cli | 4 integration tests + 6 E2E subprocess tests + 6 live smoke tests — GOOD | ✅ DONE | ✅ DONE |
 ## Live API Testing Gaps
 
 | Gap | Severity | Status (2026-04-25) |
 |-----|----------|----------------------|
-| No test anywhere makes a real API call (MiniMax or otherwise) | CRITICAL | ✅ `kay run --live` wires MiniMax API |
+| No test anywhere makes a real API call (MiniMax or otherwise) | CRITICAL | ✅ kay-cli `live_smoke.rs` + kay-provider-openrouter `minimax_live.rs` feature-gated `live` |
 | `kay run` only uses offline mock provider | BLOCKS EVAL-01a | ✅ `--live` flag wired |
 | `kay eval tb2 --run` not implemented | BLOCKS EVAL-01a | ❌ PENDING (Phase 12 TB setup project) |
 | No `MINIMAX_API_KEY` configuration documented in Kay | BLOCKS smoke tests | ✅ `.env.example` updated |
@@ -119,10 +119,14 @@ Phase 09.1 focused on forge_* crates. Kay-specific gaps not covered:
 
 ## Action Items from Audit
 
-1. ✅ Add `tests/` directories for kay-sandbox-{linux,macos,windows}
-2. ✅ Add `tests/` directories for kay-session
-3. ✅ Add inline `#[cfg(test)]` unit tests to kay-core and kay-context
-4. ✅ Wire live MiniMax provider into `kay run --live`
-5. ❌ Create live API smoke test suite (feature-gated) — PENDING (needs live provider first)
+1. ✅ Add `tests/` directories for kay-sandbox-{linux,macos,windows} (M12 Phase 1)
+2. ✅ Add `tests/` directories for kay-session (M12 Phase 1)
+3. ✅ Add inline `#[cfg(test)]` unit tests to kay-core and kay-context (M12 Phase 1)
+4. ✅ Wire live MiniMax provider into `kay run --live` (M12 Phase 2 — commits 980a600, 101e23d)
+5. ✅ Create live API smoke test suite (M12 Phase 3 — commit 8590311)
 6. ❌ Create coverage-gate.sh script — PENDING
 7. ❌ Wire `kay eval tb2 --run` for EVAL-01a — PENDING (Phase 12 TB setup project)
+8. ❌ Inline unit tests for kay-core — PENDING (Phase 1 planned, not yet done)
+9. ❌ Inline unit tests for kay-context — PENDING (Phase 1 planned, not yet done)
+10. ❌ kay-tools integration tests — PENDING (Phase 1 planned, not yet done)
+11. ❌ kay-verifier integration tests — PENDING (Phase 1 planned, not yet done)

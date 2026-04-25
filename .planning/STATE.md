@@ -4,11 +4,10 @@ gsd_state_version: 1.0
 milestone: v0.4.0
 milestone_name: Tauri Desktop Shell + TUI Frontend
 status: in_progress
-stopped_at: "Phase 11 COMPLETE — cross-platform CI + code signing + crates.io + Tauri updater shipped."
-last_updated: "2026-04-25T18:25:00Z"
+last_updated: "2026-04-25T20:00:00Z"
 next_phase: 12
-next_action: "Phase 12: Run EVAL-01a (TB 2.0 ≥80%) — MiniMax API key configured"
-last_activity: "2026-04-25 — Phase 11 cross-platform hardening + release pipeline shipped. CI matrix for macOS/Windows/Linux, code signing (notarytool + Azure), crates.io publish workflow, Tauri minisign updater."
+next_action: "M12 Phase 4: Run smoke tests with MiniMax — cargo test -p kay-cli (always-on) then MINIMAX_API_KEY=<key> cargo test -p kay-cli --features live (live smoke)"
+last_activity: "2026-04-25 — Phase 11 CLOSED. M12 Phase 1-3 complete: test pyramid gaps filled (kay-session, kay-sandbox-*, kay-core inline, kay-context inline), MiniMax API key configured, kay run --live wired, live smoke suite added."
 progress:
   total_phases: 17
   completed_phases: 11

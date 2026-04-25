@@ -2,7 +2,7 @@
 id: "milestone-12-live-api-smoke"
 title: "Milestone 12 — Live API Smoke Testing + Test Pyramid Completeness"
 phase: "12"
-status: "draft"
+status: "in_progress"
 depends_on: ["11-cross-platform-release"]
 created: "2026-04-25"
 ---
@@ -34,7 +34,7 @@ Establish a production-grade live API smoke testing pipeline for Kay using MiniM
 
 | Crate | Unit (#[cfg(test)]) | Integration (tests/) | E2E Subprocess | Live API |
 |-------|---------------------|----------------------|----------------|---------|
-| **kay-cli** | 4 (context_smoke, exit, banner, run args) | 4 files (cli_e2e, cli_parity_negative, session_e2e, context_smoke) | YES (cli_e2e: 6 tests) | **MISSING** |
+| **kay-cli** | 4 (context_smoke, exit, banner, run args) | 4 files (cli_e2e, cli_parity_negative, session_e2e, context_smoke) + **live_smoke.rs (6 tests)** | YES (cli_e2e: 6 tests) | **YES** (`live_smoke.rs` — feature-gated `live` feature) |
 | **kay-core** | 0 inline | 11 files (loop, control, persona, budget, etc.) | NO | **MISSING** |
 | **kay-context** | 0 inline | 7 files (store, indexer, retriever_*, watcher, hardener, budget) | NO | **MISSING** |
 | **kay-provider-openrouter** | 12 (auth, retry, cost_cap) | 8 files (auth, retry, allowlist, translator, cost_cap, nn7) | NO | **MISSING** |
@@ -55,8 +55,8 @@ Establish a production-grade live API smoke testing pipeline for Kay using MiniM
 5. **kay-verifier**: NO tests at all
 6. **kay-session**: NO tests at all
 7. **kay-sandbox-***: Only inline unit tests; no `tests/` integration directories
-8. **Live E2E**: No test anywhere that makes a real API call to MiniMax
-9. **EVAL-01a**: TB 2.0 harness not wired into `kay eval tb2 --run`
+8. **Live E2E**: ~~No test anywhere that makes a real API call to MiniMax~~ ✅ kay-cli `live_smoke.rs` + kay-provider-openrouter `minimax_live.rs`
+9. **EVAL-01a**: TB 2.0 harness not wired into `kay eval tb2 --run` (Phase 12 deferred)
 
 ## 4. Task Breakdown
 
