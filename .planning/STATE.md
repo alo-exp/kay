@@ -7,7 +7,7 @@ status: in_progress
 stopped_at: "Phase 11 COMPLETE — cross-platform CI + code signing + crates.io + Tauri updater shipped."
 last_updated: "2026-04-25T18:25:00Z"
 next_phase: 12
-next_action: "Phase 12: EVAL-01a baseline run OR continue feature development"
+next_action: "Phase 12: Run EVAL-01a (TB 2.0 ≥80%) — MiniMax API key configured"
 last_activity: "2026-04-25 — Phase 11 cross-platform hardening + release pipeline shipped. CI matrix for macOS/Windows/Linux, code signing (notarytool + Azure), crates.io publish workflow, Tauri minisign updater."
 progress:
   total_phases: 17
@@ -131,7 +131,7 @@ Items acknowledged and carried forward:
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| EVAL | EVAL-01a — run unmodified fork on TB 2.0 ≥80% | Blocked on OpenRouter key + ~$100 budget | Phase 1 (D-OP-01) |
+| EVAL | EVAL-01a — run unmodified fork on TB 2.0 ≥80% | **UNBLOCKED** — MiniMax-M2.7 API key configured (2026-04-25). Use `MINIMAX_API_KEY`. | Phase 1 (D-OP-01); resolved 2026-04-25 |
 | Compile | kay-core 23 × E0583 (forge_* naming) | RESOLVED in plan 02-02 (2026-04-19, commit bb57694 — 23 renames, R100 on every file) | Phase 1 (01-03-SUMMARY §Deferrals) |
 | Compile | kay-core E0432/E0433 (cross-subtree import paths) | FULLY RESOLVED by Phase 2.5 sub-crate split (2026-04-20). Plan 02-05's mechanical rewrite was superseded; sub-crate split makes per-crate `use crate::X` correct by construction. `cargo check --workspace` passes with 0 exclusions. | Phase 2 (02-02/03/04-SUMMARY); resolved in 02.5-VERIFICATION.md |
 | Release signing | GPG/SSH signing of release tags | v0.0.x unsigned carve-out; mandatory v0.1.0+ | Phase 1 (SECURITY.md §Release Signing) |
@@ -142,4 +142,4 @@ Last session: 2026-04-25 — Phase 11 cross-platform release pipeline shipped (C
 
 Stopped at: Phase 11 closure complete. All 11 phases shipped. v0.5.0 tag ready.
 
-Resume action: Decide Phase 12 priority — EVAL-01a baseline run (fork parity on TB 2.0 ≥80%) OR continue feature development.
+Resume action: Run EVAL-01a — parity baseline on TB 2.0 ≥80%. MiniMax-M2.7 API key configured (use `MINIMAX_API_KEY` env var). No OpenRouter key required.

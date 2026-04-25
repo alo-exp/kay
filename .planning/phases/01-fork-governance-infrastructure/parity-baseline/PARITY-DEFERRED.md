@@ -10,22 +10,22 @@ to follow-on task **EVAL-01a** per CONTEXT.md §User Amendments (2026-04-19).
 
 ## Why deferred
 
-- **Budget (D-22):** The run requires ~$100 of OpenRouter Exacto credits; the user
-  has scheduled spend authorization separately.
 - **Tag signing (D-OP-04):** The `forgecode-parity-baseline` tag created in plan 03 is
   UNSIGNED per the D-OP-04 amendment. When EVAL-01a runs, the tag may be re-cut
   (signed) to match the parity-run's source SHA exactly. Signing key procurement
   is deferred to Phase 11.
 - **CI cost:** Running Harbor inside GitHub Actions is expensive; the gate CI
   job stays on `workflow_dispatch` until Phase 2 requires it.
+- **OPENROUTER API KEY (RESOLVED 2026-04-25):** MiniMax-M2.7 API key is configured.
+  Use `MINIMAX_API_KEY` environment variable (not OpenRouter). MiniMax-M2.7
+  is sufficient for EVAL-01a — no OpenRouter key required.
 
 ## What EVAL-01a must produce
 
-When executed (in a later phase, once budget + signing key land), EVAL-01a
-writes the following into THIS directory (same path as this note):
+When executed, EVAL-01a writes the following into THIS directory (same path as this note):
 
 - `manifest.json` — conforms to `manifest-schema.json` in this directory; captures
-  Docker image SHAs, OpenRouter model + date, submission seed, Harbor commit SHA,
+  Docker image SHAs, MiniMax model + date, submission seed, Harbor commit SHA,
   per-task pass/fail, summary score. The schema's `forgecode_upstream_sha` field
   cross-checks against `../../../../.forgecode-upstream-sha`
   (`022ecd994eaec30b519b13348c64ef314f825e21`).
@@ -52,7 +52,7 @@ events.
 - Import commit: `8af1f2b` (plan 01-03; see `../01-03-SUMMARY.md`)
 - Import tag: `forgecode-parity-baseline` → commit `8af1f2b` (annotated, UNSIGNED per D-OP-04)
 - Upstream SHA file: `../../../../.forgecode-upstream-sha`
-- Governance decisions: `../01-CONTEXT.md` §Decisions D-18, D-19, D-20, D-21, D-22;
-  §Operational Dependencies D-OP-01, D-OP-04; §User Amendments (2026-04-19)
+- Governance decisions: `../01-CONTEXT.md` §Decisions D-18, D-19, D-20, D-21, D-OP-04;
+  §User Amendments (2026-04-19)
 - Scaffolded CLI shim: `crates/kay-cli/src/eval.rs` — `kay eval tb2 --dry-run`
 - Scaffolded CI job: `.github/workflows/ci.yml` — `parity-gate` (workflow_dispatch only)
