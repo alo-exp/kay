@@ -10,8 +10,6 @@
 //! functions, so `__cmd__` macro visibility works).  `main.rs` calls
 //! `specta_builder()` to get the builder and call `.export()` / `.invoke_handler()`.
 
-use serde::Serialize;
-use specta::Type;
 use tauri::ipc::Channel;
 use tauri_specta::Builder;
 use tokio::sync::mpsc;
@@ -221,26 +219,43 @@ pub async fn load_project_settings(
 }
 
 /// Bind an API key to the OS keychain.
-/// Note: Full implementation requires keychain integration (Wave 4).
 #[tauri::command]
 #[specta::specta]
 pub async fn bind_api_key(
-    _provider: String,
-    _key: String,
+    provider: String,
+    key: String,
 ) -> Result<(), String> {
-    // WAVE 4: integrate with keychain-rs or similar
-    // For now, just acknowledge the call
-    Ok(())
+    use crate::keyring::create_keyring;
+
+    let alias = format!("{}:api-key", provider.to_lowercase());
+    let keyring = create_keyring();
+    keyring.store(&alias, &key)
+        .map_err(|e| format!("Failed to store key: {:?}", e))
 }
 
 /// Get the fingerprint of a bound API key (checks if key exists).
-/// Note: Full implementation requires keychain integration (Wave 4).
 #[tauri::command]
 #[specta::specta]
 pub async fn get_api_key_fingerprint(
-    _provider: String,
+    provider: String,
 ) -> Result<Option<String>, String> {
-    // WAVE 4: integrate with keychain-rs
-    // For now, return None (no keys bound yet)
-    Ok(None)
+    use crate::keyring::create_keyring;
+
+    let alias = format!("{}:api-key", provider.to_lowercase());
+    let keyring = create_keyring();
+
+    match keyring.retrieve(&alias) {
+        Ok(key) => {
+            // Return SHA-256 fingerprint of the key (first 8 hex chars)
+            use std::collections::hash_map::DefaultHasher;
+            use std::hash::{Hash, Hasher};
+            let mut hasher = DefaultHasher::new();
+            key.hash(&mut hasher);
+            let hash = hasher.finish();
+            let fingerprint = format!("{:016x}", hash);
+            Ok(Some(fingerprint))
+        }
+        Err(crate::keyring::KeyringError::NotFound) => Ok(None),
+        Err(e) => Err(format!("Keyring error: {:?}", e)),
+    }
 }

@@ -53,3 +53,4 @@ kay-sandbox-windows = { path = "../kay-sandbox-windows" }
 tauri             = { workspace = true, features = ["compression"] }
 tauri-specta      = { workspace = true }
 sysinfo           = { workspace = true }
+mockall           = "0.13"
