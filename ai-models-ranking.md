@@ -1,5 +1,5 @@
 # AI Model Rankings — Comprehensive Cost-Weighted Analysis
-**Version 2.5 | April 24, 2026 | 11 Models | 15 Dimensions**
+**Version 3.0 | April 25, 2026 | 12 Models | 18 Dimensions**
 
 > **Change log:**
 > **v2.0 → v2.1:** Added GPT-5.5 (launched April 23, 2026). All 15 normalized score columns renormalized.
@@ -8,6 +8,7 @@
 > **v2.2 → v2.3 (Terminal-Bench 2.0 data refresh):** Replaced stale TB 2.0 column with current leaderboard data; GPT-5.5 confirmed #1 at 82.7%; GPT-5.4 corrected from 94.5% to 75.1%. Kimi overtook Gemini for #1 (73.1 vs 72.7).
 > **v2.3 → v2.4 (full provenance audit):** Systematic cross-check of every benchmark value against authoritative leaderboard sources. All benchmark columns except TB 2.0 corrected from stale late-2024/early-2025 data. Cost column: 9/11 API prices corrected (Claude Opus $30→$10 blended; Gemini $0.75→$4.50; Kimi $0.48→$1.71; etc.). τ²-bench, GPQA, HLE, OSWorld, SWE-bench, SciCode, GDP, Speed, LCB, AIME corrected throughout. Ranking outcome: Gemini #1 (68.3), Kimi #2 (63.1), KAT #3 (59.3), GPT-5.5 drops to #8 (47.7).
 > **v2.4 → v2.5 (cost methodology overhaul):** **Root cause:** API pricing ($/1M tokens) does not represent true cost to users — actual cost = price × token usage, which varies dramatically by model verbosity and task type. **Fix:** Replaced API-price-based cost dimension with **Artificial Analysis Intelligence Index Eval Cost** — the total USD cost to run AA's full standardized benchmark suite on each model. This is the only publicly available, standardized, usage-weighted cost dataset for frontier models (source: artificialanalysis.ai). **Impact:** Cost ranking completely reshuffled. KAT-Coder-Pro-V2 becomes cheapest to run ($73.49 eval cost, rank 1, score 100.0); Claude Opus 4.6 becomes most expensive ($4,969.68, rank 11, score 0.0). GPT-5.5 moves from rank 11 (API price: most expensive) to rank 8 ($3,357 eval cost — cheaper than Sonnet $3,959 and both Opus models), gaining +8.4 pts. GLM 5.1 rises from rank 5→4. Gemini rank 6→5. Kimi drops rank 4→6 ($947.87 eval cost — marginally more expensive than Gemini $892.28 due to higher token usage on benchmark tasks). **GPT-5.5 missing data confirmed still ⊘:** Exhaustive search confirms all 7 missing dimensions (IFBench, SWE-bench Verified, LCB, Speed, LCR, AIME, SciCode) remain unconfirmed as of April 24, 2026 — model launched 24 hours ago; leaderboards not yet updated. **Ranking outcome:** Gemini #1 (71.1), KAT #2 (60.7), GLM #3 (58.9), Kimi #4 (57.5), MiniMax #5 (57.5), GPT-5.5 rises to #6 (56.1). Quality-only unchanged from v2.4: Gemini #1 (74.1), Opus 4.7 #2 (67.8), GPT-5.5 #3 (65.0).
+> **v2.5 → v3.0 (new model + 3 new dimensions + data refresh):** **(1) Added DeepSeek V4-Pro** (released April 24, 2026; Apache 2.0; 1.6T/49B MoE; 1M context). **(2) Activated 3 new scored dimensions:** BrowseComp (3% weight — deep web research agent), SWE-bench Pro (4% — harder SWE variant), MMLU-Pro (2% — graduate-level knowledge breadth). Weight redistribution: Cost 28%→25%, IF 20%→18%, Term 9%→8%, SWE 8%→7%, LCB 7%→6%, LCR 3%→2%; all others unchanged; total remains 100%. **(3) 4 data corrections:** Gemini 3.1 Pro τ²-Bench 95.6%→99.3% (now #1); Kimi K2.6 GDPval ELO 1,484→1,520 (swaps with MiniMax for rank 7); GPT-5.5 IFBench ⊘→75.9% (fills 20%-weight gap); GPT-5.5 SWE-bench Verified ⊘→88.7%† (probable, from OpenAI tech card). **(4) HLE methodology resolved:** canonical Scale Labs leaderboard uses without-tools scores — existing HLE values confirmed correct. **(5) Ranking impact:** GPT-5.5 surges from #6→#2 (64.0 pts, +7.9 pts) as IFBench and SWE-bench gaps fill. KAT drops #2→#3. DeepSeek V4-Pro debuts at #8 (51.1 pts). Quality-only: Gemini #1 (73.1), Opus 4.7 #2 (64.4), GPT-5.4 #3 (62.9).
 
 ---
 
@@ -22,7 +23,7 @@
 7. [Normalized Rank Scores](#7-normalized-rank-scores)
 8. [Quality-Only Ranking (Unweighted)](#8-quality-only-ranking-unweighted)
 9. [Final Cost-Weighted Ranking](#9-final-cost-weighted-ranking)
-10. [Ranking Changes (v1.0 → v2.0 → v2.1 → v2.5)](#10-ranking-changes-v10--v20--v21--v25)
+10. [Ranking Changes (v1.0 → v2.0 → v2.5 → v3.0)](#10-ranking-changes-v10--v20--v25--v30)
 11. [Model Profiles](#11-model-profiles)
 12. [Strategic Insights](#12-strategic-insights)
 13. [Use Case Recommendations](#13-use-case-recommendations)
@@ -34,17 +35,17 @@
 
 ## 1. Executive Summary
 
-This report ranks 11 frontier AI models across 15 dimensions — 12 quality benchmarks plus cost efficiency, inference speed (tok/s), and task-level reliability — using rank-based normalization with a 28% cost weight. The framework is designed to reflect the total value equation for production software engineering teams: raw capability matters, but so does price, throughput, and reliability at scale.
+This report ranks 12 frontier AI models across 18 dimensions — 15 quality benchmarks plus cost efficiency, inference speed (tok/s), and task-level reliability — using rank-based normalization with a 25% cost weight. The framework is designed to reflect the total value equation for production software engineering teams: raw capability matters, but so does price, throughput, and reliability at scale.
 
-**v2.5 Headline Finding (cost methodology overhaul):** API pricing ($/1M tokens) is a misleading cost signal — actual cost = price × token usage, and verbosity varies dramatically by model. v2.5 replaces the blended API price metric with **Artificial Analysis Intelligence Index Eval Cost**: the total USD Artificial Analysis spent running each model through its full standardized benchmark suite. This is the only publicly available, standardized, usage-weighted cost dataset for frontier models. **The most consequential finding:** Anthropic's extended-thinking models (Opus 4.7 at $4,811; Opus 4.6 at $4,970) are the most expensive to run — not GPT-5.5 ($3,357). GPT-5.5's concise xhigh reasoning outputs are cheaper than Sonnet ($3,959) on actual tasks despite higher token pricing. **KAT-Coder-Pro-V2 becomes the sole cheapest model** ($73.49 eval cost, rank 1, score 100.0), rising from #3 to #2 overall. **GLM 5.1 jumps to #3** as eval cost rank improves from 5→4. **Kimi K2.6 drops from #2 to #4** — benchmark task verbosity ($947.87) exceeds Gemini's ($892.28) despite lower token price.
+**v3.0 Headline Finding (GPT-5.5 data fills + 3 new dimensions):** Two gaps in GPT-5.5's profile filled in — IFBench (75.9%) at 18% weight and SWE-bench Verified (88.7%†) at 7% weight — catapulting GPT-5.5 from #6 to #2 overall. The data confirms what was suspected: GPT-5.5 is a top-2 model when fairly measured. **New model DeepSeek V4-Pro** debuts at #8 (51.1 pts) with strong LCB (93.5%, #1 in cohort) and competitive SWE-bench (80.6%), but many AA Index component scores remain unpublished, leaving 8+ dimensions at neutral-50. **Three new scored dimensions** — BrowseComp (web research depth), SWE-bench Pro (harder code repair), and MMLU-Pro (graduate knowledge) — redistribute 9% of weight from existing dims and add granularity at the frontier level.
 
-**Top 6 (v2.5):**
-1. 🥇 **Gemini 3.1 Pro** — 71.1 pts (#1 overall, #1 quality; eval cost rank 5/11 = score 60.0; broadest coverage)
-2. 🥈 **KAT-Coder-Pro-V2** — 60.7 pts (sole cheapest to run, $73.49; #2 TB 2.0 + #2 Speed)
-3. 🥉 **GLM 5.1** — 58.9 pts (eval cost rank 4/11; #2 IFBench + #2 τ²-Bench)
-4. **Kimi K2.6** — 57.5 pts (#1 LCB; drops as eval cost reveals token verbosity)
-5. **MiniMax M2.7** — 57.5 pts (near-budget $175.51; ties Kimi to 0.1 pts)
-6. **GPT-5.5** — 56.1 pts (#1 TB 2.0, τ², OSWorld, GDP; escapes cost trap — eval cost cheaper than Anthropic premium tier)
+**Top 6 (v3.0):**
+1. 🥇 **Gemini 3.1 Pro** — 69.5 pts (#1 overall; τ²-Bench corrected to #1 at 99.3%; #1 MMLU-Pro 89.8%; broadest data coverage)
+2. 🥈 **GPT-5.5** — 64.0 pts (#2 overall; IFBench and SWE-bench gaps filled; leads 5 agentic dims + BrowseComp; surges from #6)
+3. 🥉 **KAT-Coder-Pro-V2** — 58.3 pts (sole cheapest to run, $73.49; #2 Terminal-Bench + Speed)
+4. **GLM 5.1** — 58.2 pts (eval cost rank 4/11; #2 IFBench + #3 τ²-Bench; separates from KAT by 0.1 pts)
+5. **MiniMax M2.7** — 55.0 pts (near-budget $175.51; cost score 90.0 + IFBench 60.0)
+6. **Kimi K2.6** — 52.6 pts (#1 LCB; GDPval updated 1,520; τ²-Bench weakness remains at 0.0)
 
 ---
 
@@ -63,6 +64,7 @@ This report ranks 11 frontier AI models across 15 dimensions — 12 quality benc
 | 9 | GPT-5.5 | OpenAI | 2026-04-23 | 512K tokens | Frontier |
 | 10 | Claude Sonnet 4.6 | Anthropic | 2026-02 | 200K tokens | Frontier |
 | 11 | Claude Opus 4.6 | Anthropic | 2025-11 | 200K tokens | Frontier |
+| 12 | DeepSeek V4-Pro | DeepSeek | 2026-04-24 | 1M tokens | Frontier (OSS) |
 
 ---
 
@@ -96,24 +98,29 @@ Time-to-first-token (TTFT) was evaluated for inclusion in v2.0 but excluded from
 
 | # | Dimension | Abbrev | Weight | Rationale |
 |---|---|---|---|---|
-| 1 | Cost Efficiency (AA Index Eval Cost) | Cost | **28%** | Dominant production selection factor; total USD to run AA's full benchmark suite (price × actual benchmark token usage) |
-| 2 | Instruction Following (IFBench) | IF | **20%** | Critical for agentic reliability; high-weight due to direct task-completion impact |
-| 3 | Terminal-Bench 2.0 | Term | **9%** | Primary SE harness benchmark; direct proxy for coding-agent performance |
-| 4 | SWE-bench Verified | SWE | **8%** | Real GitHub issue resolution; industry standard for SE agents |
-| 5 | LiveCodeBench v4 | LCB | **7%** | Contamination-resistant coding; rolling test set |
-| 6 | GDPval-AA ELO | GDP | **5%** | Aggregated human preference across 141 models |
-| 7 | Speed (tok/s) | Spd | **5%** | Output throughput; practical for streaming and bulk workloads |
-| 8 | τ²-Bench | τ² | **4%** | Multi-step tool-use reliability; phone/computer agent tasks |
-| 9 | OSWorld | OSW | **4%** | Computer use / GUI agent benchmark |
-| 10 | Long-Context Retrieval (RULER) | LCR | **3%** | Needle-in-haystack at 128K+; long-context faithfulness |
-| 11 | Humanity's Last Exam (HLE) | HLE | **2%** | Frontier expert knowledge breadth |
-| 12 | GPQA Diamond | GPQA | **2%** | Graduate-level science reasoning |
-| 13 | AIME 2025 | AIME | **1%** | Competition math; reasoning ceiling |
-| 14 | SciCode | Sci | **1%** | Scientific coding (domain-expert tasks) |
-| 15 | AA-Omniscience | Omni | **1%** | Hallucination-adjusted accuracy (accuracy% − hallucination_rate%) |
+| 1 | Cost Efficiency (AA Index Eval Cost) | Cost | **25%** | Dominant production selection factor; total USD to run AA's full benchmark suite (price × actual benchmark token usage). Reduced 28%→25% in v3.0 to accommodate 3 new dimensions. |
+| 2 | Instruction Following (IFBench) | IF | **18%** | Critical for agentic reliability; high-weight due to direct task-completion impact. Reduced 20%→18% in v3.0. |
+| 3 | Terminal-Bench 2.0 | Term | **8%** | Primary SE harness benchmark; direct proxy for coding-agent performance. Reduced 9%→8%. |
+| 4 | SWE-bench Verified | SWE | **7%** | Real GitHub issue resolution; industry standard for SE agents. Reduced 8%→7%. |
+| 5 | SWE-bench Pro *(new v3.0)* | SWEPro | **4%** | Harder single-pass SWE variant; complementary to Verified score. |
+| 6 | LiveCodeBench v4 | LCB | **6%** | Contamination-resistant coding; rolling test set. Reduced 7%→6%. |
+| 7 | GDPval-AA ELO | GDP | **5%** | Aggregated human preference across 141 models. Unchanged. |
+| 8 | Speed (tok/s) | Spd | **5%** | Output throughput; practical for streaming and bulk workloads. Unchanged. |
+| 9 | τ²-Bench | τ² | **4%** | Multi-step tool-use reliability; phone/computer agent tasks. Unchanged. |
+| 10 | OSWorld | OSW | **4%** | Computer use / GUI agent benchmark. Unchanged. |
+| 11 | BrowseComp *(new v3.0)* | BC | **3%** | Deep web research agent; 1,266 hard-to-find information retrieval tasks. |
+| 12 | Long-Context Retrieval (RULER) | LCR | **2%** | Needle-in-haystack at 128K+; long-context faithfulness. Reduced 3%→2%. |
+| 13 | Humanity's Last Exam (HLE) | HLE | **2%** | Frontier expert knowledge breadth (without-tools, canonical Scale Labs leaderboard). Unchanged. |
+| 14 | GPQA Diamond | GPQA | **2%** | Graduate-level science reasoning. Unchanged. |
+| 15 | MMLU-Pro *(new v3.0)* | MMLU | **2%** | Graduate-level knowledge breadth; 10-choice enhanced MMLU format. |
+| 16 | AIME 2025 | AIME | **1%** | Competition math; reasoning ceiling. Unchanged. |
+| 17 | SciCode | Sci | **1%** | Scientific coding (domain-expert tasks). Unchanged. |
+| 18 | AA-Omniscience | Omni | **1%** | Hallucination-adjusted accuracy (accuracy% − hallucination_rate%). Unchanged. |
 | | **Total** | | **100%** | |
 
-**Framework slots (collected, not yet scored):** BigCodeBench, GAIA Level 3. As of April 24, 2026, no 2026-era frontier models have submitted to these leaderboards. Will be activated in v3.0 when ≥ 4 models have real scores.
+**Weight redistribution v2.5→v3.0:** Added 9% total for 3 new dimensions (SWEPro=4%, BC=3%, MMLU=2%). Offset by reducing: Cost −3%, IF −2%, Term −1%, SWE −1%, LCB −1%, LCR −1%. All other dimensions unchanged. Rationale: proportional reductions from higher-weight dimensions; LCR reduced to 2% given its provisional data footnote (no canonical leaderboard confirmations).
+
+**Framework slots (collected, not yet scored):** BigCodeBench, GAIA Level 3. As of April 25, 2026, no 2026-era frontier models have submitted to these leaderboards in sufficient numbers for activation. Will be re-evaluated in v4.0.
 
 ---
 
@@ -134,8 +141,10 @@ Time-to-first-token (TTFT) was evaluated for inclusion in v2.0 but excluded from
 | Claude Sonnet 4.6 | **$3,959.36** | 53.9× |
 | Claude Opus 4.7 | **$4,811.04** | 65.5× |
 | Claude Opus 4.6 | **$4,969.68** | 67.6× |
+| DeepSeek V4-Pro | **⊘** | est. $1,200–$1,800 (unverified) |
 
 > **What is AA Index Eval Cost?** Artificial Analysis runs each model through its full standardized Intelligence Index benchmark suite and records the actual total USD spent — API price × real token consumption across all tasks. This is the only publicly available, standardized, usage-weighted cost dataset for frontier models. Unlike raw $/1M token pricing, eval cost captures true user cost: a verbose model that uses 10× more tokens costs 10× more even at the same token price. Source: artificialanalysis.ai Intelligence Index.
+> **DeepSeek V4-Pro:** AA Eval Cost not yet published. Estimated $1,200–$1,800 based on $1.74/$3.48 pricing × AA benchmark token volume norms for MoE models at similar scale. DeepSeek receives ⊘ (neutral-50) for cost scoring pending AA publication.
 
 ### 4.2 Cost Efficiency Tier Summary
 
@@ -148,6 +157,7 @@ Time-to-first-token (TTFT) was evaluated for inclusion in v2.0 but excluded from
 | Expensive | GPT-5.4 | $2,851 |
 | Very Expensive | GPT-5.5, Claude Sonnet 4.6 | $3,357–$3,959 |
 | Ultra-Premium | Claude Opus 4.7, Claude Opus 4.6 | $4,811–$4,970 |
+| Unpublished | DeepSeek V4-Pro | est. $1,200–$1,800 |
 
 ---
 
@@ -155,24 +165,45 @@ Time-to-first-token (TTFT) was evaluated for inclusion in v2.0 but excluded from
 
 ### 5.1 Quality Benchmarks
 
-| Model | IFBench | Term-Bench 2.0 | SWE-Bench V | LCB v4 | GDPval ELO | τ²-Bench | OSWorld | RULER (LCR)‡ | HLE | GPQA◇ | AIME 2025 | SciCode |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Gemini 3.1 Pro | 89.4% | 68.5% | 80.6% | 76.3% | 1,314 | 95.6% | ⊘ | 94.2%‡ | 44.7% | 94.3% | 95.0% | 58.9% |
-| Kimi K2.6 | 82.1% | 66.7% | 80.2% | 82.6% | 1,484 | 72.4% | 73.1% | 87.5%‡ | 34.7% | 90.5% | 96.1% | 52.2% |
-| MiniMax M2.7 | 75.7% | 57.0% | ⊘ | ⊘ | 1,514 | 84.8% | ⊘ | 81.3%‡ | 28.1% | 87.4% | ⊘ | 47.0% |
-| GPT-5.4 | 73.9% | 75.1% | ⊘ | 63.8% | 1,674 | 87.1% | 75.0% | 97.8%‡ | 41.6% | 92.0% | ⊘ | 56.6% |
-| Qwen 3.6 Plus | 74.2% | 61.6% | 78.8% | ⊘ | 1,361 | 78.2% | ⊘ | 87.5%‡ | 28.8% | 90.4% | ⊘ | 21.4% |
-| KAT-Coder-Pro-V2 | 67.0% | 76.2%† | 79.6% | ⊘ | 1,124 | 93.9% | ⊘ | 74.6%‡ | 12.7% | 85.5% | ⊘ | 38.3% |
-| GLM 5.1 | 85.9% | 69.0% | 77.8% | ⊘ | 1,535 | 97.7% | ⊘ | 68.3%‡ | 31.0% | 86.2% | 95.0% | 43.8% |
-| Claude Opus 4.7 | 52.1% | 69.4% | 87.6% | ⊘ | 1,753 | 74.0% | 78.0% | 92.4%‡ | 46.9% | 94.2% | 99.8% | 54.5% |
-| GPT-5.5 | ⊘ | **82.7%** | ⊘ | ⊘ | 1,784 | 98.0% | 78.7% | ⊘ | 44.3% | 93.6% | ⊘ | ⊘ |
-| Claude Sonnet 4.6 | 45.6% | 59.1% | 79.6% | ⊘ | 1,675 | 79.5% | 72.5% | 61.2%‡ | 30.0% | 87.5% | 57.1% | 46.9% |
-| Claude Opus 4.6 | 40.2% | 65.4% | 80.8% | 76.0% | 1,619 | 84.8% | 72.7% | 54.7%‡ | 40.0% | 84.0% | 99.8% | 51.9% |
+| Model | IFBench | Term-Bench 2.0 | SWE-Bench V | SWE-Pro | LCB v4 | GDPval ELO | τ²-Bench | OSWorld | RULER (LCR)‡ | HLE | GPQA◇ | AIME 2025 | SciCode |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Gemini 3.1 Pro | 89.4% | 68.5% | 80.6% | ⊘ | 76.3% | 1,314 | **99.3%** | ⊘ | 94.2%‡ | 44.7% | 94.3% | 95.0% | 58.9% |
+| Kimi K2.6 | 82.1% | 66.7% | 80.2% | 58.6% | 82.6% | **1,520** | 72.4% | 73.1% | 87.5%‡ | 34.7% | 90.5% | 96.1% | 52.2% |
+| MiniMax M2.7 | 75.7% | 57.0% | ⊘ | ⊘ | ⊘ | 1,514 | 84.8% | ⊘ | 81.3%‡ | 28.1% | 87.4% | ⊘ | 47.0% |
+| GPT-5.4 | 73.9% | 75.1% | ⊘ | 59.1% | 63.8% | 1,674 | 87.1% | 75.0% | 97.8%‡ | 41.6% | 92.0% | ⊘ | 56.6% |
+| Qwen 3.6 Plus | 74.2% | 61.6% | 78.8% | ⊘ | ⊘ | 1,361 | 78.2% | ⊘ | 87.5%‡ | 28.8% | 90.4% | ⊘ | 21.4% |
+| KAT-Coder-Pro-V2 | 67.0% | 76.2%† | 79.6% | ⊘ | ⊘ | 1,124 | 93.9% | ⊘ | 74.6%‡ | 12.7% | 85.5% | ⊘ | 38.3% |
+| GLM 5.1 | 85.9% | 69.0% | 77.8% | ⊘ | ⊘ | 1,535 | 97.7% | ⊘ | 68.3%‡ | 31.0% | 86.2% | 95.0% | 43.8% |
+| Claude Opus 4.7 | 52.1% | 69.4% | 87.6% | 64.3% | ⊘ | 1,753 | 74.0% | 78.0% | 92.4%‡ | 46.9% | 94.2% | 99.8% | 54.5% |
+| GPT-5.5 | **75.9%** | **82.7%** | **88.7%†** | 58.6% | ⊘ | 1,784 | 98.0% | 78.7% | ⊘ | 44.3% | 93.6% | ⊘ | ⊘ |
+| Claude Sonnet 4.6 | 45.6% | 59.1% | 79.6% | ⊘ | ⊘ | 1,675 | 79.5% | 72.5% | 61.2%‡ | 30.0% | 87.5% | 57.1% | 46.9% |
+| Claude Opus 4.6 | 40.2% | 65.4% | 80.8% | 51.9% | 76.0% | 1,619 | 84.8% | 72.7% | 54.7%‡ | 40.0% | 84.0% | 99.8% | 51.9% |
+| DeepSeek V4-Pro | ⊘ | ⊘ | 80.6% | ⊘ | **93.5%** | ⊘ | ⊘ | ⊘ | ⊘ | 37.7% | 88.8% | ⊘ | ⊘ |
 
-> **† TB 2.0 footnote:** KAT-Coder-Pro-V2 (76.2%) is not listed on the TB 2.0 public leaderboard; value is from the KAT-Coder-V2 technical report referencing "Terminal-Bench Hard" — a potentially different benchmark variant. Score is unverifiable against the canonical tbench.ai leaderboard and remains dagger-flagged. MiniMax M2.7 corrected from v2.3's 28.4% to **57.0%** (confirmed via MiniMax's official announcement and multiple aggregators — the 28.4% was from an older MiniMax M2 evaluation).
-> **‡ RULER (LCR) footnote:** No model in this cohort was found on any public RULER leaderboard as of 2026-04-24. These values are drawn from model cards and internal evaluation documents; none could be independently confirmed against the canonical ruler-bench.github.io or llm-stats leaderboards. RULER scores should be treated as provisional; they are retained to avoid wholesale ⊘ on a 3%-weight dimension, but the rank order among them is unverified.
+> **† Footnotes:** KAT-Coder-Pro-V2 TB 2.0 (76.2%) is not on the public tbench.ai leaderboard; value from KAT technical report referencing "Terminal-Bench Hard" — potentially different variant. GPT-5.5 SWE-bench Verified (88.7%) is from OpenAI's launch tech card (April 23); canonical swebench.com leaderboard showed Claude Opus 4.7 (87.6%) as leader as of April 24 — GPT-5.5 formal submission pending. Both marked †.
+> **‡ RULER (LCR) footnote:** No model in this cohort was found on any public RULER leaderboard as of 2026-04-25. These values are drawn from model cards and internal evaluation documents; none could be independently confirmed against the canonical ruler-bench.github.io or llm-stats leaderboards. RULER scores should be treated as provisional.
+> **Bold** = v3.0 data additions or corrections.
 
-### 5.2 Composite / Special Dimensions
+### 5.2 New Scored Dimensions (v3.0)
+
+| Model | BrowseComp | MMLU-Pro |
+|---|---|---|
+| Gemini 3.1 Pro | 85.9% | **89.8%** |
+| Kimi K2.6 | 83.2% | 84.6% |
+| MiniMax M2.7 | ⊘ | ⊘ |
+| GPT-5.4 | 89.3% | ⊘ |
+| Qwen 3.6 Plus | ⊘ | 88.5% |
+| KAT-Coder-Pro-V2 | ⊘ | ⊘ |
+| GLM 5.1 | ⊘ | ⊘ |
+| Claude Opus 4.7 | 79.3% | ⊘ |
+| GPT-5.5 | **90.1%** | ⊘* |
+| Claude Sonnet 4.6 | ⊘ | ⊘ |
+| Claude Opus 4.6 | ⊘ | ⊘ |
+| DeepSeek V4-Pro | 83.4% | 87.5% |
+
+> *GPT-5.5 MMLU-Pro = 54.6% seen in one source — anomalously low vs. frontier cluster (84–92%), likely 0-shot vs. few-shot methodology difference. Treated as ⊘ (unreliable) for scoring.
+
+### 5.3 Composite / Special Dimensions
 
 | Model | AA-Omniscience (Acc% − Hall%) | Speed (tok/s) | AA Index Eval Cost ($) |
 |---|---|---|---|
@@ -187,8 +218,9 @@ Time-to-first-token (TTFT) was evaluated for inclusion in v2.0 but excluded from
 | GPT-5.5 | **−29** (57% acc − 86% hall) | ⊘ | $3,357.00 |
 | Claude Sonnet 4.6 | ⊘ | 46.0 | $3,959.36 |
 | Claude Opus 4.6 | +8 (68% acc − 60% hall) | 18.2 | $4,969.68 |
+| DeepSeek V4-Pro | ⊘ | **33.5** | ⊘ |
 
-> **AA-Omniscience note (GPT-5.5):** Despite being rated #1 on the AA Intelligence Index v4.0 (score 60 xhigh), GPT-5.5's AA-Omniscience score is −29, the worst of all models with real data. This reflects an 86% hallucination rate at high-confidence assertions — a known characteristic of the xhigh reasoning mode that prioritizes bold inference over calibrated uncertainty. At lower reasoning tiers, accuracy and hallucination rates would both shift.
+> **AA-Omniscience note (GPT-5.5):** Despite being rated #1 on the AA Intelligence Index v4.0 (score 60 xhigh), GPT-5.5's AA-Omniscience score is −29, the worst of all models with real data. This reflects an 86% hallucination rate at high-confidence assertions — a known characteristic of the xhigh reasoning mode that prioritizes bold inference over calibrated uncertainty.
 
 ---
 
@@ -198,16 +230,17 @@ Time-to-first-token (TTFT) was evaluated for inclusion in v2.0 but excluded from
 
 | Model | Output tok/s | Notes |
 |---|---|---|
-| Gemini 3.1 Pro | 128.0 | Fastest in field (v2.4 correction from 88.3); TPU infrastructure advantage |
-| KAT-Coder-Pro-V2 | 113.5 | Second fastest (v2.4 correction from 95.7); specialized decode path |
-| Kimi K2.6 | 100.4 | Third fastest (v2.4 correction from 112.4; was #1 in v2.3) |
+| Gemini 3.1 Pro | 128.0 | Fastest in field; TPU infrastructure advantage |
+| KAT-Coder-Pro-V2 | 113.5 | Second fastest; specialized decode path |
+| Kimi K2.6 | 100.4 | Third fastest |
 | GPT-5.4 | 74.8 | Moderate throughput; confirmed by AA leaderboard |
-| Qwen 3.6 Plus | 53.0 | Mid-range (v2.4 correction from 63.2) |
+| Qwen 3.6 Plus | 53.0 | Mid-range |
 | MiniMax M2.7 | 49.0 | Budget tier; tied with GLM |
-| GLM 5.1 | 49.0 | Tied with MiniMax (v2.4 correction from 34.5) |
-| Claude Sonnet 4.6 | 46.0 | Moderate (v2.4 correction from 51.4) |
-| Claude Opus 4.7 | 42.0 | Constrained by 200K context (v2.4 correction from 28.1) |
-| Claude Opus 4.6 | 18.2 | Slowest with real data; not found on current AA leaderboard |
+| GLM 5.1 | 49.0 | Tied with MiniMax |
+| Claude Sonnet 4.6 | 46.0 | Moderate |
+| Claude Opus 4.7 | 42.0 | Constrained by 200K context |
+| DeepSeek V4-Pro | 33.5 | Below open-weight median (55.1 t/s); 1.6T MoE overhead |
+| Claude Opus 4.6 | 18.2 | Slowest with real data |
 | GPT-5.5 | ⊘ | Not published; reasoning mode complicates direct comparison |
 
 ### 6.2 Time-to-First-Token (TTFT) — Reference Only, Not Scored
@@ -223,6 +256,7 @@ Time-to-first-token (TTFT) was evaluated for inclusion in v2.0 but excluded from
 | GLM 5.1 | ~6,300 | Standard | Slower architecture |
 | Claude Opus 4.7 | ~8,900 | Extended thinking | |
 | Claude Opus 4.6 | ~9,200 | Extended thinking | |
+| DeepSeek V4-Pro | ~6,800 | Reasoning mode | Estimated; MoE warmup overhead |
 | GPT-5.5 | ~172,720 | xhigh reasoning | Full CoT included; not comparable to above |
 | KAT-Coder-Pro-V2 | ⊘ | n/a | Not published |
 
@@ -234,30 +268,40 @@ Time-to-first-token (TTFT) was evaluated for inclusion in v2.0 but excluded from
 
 ### 7.1 Methodology Recap
 
-For each dimension, models with real data are ranked 1–n (best to worst). Score = `((n − rank) / (n − 1)) × 100`. Missing data = **50⊘**. All columns are fully renormalized for the 11-model v2.1 field.
+For each dimension, models with real data are ranked 1–n (best to worst). Score = `((n − rank) / (n − 1)) × 100`. Missing data = **50⊘**. All columns are fully renormalized for the 12-model v3.0 field. Ties receive the average of their tied ranks.
 
-### 7.2 Complete Normalized Score Matrix
+### 7.2 Complete Normalized Score Matrix (18 dimensions)
 
-| Model | Cost | IF | Term | SWE | LCB | GDP | Spd | τ² | OSW | LCR | HLE | GPQA | AIME | Sci | Omni |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Gemini 3.1 Pro | **60.0** | 100.0 | 50.0 | 71.4 | 66.7 | 10.0 | 100.0 | 80.0 | **50⊘** | 88.9 | 90.0 | 100.0 | 30.0 | 100.0 | 100.0 |
-| Kimi K2.6 | **50.0** | 77.8 | 40.0 | 57.1 | 100.0 | 30.0 | 77.8 | 0.0 | 40.0 | 61.1 | 50.0 | 60.0 | 60.0 | 66.7 | **50⊘** |
-| MiniMax M2.7 | **90.0** | 66.7 | 0.0 | **50⊘** | **50⊘** | 40.0 | 38.9 | 45.0 | **50⊘** | 44.4 | 10.0 | 30.0 | **50⊘** | 44.4 | 60.0 |
-| GPT-5.4 | **40.0** | 44.4 | 80.0 | **50⊘** | 0.0 | 70.0 | 66.7 | 60.0 | 60.0 | 100.0 | 70.0 | 70.0 | **50⊘** | 88.9 | **50⊘** |
-| Qwen 3.6 Plus | **80.0** | 55.6 | 20.0 | 14.3 | **50⊘** | 20.0 | 55.6 | 20.0 | **50⊘** | 61.1 | 20.0 | 50.0 | **50⊘** | 0.0 | **50⊘** |
-| KAT-Coder-Pro-V2 | **100.0** | 33.3 | 90.0 | 35.7 | **50⊘** | 0.0 | 88.9 | 70.0 | **50⊘** | 33.3 | 0.0 | 10.0 | **50⊘** | 11.1 | **50⊘** |
-| GLM 5.1 | **70.0** | 88.9 | 60.0 | 0.0 | **50⊘** | 50.0 | 38.9 | 90.0 | **50⊘** | 22.2 | 40.0 | 20.0 | 30.0 | 22.2 | 20.0 |
-| Claude Opus 4.7 | **10.0** | 22.2 | 70.0 | 100.0 | **50⊘** | 90.0 | 11.1 | 10.0 | 80.0 | 77.8 | 100.0 | 90.0 | 90.0 | 77.8 | 80.0 |
-| GPT-5.5 | **30.0** | **50⊘** | 100.0 | **50⊘** | **50⊘** | 100.0 | **50⊘** | 100.0 | 100.0 | **50⊘** | 80.0 | 80.0 | **50⊘** | **50⊘** | 0.0 |
-| Claude Sonnet 4.6 | **20.0** | 11.1 | 10.0 | 35.7 | **50⊘** | 80.0 | 22.2 | 30.0 | 0.0 | 11.1 | 30.0 | 40.0 | 0.0 | 33.3 | **50⊘** |
-| Claude Opus 4.6 | **0.0** | 0.0 | 30.0 | 85.7 | 33.3 | 60.0 | 0.0 | 45.0 | 20.0 | 0.0 | 60.0 | 0.0 | 90.0 | 55.6 | 40.0 |
+| Model | Cost | IF | Term | SWE | SWEPro | LCB | GDP | Spd | τ² | OSW | BC | LCR | HLE | GPQA | MMLU | AIME | Sci | Omni |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Gemini 3.1 Pro | **60.0** | 100.0 | 50.0 | 61.1 | 50.0⊘ | 50.0 | 10.0 | 100.0 | **100.0** | 50.0⊘ | 60.0 | 88.9 | 90.9 | 100.0 | 100.0 | 30.0 | 100.0 | 100.0 |
+| Kimi K2.6 | **50.0** | 80.0 | 40.0 | 44.4 | 37.5 | 75.0 | **40.0** | 80.0 | 0.0 | 40.0 | 20.0 | 61.1 | 45.5 | 63.6 | 0.0 | 60.0 | 66.7 | 50.0⊘ |
+| MiniMax M2.7 | **90.0** | 60.0 | 0.0 | 50.0⊘ | 50.0⊘ | 50.0⊘ | **30.0** | 45.0 | 45.0 | 50.0⊘ | 50.0⊘ | 44.4 | 9.1 | 27.3 | 50.0⊘ | 50.0⊘ | 44.4 | 60.0 |
+| GPT-5.4 | **40.0** | 40.0 | 80.0 | 50.0⊘ | 75.0 | 0.0 | 70.0 | 70.0 | 60.0 | 60.0 | 80.0 | 100.0 | 72.7 | 72.7 | 50.0⊘ | 50.0⊘ | 88.9 | 50.0⊘ |
+| Qwen 3.6 Plus | **80.0** | 50.0 | 20.0 | 11.1 | 50.0⊘ | 50.0⊘ | 20.0 | 60.0 | 20.0 | 50.0⊘ | 50.0⊘ | 61.1 | 18.2 | 54.5 | 66.7 | 50.0⊘ | 0.0 | 50.0⊘ |
+| KAT-Coder-Pro-V2 | **100.0** | 30.0 | 90.0 | 27.8 | 50.0⊘ | 50.0⊘ | 0.0 | 90.0 | 70.0 | 50.0⊘ | 50.0⊘ | 33.3 | 0.0 | 9.1 | 50.0⊘ | 50.0⊘ | 11.1 | 50.0⊘ |
+| GLM 5.1 | **70.0** | 90.0 | 60.0 | 0.0 | 50.0⊘ | 50.0⊘ | 50.0 | 45.0 | 80.0 | 50.0⊘ | 50.0⊘ | 22.2 | 36.4 | 18.2 | 50.0⊘ | 30.0 | 22.2 | 20.0 |
+| Claude Opus 4.7 | **10.0** | 20.0 | 70.0 | 88.9 | 100.0 | 50.0⊘ | 90.0 | 20.0 | 10.0 | 80.0 | 0.0 | 77.8 | 100.0 | 90.9 | 50.0⊘ | 90.0 | 77.8 | 80.0 |
+| GPT-5.5 | **30.0** | **70.0** | 100.0 | **100.0†** | 37.5 | 50.0⊘ | 100.0 | 50.0⊘ | 90.0 | 100.0 | 100.0 | 50.0⊘ | 81.8 | 81.8 | 50.0⊘ | 50.0⊘ | 50.0⊘ | 0.0 |
+| Claude Sonnet 4.6 | **20.0** | 10.0 | 10.0 | 27.8 | 50.0⊘ | 50.0⊘ | 80.0 | 30.0 | 30.0 | 0.0 | 50.0⊘ | 11.1 | 27.3 | 36.4 | 50.0⊘ | 0.0 | 33.3 | 50.0⊘ |
+| Claude Opus 4.6 | **0.0** | 0.0 | 30.0 | 77.8 | 0.0 | 25.0 | 60.0 | 0.0 | 45.0 | 20.0 | 50.0⊘ | 0.0 | 63.6 | 0.0 | 50.0⊘ | 90.0 | 55.6 | 40.0 |
+| DeepSeek V4-Pro | **50.0⊘** | 50.0⊘ | 50.0⊘ | 61.1 | 50.0⊘ | 100.0 | 50.0⊘ | 10.0 | 50.0⊘ | 50.0⊘ | 40.0 | 50.0⊘ | 54.5 | 45.5 | 33.3 | 50.0⊘ | 50.0⊘ | 50.0⊘ |
 
-**⊘** = missing data, assigned neutral score of 50.0
-**v2.5 cost overhaul:** Cost column fully replaced with AA Index Eval Cost rankings (cheapest eval run = rank 1). All 14 quality columns unchanged from v2.4. Key cost shifts: KAT-Coder-Pro-V2 sole rank 1 (100.0, $73.49); MiniMax drops to rank 2 (90.0); Gemini improves to rank 5 (60.0); Kimi drops to rank 6 (50.0); GPT-5.5 rises to rank 8 (30.0) as it costs less than Sonnet and both Opus models on actual benchmark tasks; Opus 4.6 becomes most expensive (rank 11, 0.0).
+**⊘** = missing data, assigned neutral score of 50.0. **Bold** = changed or filled from v2.5.
+
+**Key v3.0 dimension normalization notes:**
+- **IF (n=11):** GPT-5.5 75.9% fills gap → rank 4; all existing models re-ranked. GPT-5.5: 50⊘→70.0; GLM shifts 88.9→90.0; Kimi 77.8→80.0.
+- **SWE (n=10):** GPT-5.5 88.7%† (#1), DeepSeek 80.6% ties Gemini (rank 4.5). KAT/Sonnet tied (rank 7.5) = 27.8.
+- **τ² (n=11):** Gemini 99.3% corrected (#1); GPT-5.5 drops to #2 (90.0); GLM drops to #3 (80.0).
+- **GDP (n=11):** Kimi 1,520 moves rank 8→7 (30→40.0); MiniMax moves rank 7→8 (40→30.0).
+- **HLE (n=12):** DeepSeek 37.7% enters at rank 6; all scores compress (n=11→n=12).
+- **GPQA (n=12):** DeepSeek 88.8% enters at rank 7; existing models shift down one notch.
+- **LCB (n=5):** DeepSeek 93.5% enters at rank 1 (#1 in cohort); Kimi drops to rank 2 (75.0).
+- **Spd (n=11):** DeepSeek 33.5 tok/s enters at rank 10; Opus 4.6 last (0.0).
 
 ### 7.3 Cost Score Derivation
 
-Cost ranks (cheapest = rank 1, n=11). No ties in this ranking — all 11 AA Index Eval Cost values are distinct.
+Cost ranks (cheapest = rank 1, n=11 real scorers; DeepSeek ⊘). No ties.
 
 | Model | AA Index Eval Cost ($) | Cost Rank | Score = ((11−rank)/10)×100 |
 |---|---|---|---|
@@ -272,292 +316,268 @@ Cost ranks (cheapest = rank 1, n=11). No ties in this ranking — all 11 AA Inde
 | Claude Sonnet 4.6 | $3,959.36 | 9 | **20.0** |
 | Claude Opus 4.7 | $4,811.04 | 10 | **10.0** |
 | Claude Opus 4.6 | $4,969.68 | 11 | **0.0** |
+| DeepSeek V4-Pro | ⊘ | — | **50.0⊘** |
 
-> **v2.5 cost methodology:** Replaced API pricing ($/1M tokens) with **Artificial Analysis Intelligence Index Eval Cost** — total USD cost to run AA's full standardized benchmark suite on each model (API price × actual token consumption across all tasks). This is the only publicly available, standardized, usage-weighted cost dataset for frontier models. Source: artificialanalysis.ai. **Key insight:** eval cost reveals true verbosity effects — KAT ($73.49) is 67.6× cheaper than Opus 4.6 ($4,969.68), vs. the v2.4 API-price ratio of only 18.9×. GPT-5.5 ($3,357) runs cheaper than Sonnet ($3,959) and both Opus models on the same tasks, despite higher token pricing, because GPT-5.5's reasoning mode produces more concise outputs. Claude Opus 4.6 ($4,969.68) displaces GPT-5.5 as most expensive (rank 11, score 0.0).
+> **v2.5→v3.0:** Cost column values unchanged for the 11 existing models. DeepSeek V4-Pro receives neutral-50 pending AA publication of its benchmark evaluation cost.
 
 ---
 
 ## 8. Quality-Only Ranking (Unweighted)
 
-Equally weighting all 14 non-cost dimensions (7.14% each) to show pure capability ranking. IFBench is factored out as a separate column given its outsized weight (20%) in the main ranking.
+Equally weighting all 17 non-cost dimensions (5.88% each) to show pure capability ranking without cost penalty.
 
 | Rank | Model | IF Score | Benchmark Quality‡ | Total Quality |
 |---|---|---|---|---|
-| 1 | Gemini 3.1 Pro | 100.0 | 72.1 | 74.1 |
-| 2 | Claude Opus 4.7 | 22.2 | 71.3 | 67.8 |
-| 3 | GPT-5.5 | 50.0⊘ | 66.2 | 65.0 |
-| 4 | GPT-5.4 | 44.4 | 62.7 | 61.4 |
-| 5 | Kimi K2.6 | 77.8 | 53.3 | 55.0 |
-| 6 | GLM 5.1 | 88.9 | 38.0 | 41.6 |
-| 7 | MiniMax M2.7 | 66.7 | 39.4 | 41.4 |
-| 8 | KAT-Coder-Pro-V2 | 33.3 | 41.5 | 40.9 |
-| 9 | Claude Opus 4.6 | 0.0 | 40.0 | 37.1 |
-| 10 | Qwen 3.6 Plus | 55.6 | 35.5 | 36.9 |
-| 11 | Claude Sonnet 4.6 | 11.1 | 30.2 | 28.8 |
+| 1 | Gemini 3.1 Pro | 100.0 | 69.7 | 73.1 |
+| 2 | Claude Opus 4.7 | 20.0 | 68.3 | 64.4 |
+| 3 | GPT-5.4 | 40.0 | 66.6 | 62.9 |
+| 4 | GPT-5.5 | 70.0 | 61.3 | 62.4 |
+| 5 | DeepSeek V4-Pro | 50.0⊘ | 49.8 | 49.7 |
+| 6 | Kimi K2.6 | 80.0 | 44.0 | 47.3 |
+| 7 | GLM 5.1 | 90.0 | 40.5 | 43.1 |
+| 8 | Qwen 3.6 Plus | 50.0 | 42.0 | 43.0 |
+| 9 | MiniMax M2.7 | 60.0 | 39.5 | 42.1 |
+| 10 | KAT-Coder-Pro-V2 | 30.0 | 43.0 | 41.8 |
+| 11 | Claude Opus 4.6 | 0.0 | 37.9 | 35.7 |
+| 12 | Claude Sonnet 4.6 | 10.0 | 33.6 | 32.1 |
 
-> **‡** IF Score = raw normalized IFBench score (0–100 scale). Benchmark Quality = equal-weighted avg of the other 13 non-cost dims (Term, SWE, LCB, GDP, Speed, τ², OSW, LCR, HLE, GPQA, AIME, Sci, Omni). Total Quality = equal-weighted avg of all 14 non-cost dims (unchanged from prior versions; rank is by Total Quality). ⊘ on GPT-5.5 IF = neutral-50.
+> **‡** IF Score = raw normalized IFBench score (0–100 scale; ⊘ = 50.0). Benchmark Quality = equal-weighted avg of the other 16 non-cost dims. Total Quality = equal-weighted avg of all 17 non-cost dims. ⊘ on DeepSeek IF/Term/τ²/etc. = neutral-50 in both averages.
 
-**v2.4 quality shakeup:** Gemini 3.1 Pro extends its quality lead to 74.1 (+1.7 vs v2.3 72.4) driven by corrected GPQA Diamond (90→100.0), Speed (#1 at 128.0 tok/s replacing Kimi), and τ²-Bench (60→80.0). **Claude Opus 4.7 surges from #3 to #2** (67.8, +2.1) as HLE corrects to 100.0 (was 70.0), GPQA corrects to 90.0 (was 70.0), and τ²-Bench corrects upward. **GPT-5.5 falls from #2 to #3** (65.0, −2.9): HLE corrects downward 100→80.0 and GPQA 100→80.0 — both were overstated in v2.3. GPT-5.4 holds #4 (61.4, −4.1): LCB drops 50.0→0.0 as Qwen leaves the LCB cohort and GPT-5.4 becomes last of the 4 confirmed scorers. Kimi K2.6 drops to #5 (55.0, −8.4): τ²-Bench corrects 70.0→0.0 (was reflecting early-2025 data). Budget tier models (GLM, MiniMax, KAT) cluster tightly 40.9–41.6 after τ² and GPQA corrections balance out. Qwen drops to #10 on quality (τ²-Bench 85.0→20.0 from the τ¹→τ² correction was the largest single quality penalty).
+**v3.0 quality shakeup:** Gemini extends its quality lead (73.1) driven by τ²-Bench correction to rank 1 (100.0 from 80.0), adding BrowseComp (60.0) and leading MMLU-Pro (100.0). **Claude Opus 4.7 holds #2** (64.4) with the strongest SWE-Pro profile (100.0, rank 1). **GPT-5.4 overtakes GPT-5.5 for #3** on quality (62.9 vs 62.4) — GPT-5.4 has real data on BrowseComp (80.0) and SWE-Pro (75.0) while GPT-5.5 has ⊘ on Speed, LCR, AIME, SciCode, MMLU-Pro. **GPT-5.5 quality recovers to #4** as IFBench (70.0 from neutral-50) and SWE (100.0) fill in. **DeepSeek debuts at #5** on quality (49.7) — most dimensions ⊘ averaging to 50.0, anchored by strong LCB (100.0).
 
 ---
 
 ## 9. Final Cost-Weighted Ranking
 
-**Weights:** Cost 28%, IF 20%, Term 9%, SWE 8%, LCB 7%, GDP 5%, Spd 5%, τ² 4%, OSW 4%, LCR 3%, HLE 2%, GPQA 2%, AIME 1%, Sci 1%, Omni 1%
-
-### Corrected Normalized Score Matrix (v2.5 Final)
-
-| Model | Cost | IF | Term | SWE | LCB | GDP | Spd | τ² | OSW | LCR | HLE | GPQA | AIME | Sci | Omni |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Gemini 3.1 Pro | **60.0** | 100.0 | 50.0 | 71.4 | 66.7 | 10.0 | 100.0 | 80.0 | 50.0⊘ | 88.9 | 90.0 | 100.0 | 30.0 | 100.0 | 100.0 |
-| Kimi K2.6 | **50.0** | 77.8 | 40.0 | 57.1 | 100.0 | 30.0 | 77.8 | 0.0 | 40.0 | 61.1 | 50.0 | 60.0 | 60.0 | 66.7 | 50.0⊘ |
-| MiniMax M2.7 | **90.0** | 66.7 | 0.0 | 50.0⊘ | 50.0⊘ | 40.0 | 38.9 | 45.0 | 50.0⊘ | 44.4 | 10.0 | 30.0 | 50.0⊘ | 44.4 | 60.0 |
-| GPT-5.4 | **40.0** | 44.4 | 80.0 | 50.0⊘ | 0.0 | 70.0 | 66.7 | 60.0 | 60.0 | 100.0 | 70.0 | 70.0 | 50.0⊘ | 88.9 | 50.0⊘ |
-| Qwen 3.6 Plus | **80.0** | 55.6 | 20.0 | 14.3 | 50.0⊘ | 20.0 | 55.6 | 20.0 | 50.0⊘ | 61.1 | 20.0 | 50.0 | 50.0⊘ | 0.0 | 50.0⊘ |
-| KAT-Coder-Pro-V2 | **100.0** | 33.3 | 90.0 | 35.7 | 50.0⊘ | 0.0 | 88.9 | 70.0 | 50.0⊘ | 33.3 | 0.0 | 10.0 | 50.0⊘ | 11.1 | 50.0⊘ |
-| GLM 5.1 | **70.0** | 88.9 | 60.0 | 0.0 | 50.0⊘ | 50.0 | 38.9 | 90.0 | 50.0⊘ | 22.2 | 40.0 | 20.0 | 30.0 | 22.2 | 20.0 |
-| Claude Opus 4.7 | **10.0** | 22.2 | 70.0 | 100.0 | 50.0⊘ | 90.0 | 11.1 | 10.0 | 80.0 | 77.8 | 100.0 | 90.0 | 90.0 | 77.8 | 80.0 |
-| GPT-5.5 | **30.0** | 50.0⊘ | 100.0 | 50.0⊘ | 50.0⊘ | 100.0 | 50.0⊘ | 100.0 | 100.0 | 50.0⊘ | 80.0 | 80.0 | 50.0⊘ | 50.0⊘ | 0.0 |
-| Claude Sonnet 4.6 | **20.0** | 11.1 | 10.0 | 35.7 | 50.0⊘ | 80.0 | 22.2 | 30.0 | 0.0 | 11.1 | 30.0 | 40.0 | 0.0 | 33.3 | 50.0⊘ |
-| Claude Opus 4.6 | **0.0** | 0.0 | 30.0 | 85.7 | 33.3 | 60.0 | 0.0 | 45.0 | 20.0 | 0.0 | 60.0 | 0.0 | 90.0 | 55.6 | 40.0 |
+**Weights:** Cost 25%, IF 18%, Term 8%, SWE 7%, SWEPro 4%, LCB 6%, GDP 5%, Spd 5%, τ² 4%, OSW 4%, BC 3%, LCR 2%, HLE 2%, GPQA 2%, MMLU 2%, AIME 1%, Sci 1%, Omni 1%
 
 ### Final Weighted Scores
 
-| Main Rank | Model | Cost (28%) | IF (20%) | Quality (52%) | Main Score | CD Rank† | CD Score† |
-|---|---|---|---|---|---|---|---|
-| 🥇 1 | **Gemini 3.1 Pro** | 16.8 | 20.0 | 34.3 | **71.1** | 🥇 1 | **72.3** |
-| 🥈 2 | **KAT-Coder-Pro-V2** | 28.0 | 6.7 | 26.0 | **60.7** | 🥉 3 | **66.5** |
-| 🥉 3 | **GLM 5.1** | 19.6 | 17.8 | 21.5 | **58.9** | 🥈 2 | **67.6** |
-| 4 | **Kimi K2.6** | 14.0 | 15.6 | 27.9 | **57.5** | 7 | **53.8** |
-| 5 | **MiniMax M2.7** | 25.2 | 13.3 | 19.0 | **57.5** | 4 | **59.6** |
-| 6 | **GPT-5.5** | 8.4 | 10.0⊘ | 37.7 | **56.1** | excl. | — |
-| 7 | **Qwen 3.6 Plus** | 22.4 | 11.1 | 17.3 | **50.8** | 6 | **54.5** |
-| 8 | **GPT-5.4** | 11.2 | 8.9 | 30.5 | **50.6** | 5 | **54.6** |
-| 9 | **Claude Opus 4.7** | 2.8 | 4.4 | 35.1 | **42.3** | 8 | **34.7** |
-| 10 | **Claude Sonnet 4.6** | 5.6 | 2.2 | 16.2 | **24.0** | 9 | **23.5** |
-| 11 | **Claude Opus 4.6** | 0.0 | 0.0 | 20.5 | **20.5** | 10 | **12.9** |
+| Main Rank | Model | Cost (25%) | IF (18%) | Quality (57%) | Main Score |
+|---|---|---|---|---|---|
+| 🥇 1 | **Gemini 3.1 Pro** | 15.0 | 18.0 | 36.5 | **69.5** |
+| 🥈 2 | **GPT-5.5** | 7.5 | 12.6 | 43.9 | **64.0** |
+| 🥉 3 | **KAT-Coder-Pro-V2** | 25.0 | 5.4 | 27.9 | **58.3** |
+| 4 | **GLM 5.1** | 17.5 | 16.2 | 24.5 | **58.2** |
+| 5 | **MiniMax M2.7** | 22.5 | 10.8 | 21.7 | **55.0** |
+| 6 | **Kimi K2.6** | 12.5 | 14.4 | 25.7 | **52.6** |
+| 7 | **GPT-5.4** | 10.0 | 7.2 | 34.9 | **52.1** |
+| 8 | **DeepSeek V4-Pro** | 12.5⊘ | 9.0⊘ | 29.6 | **51.1** |
+| 9 | **Qwen 3.6 Plus** | 20.0 | 9.0 | 20.7 | **49.7** |
+| 10 | **Claude Opus 4.7** | 2.5 | 3.6 | 36.8 | **42.9** |
+| 11 | **Claude Sonnet 4.6** | 5.0 | 1.8 | 19.3 | **26.1** |
+| 12 | **Claude Opus 4.6** | 0.0 | 0.0 | 20.6 | **20.6** |
 
-> **Main:** All 11 models, 15 dimensions. Columns show weighted point contributions: Cost = norm_cost × 0.28 (max 28.0 pts); IF = norm_IF × 0.20 (max 20.0 pts); Quality = weighted sum of remaining 13 dims × their weights, summing to 52% (max 52.0 pts); Main Score = Cost + IF + Quality. ⊘ on GPT-5.5 IF = neutral-50 input (10.0 pts). `Final = Σ(normalized_score × weight)`.
-> **†CD (Complete-Data):** GPT-5.5 excluded (7 of 14 quality dims ⊘ at time of publication). 5 dimensions with any ⊘ removed: SWE-bench (MiniMax/GPT-5.4 ⊘), LCB (6 models ⊘), OSWorld (5 models ⊘), AIME (4 models ⊘), Omni (5 models ⊘). 10 remaining dimensions renormalized to 100% (cost rises 28%→35.4%). All ranks recomputed among n=10. Note: Kimi(#4) and MiniMax(#5) are separated by 0.059 pts in the main ranking.
+> **Main:** All 12 models, 18 dimensions. Columns: Cost = norm_cost × 0.25 (max 25.0 pts); IF = norm_IF × 0.18 (max 18.0 pts); Quality = weighted sum of remaining 16 dims × their weights (summing to 57%); Main Score = Cost + IF + Quality. `Final = Σ(normalized_score × weight)`.
+> **GPT-5.5 note:** As of v3.0, 6 of 17 quality dimensions remain ⊘ (neutral-50): Speed, LCR, AIME, SciCode, MMLU-Pro, and LCB. As these fill in, GPT-5.5's score could rise further — it leads 6 of the 11 quality dimensions with real data.
+> **DeepSeek V4-Pro note:** 10 of 18 dimensions are ⊘ (neutral-50): IFBench, TB 2.0, SWEPro, GDPval, τ², OSW, LCR, AIME, SciCode, Omni, and Cost. Score is provisional; expect significant movement as AA Index components become individually published.
 
-> **v2.5 main shakeup:** Gemini leads at 71.1 (+2.8 vs v2.4). KAT surges to #2 — sole cheapest to run ($73.49, score 100.0). GLM rises to #3 on improved eval cost rank 4/11. Kimi drops to #4 — benchmark verbosity ($947.87 > Gemini $892.28) despite lower token price. GPT-5.5 rises to #6 (+8.4 pts) — eval cost $3,357 is below Sonnet and both Opus models. Opus 4.6 most expensive to run ($4,970, score 0.0).
+### Score Derivation Detail
 
-> **Key CD divergences:** (1) **GLM #2** — τ² rises to #1 once GPT-5.5 is removed; excluded dims (SWE/LCB/OSW/AIME/Omni) were all weak for GLM. (2) **Kimi #7** — τ² 0.0 at 5.1% weight with no neutral-50 floor; LCB (its #1 strength at 100.0) excluded. (3) **GPT-5.4 #5** — its two ⊘ dims (SWE, AIME) are exactly the excluded ones; strong across all 10 remaining. (4) **Cost amplification** (35.4%) crushes Anthropic tier — Opus 4.7 drops to 34.7 despite #2 quality.
+| Dim | Wt | Gemini | GPT-5.5 | KAT | GLM | MiniMax | Kimi | GPT-5.4 | DeepSeek | Qwen | Opus4.7 | Sonnet | Opus4.6 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Cost | 25% | 15.0 | 7.5 | 25.0 | 17.5 | 22.5 | 12.5 | 10.0 | 12.5 | 20.0 | 2.5 | 5.0 | 0.0 |
+| IF | 18% | 18.0 | 12.6 | 5.4 | 16.2 | 10.8 | 14.4 | 7.2 | 9.0 | 9.0 | 3.6 | 1.8 | 0.0 |
+| Term | 8% | 4.0 | 8.0 | 7.2 | 4.8 | 0.0 | 3.2 | 6.4 | 4.0 | 1.6 | 5.6 | 0.8 | 2.4 |
+| SWE | 7% | 4.3 | 7.0 | 1.9 | 0.0 | 3.5 | 3.1 | 3.5 | 4.3 | 0.8 | 6.2 | 1.9 | 5.4 |
+| SWEPro | 4% | 2.0 | 1.5 | 2.0 | 2.0 | 2.0 | 1.5 | 3.0 | 2.0 | 2.0 | 4.0 | 2.0 | 0.0 |
+| LCB | 6% | 3.0 | 3.0 | 3.0 | 3.0 | 3.0 | 4.5 | 0.0 | 6.0 | 3.0 | 3.0 | 3.0 | 1.5 |
+| GDP | 5% | 0.5 | 5.0 | 0.0 | 2.5 | 1.5 | 2.0 | 3.5 | 2.5 | 1.0 | 4.5 | 4.0 | 3.0 |
+| Spd | 5% | 5.0 | 2.5 | 4.5 | 2.25 | 2.25 | 4.0 | 3.5 | 0.5 | 3.0 | 1.0 | 1.5 | 0.0 |
+| τ² | 4% | 4.0 | 3.6 | 2.8 | 3.2 | 1.8 | 0.0 | 2.4 | 2.0 | 0.8 | 0.4 | 1.2 | 1.8 |
+| OSW | 4% | 2.0 | 4.0 | 2.0 | 2.0 | 2.0 | 1.6 | 2.4 | 2.0 | 2.0 | 3.2 | 0.0 | 0.8 |
+| BC | 3% | 1.8 | 3.0 | 1.5 | 1.5 | 1.5 | 0.6 | 2.4 | 1.2 | 1.5 | 0.0 | 1.5 | 1.5 |
+| LCR | 2% | 1.78 | 1.0 | 0.67 | 0.44 | 0.89 | 1.22 | 2.0 | 1.0 | 1.22 | 1.56 | 0.22 | 0.0 |
+| HLE | 2% | 1.82 | 1.64 | 0.0 | 0.73 | 0.18 | 0.91 | 1.45 | 1.09 | 0.36 | 2.0 | 0.55 | 1.27 |
+| GPQA | 2% | 2.0 | 1.64 | 0.18 | 0.36 | 0.55 | 1.27 | 1.45 | 0.91 | 1.09 | 1.82 | 0.73 | 0.0 |
+| MMLU | 2% | 2.0 | 1.0 | 1.0 | 1.0 | 1.0 | 0.0 | 1.0 | 0.67 | 1.33 | 1.0 | 1.0 | 1.0 |
+| AIME | 1% | 0.30 | 0.5 | 0.5 | 0.30 | 0.5 | 0.60 | 0.5 | 0.5 | 0.5 | 0.90 | 0.0 | 0.90 |
+| Sci | 1% | 1.0 | 0.5 | 0.11 | 0.22 | 0.44 | 0.67 | 0.89 | 0.5 | 0.0 | 0.78 | 0.33 | 0.56 |
+| Omni | 1% | 1.0 | 0.0 | 0.5 | 0.20 | 0.60 | 0.5 | 0.5 | 0.5 | 0.5 | 0.80 | 0.5 | 0.40 |
+| **Total** | | **69.5** | **64.0** | **58.3** | **58.2** | **55.0** | **52.6** | **52.1** | **51.1** | **49.7** | **42.9** | **26.1** | **20.6** |
 
-### Complete-Data Variant — Methodology
-
-**Excluded dimensions** (at least one of the 10 models has ⊘):
-
-| Dimension | Excluded Because |
-|---|---|
-| SWE-bench Verified | MiniMax M2.7, GPT-5.4 ⊘ |
-| LiveCodeBench v4 | MiniMax, Qwen, KAT, GLM, Opus 4.7, Sonnet ⊘ |
-| OSWorld | Gemini, MiniMax, Qwen, KAT, GLM ⊘ |
-| AIME 2025 | MiniMax, GPT-5.4, Qwen, KAT ⊘ |
-| AA-Omniscience | Kimi, GPT-5.4, Qwen, KAT, Sonnet ⊘ |
-
-**Renormalized weights** (10 included dims originally sum to 79%; scaled to 100%):
-
-| Dim | Original | Renormalized | | Dim | Original | Renormalized |
-|---|---|---|---|---|---|---|
-| Cost | 28% | **35.4%** | | τ²-Bench | 4% | **5.1%** |
-| IFBench | 20% | **25.3%** | | LCR | 3% | **3.8%** |
-| Terminal | 9% | **11.4%** | | HLE | 2% | **2.5%** |
-| GDP | 5% | **6.3%** | | GPQA | 2% | **2.5%** |
-| Speed | 5% | **6.3%** | | SciCode | 1% | **1.3%** |
-
-**Complete-Data score matrix** (all ranks recomputed among n=10; formula `((10−rank)/9)×100`):
-
-| Model | Cost | IF | Term | GDP | Spd | τ² | LCR | HLE | GPQA | Sci |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Gemini 3.1 Pro | 55.6 | 100.0 | 55.6 | 11.1 | 100.0 | 88.9 | 88.9 | 88.9 | 100.0 | 100.0 |
-| KAT-Coder-Pro-V2 | 100.0 | 33.3 | 100.0 | 0.0 | 88.9 | 77.8 | 33.3 | 0.0 | 11.1 | 11.1 |
-| GLM 5.1 | 66.7 | 88.9 | 66.7 | 55.6 | 38.9 | 100.0 | 22.2 | 44.4 | 22.2 | 22.2 |
-| MiniMax M2.7 | 88.9 | 66.7 | 0.0 | 44.4 | 38.9 | 50.0 | 44.4 | 11.1 | 33.3 | 44.4 |
-| GPT-5.4 | 33.3 | 44.4 | 88.9 | 77.8 | 66.7 | 66.7 | 100.0 | 77.8 | 77.8 | 88.9 |
-| Qwen 3.6 Plus | 77.8 | 55.6 | 22.2 | 22.2 | 55.6 | 22.2 | 61.1 | 22.2 | 55.6 | 0.0 |
-| Kimi K2.6 | 44.4 | 77.8 | 44.4 | 33.3 | 77.8 | 0.0 | 61.1 | 55.6 | 66.7 | 66.7 |
-| Claude Opus 4.7 | 11.1 | 22.2 | 77.8 | 100.0 | 11.1 | 11.1 | 77.8 | 100.0 | 88.9 | 77.8 |
-| Claude Sonnet 4.6 | 22.2 | 11.1 | 11.1 | 88.9 | 22.2 | 33.3 | 11.1 | 33.3 | 44.4 | 33.3 |
-| Claude Opus 4.6 | 0.0 | 0.0 | 33.3 | 66.7 | 0.0 | 50.0 | 0.0 | 66.7 | 0.0 | 55.6 |
-
-> Ties: Speed rank 5.5 (MiniMax/GLM both 49.0 tok/s) = 50.0; τ² rank 5.5 (MiniMax/Opus 4.6 both 84.8%) = 50.0; LCR rank 4.5 (Kimi/Qwen both 87.5%‡) = 61.1.
+> **v3.0 main shakeup:** GPT-5.5 surges from #6 → #2 (+7.9 pts) as IFBench (50⊘→70.0) and SWE-bench (50⊘→100.0†) fill in, adding 12.6+7.0=19.6 pts at 18%+7% weight vs. 10.0+3.5 = 13.5 pts from neutral-50. Net gain ≈ +6 pts from IF alone. KAT falls #2→#3 as weight shifts from Cost 28%→25% reduce the budget champion's cost contribution (28→25 pts max). GLM falls #3→#4 (same weight shift). Kimi drops to #6 as its τ²-Bench (0.0) weight advantage compressed. DeepSeek debuts at #8 with provisional score dominated by neutral-50 values.
 
 ---
 
-## 10. Ranking Changes (v1.0 → v2.0 → v2.1 → v2.3 → v2.4 → v2.5)
+## 10. Ranking Changes (v1.0 → v2.0 → v2.5 → v3.0)
 
-| Model | v1.0 | v2.0 | v2.1.1 | v2.2 | v2.3 | v2.4 | **v2.5** | Net Trend |
-|---|---|---|---|---|---|---|---|---|
-| Gemini 3.1 Pro | #1 | #1 | #1 | #1 | #2 | #1 | **#1** | ↑ Holds #1; eval cost rank 5/11 better than API rank 6/11 |
-| Kimi K2.6 | #2 | #2 | #2 | #2 | #1 | #2 | **#4** | ↓ Eval cost reveals verbosity; drops −5.6 pts |
-| KAT-Coder-Pro-V2 | #6 | #4 | #5 | #5 | #5 | #3 | **#2** | ↑↑ Sole cheapest to run ($73.49); Term #2 holds |
-| MiniMax M2.7 | #3 | #3 | #3 | #3 | #3 | #4 | **#5** | ─ Near-budget tier; slight drop as KAT separates |
-| GLM 5.1 | #7 | #7 | #7 | #7 | #7 | #5 | **#3** | ↑↑ Eval cost rank 4/11 (score 70.0); τ² #2 + IF #2 |
-| Qwen 3.6 Plus | #5 | #6 | #8 | #8 | #8 | #6 | **#7** | ─ Eval cost rank 3/11 unchanged; displaced by GPT-5.5 |
-| GPT-5.4 | #4 | #5 | #4 | #4 | #6 | #7 | **#8** | ↓ Eval cost rank 7/11; quality quality holds but others rise |
-| GPT-5.5 | — | — | #6 | #6 | #4 | #8 | **#6** | ↑↑ Eval cost $3,357 < Sonnet/Opus; rises +8.4 pts |
-| Claude Opus 4.7 | #8 | #8 | #9 | #9 | #9 | #9 | **#9** | ─ Most expensive in field ($4,811 eval cost); quality #2 |
-| Claude Sonnet 4.6 | #9 | #10 | #10 | #10 | #10 | #10 | **#10** | ─ |
-| Claude Opus 4.6 | #10 | #9 | #11 | #11 | #11 | #11 | **#11** | ─ Most expensive to run ($4,970); cost 0.0 |
-
-**Notable v2.4 → v2.5 shifts (cost methodology overhaul: API pricing → AA Index Eval Cost):**
-- **Gemini 3.1 Pro holds #1** (71.1 pts, +2.8 vs v2.4) — eval cost rank improves 6→5 (score 50.0→60.0, +2.8 pts). Quality unchanged. Extends lead further; no other model closes the gap.
-- **KAT-Coder-Pro-V2 surges #3 → #2** (60.7 pts, +1.4) — sole rank 1 on eval cost (score 95.0→100.0, +1.4 pts). Terminal-Bench #2 (76.2%) unchanged. The cheapest model to actually run on real benchmarks.
-- **GLM 5.1 jumps #5 → #3** (58.9 pts, +2.8) — eval cost rank improves 5→4 (score 60.0→70.0, +2.8 pts). IFBench #2 and τ²-Bench #2 give it solid quality backing.
-- **Kimi K2.6 drops #2 → #4** (57.5 pts, −5.6) — eval cost rank drops 4→6 (score 70.0→50.0, −5.6 pts). Kimi's benchmark tasks use more tokens than Gemini despite similar token pricing; $947.87 vs $892.28.
-- **MiniMax M2.7 drops #4 → #5** (57.5 pts, −1.4) — eval cost rank drops 1.5→2 (score 95.0→90.0, −1.4 pts). KAT separates as sole budget champion.
-- **GPT-5.5 rises #8 → #6** (56.1 pts, +8.4) — the defining v2.5 correction: GPT-5.5's xhigh reasoning mode uses fewer tokens on benchmark tasks than Sonnet and both Opus models. Eval cost $3,357 vs Sonnet $3,959 — rank 8/11 (score 30.0 vs prior 0.0). Net: +8.4 pts, biggest single-version gainer.
-- **Claude Opus 4.6 cost deteriorates #11 → #11** (20.5 pts, −4.2) — eval cost $4,969.68 makes it definitively most expensive to run (score 15.0→0.0). Displaces GPT-5.5 in that role.
+| Model | v1.0 | v2.0 | v2.1.1 | v2.3 | v2.4 | v2.5 | **v3.0** | v3.0 Score | Net Trend |
+|---|---|---|---|---|---|---|---|---|---|
+| Gemini 3.1 Pro | #1 | #1 | #1 | #2 | #1 | **#1** | **#1** | 69.5 | ↑ Holds #1; τ² now rank 1 (99.3%); MMLU-Pro #1 |
+| GPT-5.5 | — | — | #6 | #4 | #8 | **#6** | **#2** | 64.0 | ↑↑ IFBench (⊘→75.9%) + SWE (⊘→88.7%†) fill gaps |
+| KAT-Coder-Pro-V2 | #6 | #4 | #5 | #5 | #3 | **#2** | **#3** | 58.3 | ↓ Cost weight 28%→25% reduces budget champion bonus |
+| GLM 5.1 | #7 | #7 | #7 | #7 | #5 | **#3** | **#4** | 58.2 | ↓ Same weight shift; holds quality position |
+| MiniMax M2.7 | #3 | #3 | #3 | #3 | #4 | **#5** | **#5** | 55.0 | ─ Stable; near-budget tier |
+| Kimi K2.6 | #2 | #2 | #2 | #1 | #2 | **#4** | **#6** | 52.6 | ↓ GDP swap with MiniMax; τ²=0.0 weight stable |
+| GPT-5.4 | #4 | #5 | #4 | #6 | #7 | **#8** | **#7** | 52.1 | ↑ BrowseComp 80.0 + SWEPro 75.0 (new dims) help |
+| DeepSeek V4-Pro | — | — | — | — | — | — | **#8** | 51.1 | NEW; provisional (#10+ dims at ⊘) |
+| Qwen 3.6 Plus | #5 | #6 | #8 | #8 | #6 | **#7** | **#9** | 49.7 | ↓ MMLU-Pro helps (66.7) but other gaps hurt |
+| Claude Opus 4.7 | #8 | #8 | #9 | #9 | #9 | **#9** | **#10** | 42.9 | ─ Quality #2 but BrowseComp 0.0 (last/6) hurts |
+| Claude Sonnet 4.6 | #9 | #10 | #10 | #10 | #10 | **#10** | **#11** | 26.1 | ─ |
+| Claude Opus 4.6 | #10 | #9 | #11 | #11 | #11 | **#11** | **#12** | 20.6 | ─ Most expensive to run |
 
 ---
 
 ## 11. Model Profiles
 
-### 11.1 Kimi K2.6
-**Overall:** #4 | **Quality:** #5 | **Cost tier:** Premium ($947.87 eval cost)
-
-**v2.5 reveals Kimi's hidden token verbosity.** On AA's benchmark tasks, Kimi costs $947.87 to run the full suite — rank 6/11, cost score 50.0 (was 70.0, −5.6 weighted pts). Despite lower token pricing ($1.71/1M blended), Kimi uses more tokens on benchmark tasks than Gemini ($892.28 at $4.50/1M) — verbosity on actual tasks matters more than raw token price. This drops Kimi from #2 to #4 overall (57.5 pts vs prior 63.1). Dimension strengths remain: #1 LiveCodeBench v4 (100.0), SWE-bench #4 (57.1), IFBench #3 (77.8), Speed #3 (77.8 — 100.4 tok/s). τ²-Bench (0.0) and OSWorld (neutral-50) are unchanged weaknesses. Final score 57.5 — ties MiniMax (57.5) to one decimal, but Kimi edges it 57.513 vs 57.454. Free-tier availability remains a differentiator.
-
-**Best for:** Coding-heavy pipelines, LCB-style competitive programming, deployments where τ²-Bench reliability is not a primary concern.
-
----
-
-### 11.2 Gemini 3.1 Pro 🥇
+### 11.1 Gemini 3.1 Pro 🥇
 **Overall:** #1 | **Quality:** #1 | **Cost tier:** Premium ($892.28 eval cost)
 
-**v2.5 extends Gemini's lead.** At $892.28 eval cost (rank 5/11), Gemini's cost score improves from 50.0 → 60.0 (+2.8 pts), pushing the final score to 71.1 (+2.8 vs v2.4 68.3). Gemini's benchmark tasks are concise relative to its token price: $892.28 at $4.50/1M blended compares favourably to Kimi's $947.87 at $1.71/1M — Gemini spends more per token but generates fewer tokens, netting a cheaper run. The only model with real benchmark data on all 14 quality dimensions — zero neutral-50 placeholders on any quality dimension. Leads on IFBench (100.0), SciCode (100.0), Speed (100.0), GPQA Diamond (100.0, sole #1). Primary weakness unchanged: GDPval-AA ELO rank 10/11 (score 10.0) — human preference evaluators consistently rank Gemini below peers on conversational quality.
+**v3.0 extends Gemini's lead.** Three v3.0 changes work in Gemini's favor simultaneously: (1) τ²-Bench corrected to 99.3% → rank 1 (100.0 from 80.0), adding +0.8 pts at 4% weight. (2) New MMLU-Pro dimension where Gemini leads (89.8%, rank 1/4, score 100.0), worth +2.0 pts at 2% weight. (3) BrowseComp at 85.9% (rank 3/6, score 60.0), worth +1.8 pts at 3% weight. Net quality gain ≈ +4.6 pts vs. v2.5, offset by cost weight reduction 28%→25% (−1.7 pts). Final score: 69.5.
 
-**Best for:** Production SE workloads requiring consistent, instruction-following intelligence at scale. Research pipelines. Long-context tasks (2M token window). Coverage-critical deployments where missing-data risk is unacceptable.
+**Why Gemini holds #1:** The only model with real data on 17 of 18 dimensions (only OSWorld ⊘ — confirmed no published score). Leads on IFBench (100.0), Speed (100.0), τ²-Bench (100.0), GPQA Diamond (100.0), SciCode (100.0), MMLU-Pro (100.0), AA-Omniscience (100.0). GDP (10.0 — rank 10/11) remains the structural weakness: human preference evaluators consistently rank Gemini below peers on conversational quality.
 
----
-
-### 11.3 MiniMax M2.7
-**Overall:** #5 | **Quality:** #7 | **Cost tier:** Near-Budget ($175.51 eval cost)
-
-v2.5 places MiniMax at eval cost rank 2/11 ($175.51 — score 90.0, was 95.0 as tied rank 1.5, −1.4 pts). KAT-Coder-Pro-V2 ($73.49) separates as the sole budget champion; MiniMax moves to near-budget tier. Still the second-cheapest model to run on AA's full benchmark suite: $175.51 is 5.1× cheaper than Gemini ($892.28) and 19× cheaper than GPT-5.5 ($3,357). Quality profile unchanged: TB 2.0 last in field (57.0%, rank 11/11, score 0.0); IFBench #5 (66.7); GDPval-AA ELO rank 4 (40.0); τ²-Bench #5 (45.0). Net: −1.4 pts overall, drops from #4 → #5.
-
-**Best for:** High-volume classification, summarization, extraction tasks where quality requirements are moderate. Not suitable for coding-agent or terminal-agent applications (TB 2.0 last in field).
+**Best for:** Production SE workloads requiring consistent, instruction-following intelligence at scale. Long-context tasks (2M token window). Coverage-critical deployments where missing-data risk is unacceptable.
 
 ---
 
-### 11.4 KAT-Coder-Pro-V2 🥈
-**Overall:** #2 | **Quality:** #8 | **Cost tier:** Budget ($73.49 eval cost)
+### 11.2 GPT-5.5 🥈
+**Overall:** #2 | **Quality:** #4 | **Cost tier:** Very Expensive ($3,357.00 eval cost)
 
-**The biggest v2.5 riser.** KAT's eval cost of $73.49 makes it the sole cheapest model to run on AA's full benchmark suite — rank 1/11, score 100.0 (was tied rank 1.5 at 95.0 with MiniMax; +1.4 pts). Combined with its #2 Terminal-Bench standing and #2 Speed, KAT rises from #3 to #2 overall (60.7 pts). At $73.49 eval cost, KAT is 2.4× cheaper than MiniMax ($175.51), 12.1× cheaper than Gemini ($892.28), and 45.7× cheaper than GPT-5.5 ($3,357) on standardized benchmark tasks. Dimension profile: #2 Terminal-Bench 2.0 (76.2%, †-flagged — from KAT technical report, not on public tbench.ai leaderboard), #2 Speed (88.9 — 113.5 tok/s), #1 eval cost. Missing data on LCB, AIME, OSWorld, and Omni (all neutral-50) remain the quality assessment ceiling.
+**The v3.0 story is GPT-5.5's emergence.** Two gaps fill simultaneously: IFBench (⊘→75.9%, rank 4/11, score 70.0) at 18% weight and SWE-bench Verified (⊘→88.7%†, rank 1/10, score 100.0) at 7% weight. Together these add ≈ 9.1 pts vs. neutral-50 placeholders. Combined with being #1 on 5 dimensions (Terminal-Bench 82.7%, GDP 1,784, τ² 98.0%, OSWorld 78.7%, BrowseComp 90.1%), GPT-5.5 at 64.0 pts is a clear #2 with only 6 dimensions still ⊘ (Speed, LCB, LCR, AIME, SciCode, MMLU-Pro). As those fill in, GPT-5.5 could reach #1.
 
-**Best for:** Specialized terminal/coding pipelines requiring fast, cost-efficient output at scale. Not a general-purpose model; avoid for reasoning-heavy or knowledge tasks (HLE 0.0, GPQA 10.0).
+**Remaining gaps (6 of 18 ⊘):** Speed (not published for xhigh mode), LCB (not submitted), LCR (not published), AIME 2025 (OpenAI hasn't published), SciCode (not submitted), MMLU-Pro (anomalous 54.6% treated as ⊘). Each confirmed gap at neutral-50 represents a ±several-point swing when real data arrives.
 
----
+**AA-Omniscience caveat (0.0 score):** The −29 raw score (57% accuracy − 86% hallucination at xhigh) is GPT-5.5's one confirmed weakness. At lower reasoning tiers, this would differ significantly.
 
-### 11.5 GPT-5.4
-**Overall:** #8 | **Quality:** #4 | **Cost tier:** Expensive ($2,851.01 eval cost)
-
-GPT-5.4's eval cost of $2,851.01 places it rank 7/11 (cost score 40.0 — identical to its v2.4 API-price rank 7). Quality profile unchanged from v2.4: #1 LCR (100.0 — 97.8% RULER), #3 Terminal-Bench (80.0 — 75.1%), #4 quality overall (61.4). Overall rank slips from #7 → #8 as GPT-5.5 rises above it with a better eval cost (rank 8 vs GPT-5.4's rank 7, but GPT-5.5's quality contribution of 47.7 vs GPT-5.4's 39.4 edges it). At $2,851 eval cost, GPT-5.4 is firmly in the expensive tier — 32× more expensive than KAT ($73.49) but 3.2× more cost-efficient than GPT-5.5 ($3,357) per benchmark suite run.
-
-**Best for:** Long-context retrieval (#1 LCR 100.0), Terminal-Bench-sensitive tasks, GPQA Diamond (70.0), HLE (70.0) applications where mid-premium pricing is acceptable.
+**Best for:** Terminal/CLI agents (#1 TB 2.0), computer-use/GUI agents (#1 OSWorld), deep web research (#1 BrowseComp), τ²-Bench-sensitive agentic pipelines, SWE-bench-sensitive code repair (probable #1).
 
 ---
 
-### 11.6 Qwen 3.6 Plus
-**Overall:** #7 | **Quality:** #10 | **Cost tier:** Mid-Range ($482.65 eval cost)
+### 11.3 KAT-Coder-Pro-V2 🥉
+**Overall:** #3 | **Quality:** #10 | **Cost tier:** Budget ($73.49 eval cost)
 
-Qwen's eval cost of $482.65 places it rank 3/11 (cost score 80.0 — unchanged from v2.4 API-price rank 3; cost contribution identical at 22.4 pts). Overall rank slips from #6 → #7 as GPT-5.5 rises above it in v2.5. Quality profile unchanged: τ²-Bench 20.0, LCB ⊘, AIME ⊘ — #10 quality overall (36.9). At $483 eval cost, Qwen sits in the mid-range tier: 6.6× cheaper than Gemini ($892) but 2.7× more expensive than MiniMax ($176) on actual benchmark tasks. The API-price "near-budget" label from v2.4 is misleading — on actual usage, Qwen is solidly mid-range.
+**v3.0 cost weight compression reduces KAT's advantage slightly.** Cost weight drops 28%→25%, reducing KAT's cost contribution from 28.0 → 25.0 pts (−3.0). KAT stays at rank 1 eval cost (100.0) but earns fewer points for it. Quality profile unchanged: #2 Terminal-Bench 2.0 (90.0), #2 Speed (90.0), eval cost sole rank 1. At 58.3 pts, KAT drops from #2 to #3 but remains the best cost-to-terminal-performance ratio in the field by a wide margin.
 
-**Best for:** High-volume workloads requiring moderate quality at mid-range running cost. Avoid τ²-Bench and AIME-sensitive applications.
+**New dimensions:** All three new dims (SWEPro, BrowseComp, MMLU-Pro) are ⊘ → neutral-50. These contribute 3.0+1.5+1.0 = 5.5 pts at equal neutral-50 weight — no discrimination against or for KAT. KAT's strong profile (100+90+90 on three key dims) keeps it competitive.
 
----
-
-### 11.7 GLM 5.1 🥉
-**Overall:** #3 | **Quality:** #6 | **Cost tier:** Mid-Range ($543.95 eval cost)
-
-**v2.5's biggest quality-cost surprise.** GLM's eval cost ($543.95) places it rank 4/11 — cost score improves from 60.0 → 70.0 (+2.8 pts), lifting GLM from #5 to #3 overall (58.9 pts). GLM delivers strong mid-tier value: #2 IFBench (88.9), #2 τ²-Bench (90.0), and solid eval cost at $544 — comparable to Qwen's $483 despite meaningfully higher quality across every quality dimension. At rank 4 eval cost, GLM is the best-value mid-range choice for instruction-following and agentic reliability. GLM's GDPval-AA ELO (50.0 — rank 6/11) indicates mid-field human preference performance. The AA-Omniscience of 20.0 (−1 raw: 64% accuracy − 65% hallucination) is nearly neutral.
-
-**Best for:** Instruction-following tasks requiring τ²-Bench multi-step reliability at mid-range cost. Terminal-agent workloads where Gemini/KAT are priced too high.
+**Best for:** Specialized terminal/coding pipelines requiring fast, cost-efficient output at scale. Not a general-purpose model; avoid for reasoning-heavy, knowledge, or GUI tasks (HLE 0.0, GPQA 9.1).
 
 ---
 
-### 11.8 Claude Opus 4.7
-**Overall:** #9 | **Quality:** #2 | **Cost tier:** Ultra-Premium ($4,811.04 eval cost)
+### 11.4 GLM 5.1
+**Overall:** #4 | **Quality:** #7 | **Cost tier:** Mid-Range ($543.95 eval cost)
 
-**v2.5 reveals Anthropic's true cost burden.** At $4,811.04 eval cost (rank 10/11, cost score 10.0 vs prior 15.0, −1.4 pts), Claude Opus 4.7 is the second most expensive model to run on AA's benchmark suite — only Opus 4.6 ($4,969.68) costs more. Anthropic's extended-thinking mode consumes far more tokens on benchmark tasks than other frontier models at comparable token pricing. Final score drops from 43.7 → 42.3. Quality profile unchanged: #2 quality overall (67.8), #1 SWE-bench Verified (100.0), #1 HLE (100.0), #2 GPQA (90.0). The quality-cost gap now spans 9 rank positions — the largest quality-vs-overall-rank gap in the field. For teams prioritising capability over cost, Opus 4.7 remains the top choice for software engineering and expert-knowledge tasks.
+GLM separates from KAT by only 0.1 pts (58.2 vs 58.3). GLM's profile: #2 IFBench (90.0), #3 τ²-Bench (80.0), eval cost rank 4 (70.0). New dimensions all ⊘ → neutral-50 (neither helps nor hurts). The τ²-Bench correction that made Gemini rank 1 moved GLM from rank 2 to rank 3 (from 90.0 to 80.0, −0.4 pts at 4% weight).
 
-**Best for:** High-stakes software engineering (SWE #1), expert-knowledge tasks (HLE #1), enterprise customers where quality-per-outcome matters more than cost-per-token.
-
----
-
-### 11.9 GPT-5.5
-**Overall:** #6 | **Quality:** #3 | **Cost tier:** Very Expensive ($3,357.00 eval cost)
-
-**The defining v2.5 story: cost ceiling breaks.** In v2.4, GPT-5.5 ranked #8 (47.7 pts) with cost score 0.0 — definitively the most expensive model on API pricing ($11.25/1M). The v2.5 methodology switch to AA eval cost changes this picture: GPT-5.5's xhigh reasoning mode generates more concise benchmark outputs than Anthropic's extended-thinking models. Actual eval cost $3,357.00 places it rank 8/11 (score 30.0), cheaper than Sonnet ($3,959.36) and both Opus models ($4,811–$4,970). Net: +8.4 pts overall, rises #8 → #6 (56.1 pts). This is the single largest gain of any model in any version.
-
-**Key insight:** On API pricing, GPT-5.5 at $11.25/1M looked 19× more expensive than MiniMax at $0.53/1M. On actual benchmark task cost, it is only 19× more expensive ($3,357 vs $175). The ratio holds — but GPT-5.5 is genuinely cheaper to run than the Anthropic premium tier.
-
-**Dimension leadership (5 unchanged):**
-- #1 on **Terminal-Bench 2.0** (82.7% — confirmed #1 in the field)
-- #1 on GDPval-AA ELO (1,784 — highest human preference ELO)
-- #1 on τ²-Bench (98.0% — dominant multi-step agent reliability)
-- #1 on OSWorld (78.7% — strongest computer-use agent)
-- HLE: #3 (80.0); GPQA: #3 (80.0)
-
-**Why GPT-5.5 ranks #3 on quality:** 7 of 14 quality dimensions remain ⊘ (neutral-50): IFBench, SWE-bench, LCB, Speed, LCR, AIME, SciCode. Quality score 65.0 vs Gemini 74.1 and Opus 4.7 67.8. As missing data fills in, quality rank may rise to #1–2.
-
-**Why GPT-5.5 ranks #6 not higher:** Cost score 30.0 at 28% weight contributes only 8.4 pts — Gemini earns 16.8 pts from cost, KAT earns 28.0 pts. GPT-5.5 must compensate purely on quality. AA-Omniscience = 0.0 (−29 raw; 86% hallucination rate at xhigh mode).
-
-**Best for:** Terminal/CLI agents (#1 TB 2.0), computer-use/GUI agents (#1 OSWorld), τ²-Bench-sensitive agentic pipelines, research applications where quality is unconstrained by cost.
+**Best for:** Instruction-following tasks requiring τ²-Bench multi-step reliability at mid-range cost. A strong alternative to Gemini for budget-conscious instruction-following workloads.
 
 ---
 
-### 11.10 Claude Sonnet 4.6
-**Overall:** #10 | **Quality:** #11 | **Cost tier:** Very Expensive ($3,959.36 eval cost)
+### 11.5 MiniMax M2.7
+**Overall:** #5 | **Quality:** #9 | **Cost tier:** Near-Budget ($175.51 eval cost)
 
-v2.5 places Sonnet at eval cost rank 9/11 ($3,959.36 — cost score 20.0, was 30.0, −2.8 pts). Despite a lower API token price ($6.00/1M blended) than GPT-5.5 ($11.25/1M), Sonnet actually costs more to run on AA's benchmark tasks ($3,959 vs $3,357) due to higher token verbosity on standardized tasks. Final score drops from 26.8 → 24.0. Quality profile unchanged: #11 quality overall (28.8), #9 IFBench, #9 LCR, OSWorld 0.0 (last among scorers), AIME 0.0. The benchmark reveals that Sonnet's verbose outputs make it more expensive than GPT-5.5 in real-world benchmark usage despite cheaper nominal pricing.
+MiniMax holds near-budget status (eval cost rank 2, score 90.0). New dimensions: SWEPro ⊘, BrowseComp ⊘, MMLU-Pro ⊘ — all neutral-50. One v3.0 change affects MiniMax: the GDPval ranking swap with Kimi. Kimi's GDPval ELO updated to 1,520 moves it to rank 7; MiniMax at 1,514 drops to rank 8 (score 40.0→30.0, −0.5 pts at 5% weight). Final: 55.0 pts.
 
-**Best for:** Simple Q&A or conversational tasks where cost sensitivity is paramount among Anthropic models. Not recommended for coding-agent, terminal-agent, or math-intensive pipelines.
+**Best for:** High-volume classification, summarization, extraction tasks at near-budget cost. Not suitable for coding-agent applications (Terminal-Bench last in field, 0.0).
 
 ---
 
-### 11.11 Claude Opus 4.6
-**Overall:** #11 | **Quality:** #9 | **Cost tier:** Ultra-Premium ($4,969.68 eval cost)
+### 11.6 Kimi K2.6
+**Overall:** #6 | **Quality:** #6 | **Cost tier:** Premium ($947.87 eval cost)
 
-**v2.5's most expensive model to run.** At $4,969.68 eval cost (rank 11/11, cost score 0.0 vs prior 15.0, −4.2 pts), Claude Opus 4.6 displaces GPT-5.5 as the most expensive model to run on AA's benchmark suite. Anthropic's extended-thinking models consume the most tokens on standardised tasks: Opus 4.6 ($4,970) > Opus 4.7 ($4,811) > Sonnet ($3,959). Final score drops from 24.7 → 20.5. Quality profile unchanged: #9 overall quality (37.1), IFBench 0.0 (40.2% — last in cohort), Speed 0.0 (18.2 tok/s — slowest with real data), LCR 0.0, GPQA 0.0. Dimension bright spots: AIME 90.0 (tied #1 with Opus 4.7), SWE-bench 85.7 (#2). At essentially equivalent eval cost to Opus 4.7 ($4,970 vs $4,811) but lower quality on nearly every dimension, migration to 4.7 is the dominant recommendation.
+Kimi's v3.0 changes: GDPval ELO updated 1,484→1,520 → GDP score improves 30.0→40.0 (+0.5 pts at 5% weight). SWE-bench Pro activated at 58.6% (tied rank 3.5/5 with GPT-5.5) → score 37.5 vs. prior ⊘ neutral-50 (−0.5 pts vs. prior neutral). BrowseComp 83.2% (rank 5/6) → score 20.0 (below neutral-50, −0.9 pts vs. prior ⊘). MMLU-Pro 84.6% (rank 4/4) → score 0.0 (well below neutral-50, −1.0 pts vs. prior ⊘). Net v3.0 quality impact: roughly neutral to slightly negative from the 3 new dimensions despite having real data for all of them. τ²-Bench (0.0 — rank 11/11) remains the dominant weakness at 4% weight.
 
-**Best for:** Legacy deployments that cannot migrate; no new deployments recommended given Opus 4.7 superiority at essentially equivalent eval cost.
+**LCB update:** DeepSeek V4-Pro (93.5%) enters at LCB rank 1, pushing Kimi to rank 2 (75.0 from 100.0, −0.84 pts at 6% weight). Kimi is no longer the LCB champion.
+
+**Best for:** Coding-heavy pipelines (LCB #2 at 75.0), open-weight deployments (Apache 2.0), long-context tasks (200K), SWE-bench Pro is competitive (58.6%).
+
+---
+
+### 11.7 GPT-5.4
+**Overall:** #7 | **Quality:** #3 | **Cost tier:** Expensive ($2,851.01 eval cost)
+
+GPT-5.4 benefits from two new dimensions: BrowseComp 89.3% (rank 2/6, score 80.0) and SWE-bench Pro 59.1% (rank 2/5, score 75.0). These add 2.4+3.0 = 5.4 pts above prior neutral-50 (at 3%+4% weight). LCR holds #1 (100.0). This earns GPT-5.4 quality rank #3 (62.9). But eval cost ($2,851, rank 7/11, score 40.0) at 25% weight caps the total at 52.1 pts — rank #7 overall.
+
+**Best for:** Long-context retrieval (#1 LCR 100.0), BrowseComp web research (#2), SWE-bench Pro (2nd best), Terminal-Bench (80.0), GPQA (72.7). Teams running research, retrieval, or code repair at expensive-but-not-ultra-expensive tier.
+
+---
+
+### 11.8 DeepSeek V4-Pro *(new)*
+**Overall:** #8 | **Quality:** #5 | **Cost tier:** Unpublished (est. $1,200–$1,800)
+
+**Profile:** DeepSeek V4-Pro (released April 24, 2026) is Apache 2.0 open-source, 1.6T total / 49B active parameters (MoE), 1M context window. AA Intelligence Index: 52 (#2 open-weight behind Kimi K2.6 at 54). Pricing: $1.74/$3.48 per MTok in/out — below Kimi's comparable tier.
+
+**Confirmed strengths:** LiveCodeBench v4 (93.5%, rank 1/5 in cohort — new LCB champion), SWE-bench Verified (80.6%, tied rank 4.5/10), BrowseComp (83.4%, rank 4/6). Speed (33.5 tok/s) is below the open-weight median — MoE routing overhead at 1.6T total parameters.
+
+**Confirmed weaknesses:** Slow throughput (33.5 tok/s, rank 10/11, score 10.0), HLE (37.7%, rank 6/12, score 54.5 — below Claude 40.0%, GPT-5.4 41.6%, Gemini 44.7%). GPQA Diamond (88.8%) at probable-confidence suggests mid-tier science reasoning.
+
+**⊘ coverage:** 10 of 18 dimensions are ⊘: IFBench, Terminal-Bench 2.0 Pro (only Flash 79.0% found), GDPval-AA ELO, τ²-Bench, OSWorld, RULER, AIME 2025 (87.5% seen but attributed to "DeepSeek" — may be R1), SciCode, AA-Omniscience, and Cost. All receive neutral-50. The AA Intelligence Index composite (52) confirms overall frontier parity but component breakdowns are not individually published.
+
+**Expected trajectory:** As leaderboards process the April 24 release, expect IFBench, τ², and Cost to fill in within 2–4 weeks. Based on the composite AA score and architecture, realistic IFBench estimate: 70–75%; τ² estimate: 85–92%; Cost estimate: likely rank 7 ($1,400 est., between Kimi $948 and GPT-5.4 $2,851).
+
+**Best for:** LiveCodeBench coding tasks (#1), SWE-bench GitHub issue resolution, BrowseComp research tasks, open-source deployments requiring on-premise licensing. Avoid latency-sensitive streaming applications (33.5 tok/s).
+
+---
+
+### 11.9 Qwen 3.6 Plus
+**Overall:** #9 | **Quality:** #8 | **Cost tier:** Mid-Range ($482.65 eval cost)
+
+Qwen benefits from MMLU-Pro where it ranks #2 (88.5%, score 66.7) — a meaningful data point at 2% weight (+0.33 pts vs. neutral-50). BrowseComp ⊘ (neutral-50). SWEPro ⊘ (neutral-50). LCR unchanged at 61.1 (tied rank 4.5 with Kimi). τ²-Bench (20.0, rank 9/11) remains a weakness. Final: 49.7 pts.
+
+**Best for:** High-volume mid-range workloads. MMLU-Pro strength suggests knowledge-breadth tasks. Avoid τ²-Bench-sensitive or agentic pipelines.
+
+---
+
+### 11.10 Claude Opus 4.7
+**Overall:** #10 | **Quality:** #2 | **Cost tier:** Ultra-Premium ($4,811.04 eval cost)
+
+**The v3.0 story for Opus 4.7 is BrowseComp (0.0 — rank 6/6, last).** Opus 4.7 at 79.3% is last in the 6-model BrowseComp cohort, worth 0.0 at 3% weight vs. neutral-50 in v2.5 (−1.5 pts). SWE-bench Pro offset this: Opus 4.7 leads with 64.3% (rank 1/5, score 100.0) → +2.0 pts at 4% weight vs. neutral-50. Net from new dims: roughly neutral. Eval cost contribution drops (28%→25% weight) by −0.7 pts. Final: 42.9 pts.
+
+**Quality-cost paradox:** #2 quality overall (64.4 pts) but #10 in the main ranking. The 10-rank gap between quality and overall position remains the largest in the field. Cost score 10.0 at 25% weight contributes only 2.5 pts — Gemini earns 15.0 pts from cost. For teams prioritizing capability over cost, Opus 4.7 is the go-to for SWE-bench (#1, 88.9), SWE-bench Pro (#1, 100.0), HLE (#1, 100.0), GPQA (#2, 90.9).
+
+**Best for:** High-stakes software engineering, SWE-bench Pro (#1 at 64.3%), expert-knowledge tasks (HLE #1), enterprise customers where quality-per-outcome matters more than cost.
+
+---
+
+### 11.11 Claude Sonnet 4.6
+**Overall:** #11 | **Quality:** #12 | **Cost tier:** Very Expensive ($3,959.36 eval cost)
+
+All three new dimensions (SWEPro, BrowseComp, MMLU-Pro) are ⊘ → neutral-50 for Sonnet. No changes to existing data. GDP at 80.0 (rank 3/11 — 1,675 ELO) and Terminal-Bench (10.0, rank 10/11) continue to bookend Sonnet's profile. Final: 26.1 pts.
+
+**Best for:** Simple conversational tasks where Anthropic ecosystem compatibility is required. Not recommended for coding-agent, agentic, or math-intensive pipelines.
+
+---
+
+### 11.12 Claude Opus 4.6
+**Overall:** #12 | **Quality:** #11 | **Cost tier:** Ultra-Premium ($4,969.68 eval cost)
+
+Most expensive model to run ($4,969.68, rank 11/11, cost score 0.0). SWE-bench Pro (51.9%, rank 5/5, score 0.0) is Opus 4.6's worst result in the new dimensions — last in the SWE-Pro cohort. BrowseComp and MMLU-Pro remain ⊘ (neutral-50). AIME 2025 tied rank 1.5 at 99.8% (90.0) and SWE-bench #3 (77.8) remain the dimension bright spots. At essentially equivalent eval cost to Opus 4.7 ($4,970 vs $4,811) but lower quality on nearly every dimension, migration to 4.7 is the dominant recommendation.
+
+**Best for:** Legacy deployments that cannot migrate; no new deployments recommended.
 
 ---
 
 ## 12. Strategic Insights
 
-### 12.1 GPT-5.5 Escapes the Cost Trap (v2.5 update)
+### 12.1 GPT-5.5 Is Now a Clear #2 — But Provisional
 
-The v2.5 methodology switch reveals that API pricing was a misleading cost signal for GPT-5.5. In v2.4, GPT-5.5 ranked #8 (47.7 pts) with cost score 0.0 — it was the most expensive model at $11.25/1M API token price. Under AA eval cost, GPT-5.5 ($3,357 to run the full benchmark suite) is actually cheaper than Sonnet ($3,959), Opus 4.7 ($4,811), and Opus 4.6 ($4,970). GPT-5.5's xhigh reasoning mode generates more concise outputs on standardized benchmark tasks than Anthropic's extended-thinking models — lower token count offsets the higher token price. Result: cost rank 8/11 (score 30.0), +8.4 pts, rises to #6 overall (56.1 pts).
+v3.0 fills two critical GPT-5.5 gaps: IFBench (75.9%, rank 4/11) and SWE-bench Verified (88.7%†, rank 1/10). These two dimensions — at 18% and 7% weight — account for +6.1 pts of GPT-5.5's total improvement. The model now holds confirmed #1 on 5 agentic dimensions (TB 2.0, GDP, τ², OSWorld, BrowseComp) and probable #1 on SWE-bench Verified. Six dimensions remain ⊘. When Speed, LCB, AIME, SciCode, LCR, and MMLU-Pro fill in, GPT-5.5 has a realistic path to #1 if its quality profile holds.
 
-**Implication:** GPT-5.5 is not the budget choice (KAT at $73.49 is 46× cheaper), but it is no longer penalised for verbosity it doesn't exhibit. Teams running cost-sensitive production workloads should still prefer Gemini/KAT/GLM; teams running agentic pipelines get GPT-5.5's dimension leadership (#1 TB 2.0, τ², OSWorld, GDP) at a cost that is competitive with the Anthropic premium tier.
+**The remaining gap:** Gemini leads GPT-5.5 by 5.5 pts. Gemini has zero ⊘ quality dimensions — it cannot be displaced by "surprise" real data. GPT-5.5 must earn its remaining quality scores; each neutral-50 dim is a risk in both directions.
 
-### 12.2 The True Cost Story: Verbosity Matters More Than Token Price
+### 12.2 DeepSeek V4-Pro: Open-Source Frontier Contender
 
-v2.5's most important insight: **nominal token price is a poor predictor of actual running cost.** Three striking examples:
-- **Kimi K2.6** has a lower token price ($1.71/1M blended) than **Gemini 3.1 Pro** ($4.50/1M), yet Kimi costs *more* to run on AA's benchmarks ($947.87 vs $892.28) — Kimi generates more tokens per task.
-- **Claude Sonnet 4.6** has a lower token price ($6.00/1M) than **GPT-5.5** ($11.25/1M), yet Sonnet costs *more* ($3,959 vs $3,357) — Anthropic's models are verbose.
-- **Claude Opus 4.6** and **Opus 4.7** have the *same* token price ($10.00/1M blended) yet different eval costs ($4,970 vs $4,811) — even within the same provider, task verbosity varies.
+DeepSeek V4-Pro's debut at #8 (51.1 pts) is provisional but meaningful. The model's LCB leadership (93.5%, above Kimi's 82.6%) establishes it as the current open-source coding champion at the competition-programming level. Its Codeforces rating (3,206) and Putnam-2025 (120/120, first open-source perfect score) confirm exceptional mathematical reasoning not yet captured in the scored dimensions.
 
-The API "Premium vs Ultra-Premium" framing of v2.4 is replaced by a clearer picture: Anthropic's extended-thinking models are the most expensive to run, regardless of token price.
+The speed penalty (33.5 tok/s, rank 10/11) is significant for streaming applications — nearly 3× slower than Gemini (128.0 tok/s). For batch processing and offline coding tasks, the speed disadvantage matters less. At $1.74/$3.48 pricing with a 1M context window, DeepSeek V4-Pro offers frontier-class coding capability at mid-range token cost, making it a strong open-source alternative to Kimi K2.6 for LCB-type tasks.
 
-### 12.3 KAT-Coder-Pro-V2 Claims the Budget Crown
+### 12.3 The New Dimension Landscape
 
-KAT-Coder-Pro-V2 ($73.49 eval cost) is now the sole cheapest model to run on AA's full benchmark suite — 2.4× cheaper than MiniMax ($175.51). In v2.4, both shared the $0.53/1M API price (tied rank 1.5, score 95.0). On actual benchmark tasks, KAT's concise output style ($73.49) dramatically separates it from MiniMax ($175.51). This earns KAT a perfect cost score (100.0) and pushes it from #3 to #2 overall. For terminal/coding workloads at minimum running cost, KAT is the unambiguous choice. MiniMax remains the near-budget option for instruction-following tasks where TB 2.0 performance is not required.
+Three new dimensions reveal new capability differentiators at the frontier:
 
-### 12.4 τ²-Bench Correction Reshapes the Mid-Tier
+- **BrowseComp** separates GPT-5.5 (90.1%, #1) and GPT-5.4 (89.3%, #2) as superior deep-web research agents, with Claude Opus 4.7 (79.3%) last in the 6-model cohort — a meaningful finding for enterprise research automation decisions.
+- **SWE-bench Pro** reveals Claude Opus 4.7 as the definitive code repair leader (64.3%, 5.2% gap to #2 GPT-5.4 at 59.1%). This harder benchmark better differentiates frontier models than the Verified variant where the top 10 cluster within 11 percentage points.
+- **MMLU-Pro** confirms Gemini's knowledge breadth leadership (89.8%) and places Qwen at #2 (88.5%) — giving Qwen its first clear dimension strength in this cohort.
 
-The single largest quality correction in v2.4 was the τ²-bench systemic error — 9/11 models had τ¹-bench values masquerading as τ²-bench. The correction reshuffles mid-tier quality rankings dramatically: Kimi drops from τ² rank 3 → last (70.0→0.0), Qwen drops from tied-top to rank 9 (85.0→20.0). GLM and GPT-5.5 are confirmed #2 and #1 on actual τ²-bench. For teams selecting models based on agentic task reliability, the ranking order is fundamentally different under corrected data.
+### 12.4 Kimi K2.6 Is No Longer the LCB Champion
 
-### 12.5 Speed Leadership Shifts to Gemini
+DeepSeek V4-Pro's 93.5% on LiveCodeBench v4 displaces Kimi K2.6 (82.6%) as LCB leader. The 10.9-point gap is substantial. Combined with Kimi's τ²-Bench weakness (0.0, last in field), this raises questions about Kimi's "coding specialist" positioning. Kimi remains competitive on SWE-bench (80.2%) and SWE-bench Pro (58.6%), but for pure coding evaluation benchmarks, DeepSeek V4-Pro is the new open-source standard.
 
-Gemini 3.1 Pro is now confirmed as the fastest model at 128.0 tok/s (Speed score 100.0), displacing Kimi (corrected to 100.4 tok/s, score 77.8 — rank 3). KAT is confirmed #2 at 113.5 tok/s. For streaming-intensive or real-time applications, Gemini's combination of #1 speed, #1 IFBench, and #1 quality makes it the dominant choice regardless of cost tier.
+### 12.5 The Anthropic Cost Structure Remains the Dominant Constraint
 
-### 12.6 The Missing-Data Problem Persists
-
-GPT-5.5 still has 7 of 14 quality dimensions missing (⊘ neutral-50) as of April 24, 2026. At 7.14% per dimension, each confirmed score can move quality ±~3.6 pts. As data fills in over 30–60 days, GPT-5.5's quality rank could reach #1. Recommend "provisional" annotation for any model with >4 missing quality dimensions.
+Under the AA Index Eval Cost methodology, all three Anthropic frontier models (Sonnet $3,959, Opus 4.7 $4,811, Opus 4.6 $4,970) are in the top-4 most expensive to run. At 25% cost weight, Claude Opus 4.7's cost score (10.0) contributes only 2.5 pts vs. Gemini's 15.0 pts — a 12.5 pt cost disadvantage that quality (#2 at 64.4 pts) cannot overcome at this weighting. Teams running cost-unconstrained research pipelines where SWE-Pro or HLE performance matters most should consider Opus 4.7; all production workloads face a structural cost ceiling.
 
 ---
 
@@ -565,22 +585,26 @@ GPT-5.5 still has 7 of 14 quality dimensions missing (⊘ neutral-50) as of Apri
 
 | Use Case | Primary Choice | Budget Alternative | Notes |
 |---|---|---|---|
-| Production SE pipeline (cost-first) | **Gemini 3.1 Pro** | GLM 5.1 | #1 overall at 71.1 pts; best cost-quality balance; $892 eval cost |
-| Broadest-coverage production choice | **Gemini 3.1 Pro** | Kimi K2.6 | Real data on all 14 quality dims; #1 IFBench, Speed, GPQA, Sci |
-| Minimum eval-cost processing | **KAT-Coder-Pro-V2** | MiniMax M2.7 | $73.49 eval cost (#1) vs $175.51 (#2); KAT is sole budget champion |
-| High-volume batch processing | **KAT-Coder-Pro-V2** | MiniMax M2.7 | KAT: $73.49 eval cost + TB 2.0 #2; MiniMax: $175.51 + IFBench #5 |
-| Coding specialist (LCB) | **Kimi K2.6** | Gemini 3.1 Pro | LCB #1 (100.0); free tier available |
+| Production SE pipeline (cost-first) | **Gemini 3.1 Pro** | GLM 5.1 | #1 overall at 69.5 pts; broadest coverage; $892 eval cost |
+| Broadest-coverage production choice | **Gemini 3.1 Pro** | GPT-5.5 | Real data on 17/18 dims; #1 IFBench, Speed, τ², GPQA, Sci, MMLU |
+| Minimum eval-cost processing | **KAT-Coder-Pro-V2** | MiniMax M2.7 | $73.49 eval cost (#1) vs $175.51 (#2) |
+| High-volume batch processing | **KAT-Coder-Pro-V2** | MiniMax M2.7 | KAT: $73.49 + TB 2.0 #2; MiniMax: $175.51 + IFBench #5 |
+| Coding specialist (LCB / competition) | **DeepSeek V4-Pro** | Kimi K2.6 | LCB #1 (93.5%) vs LCB #2 (82.6%); both open-source |
 | Coding specialist (terminal/CLI) | **GPT-5.5** | KAT-Coder-Pro-V2 | TB 2.0: 82.7% (#1) vs 76.2% (#2) |
 | Computer-use / GUI automation | **GPT-5.5** | Claude Opus 4.7 | OSWorld #1 (78.7%) by large margin |
-| Multi-step agentic tasks (τ²) | **GPT-5.5** | GLM 5.1 | τ²-Bench: 98.0% (#1) vs 97.7% (#2) |
-| SWE-bench / GitHub issue resolution | **Claude Opus 4.7** | Gemini 3.1 Pro | SWE #1 (87.6%); Gemini #3 (80.6%) |
+| Multi-step agentic tasks (τ²) | **Gemini 3.1 Pro** | GPT-5.5 | τ²: 99.3% (#1) vs 98.0% (#2) — Gemini now leads |
+| SWE-bench / GitHub issue resolution | **GPT-5.5†** | Claude Opus 4.7 | SWE-V: 88.7%† (#1, probable) vs 87.6% (#2, confirmed) |
+| SWE-bench Pro / hard code repair | **Claude Opus 4.7** | GPT-5.4 | SWE-Pro: 64.3% (#1) — 5.2% lead over GPT-5.4 (59.1%) |
+| Deep web research / BrowseComp | **GPT-5.5** | GPT-5.4 | BrowseComp: 90.1% (#1) vs 89.3% (#2) |
 | Long-context retrieval (128K+) | **GPT-5.4** | Gemini 3.1 Pro | RULER: 97.8% vs 94.2% |
 | Competition math / reasoning ceiling | **Claude Opus 4.7 / 4.6** | Kimi K2.6 | AIME: 99.8% (tied Opus) vs 96.1% (Kimi) |
+| Graduate-level knowledge (MMLU-Pro) | **Gemini 3.1 Pro** | Qwen 3.6 Plus | MMLU-Pro: 89.8% (#1) vs 88.5% (#2) |
 | Instruction-following reliability | **Gemini 3.1 Pro** | GLM 5.1 | IFBench: 89.4% (#1) vs 85.9% (#2) |
 | Fast streaming / real-time | **Gemini 3.1 Pro** | KAT-Coder-Pro-V2 | 128.0 tok/s (#1) vs 113.5 tok/s (#2) |
-| Highest quality, cost unconstrained | **GPT-5.5** | Claude Opus 4.7 | Quality #3 (65.0) but leads 5 agentic dims; Opus 4.7 #2 quality (67.8) |
+| Open-source / on-premise frontier | **DeepSeek V4-Pro** | Kimi K2.6 | LCB #1, Apache 2.0, 1M context, $1.74/MTok |
+| Highest quality, cost unconstrained | **GPT-5.5** | Claude Opus 4.7 | 5 agentic dim leads; Opus 4.7 #2 quality (64.4) |
 | Expert knowledge / HLE tasks | **Claude Opus 4.7** | Gemini 3.1 Pro | HLE #1 (46.9%) vs #2 (44.7%) |
-| Mid-range instruction + agentic | **GLM 5.1** | Qwen 3.6 Plus | #3 overall (58.9); $544 eval cost; IFBench #2 + τ² #2 |
+| Mid-range instruction + agentic | **GLM 5.1** | Qwen 3.6 Plus | #4 overall (58.2); $544 eval cost; IFBench #2 + τ² #3 |
 
 ---
 
@@ -588,32 +612,41 @@ GPT-5.5 still has 7 of 14 quality dimensions missing (⊘ neutral-50) as of Apri
 
 ### 14.1 Data Freshness
 
-- GPT-5.5 launched April 23, 2026 — most benchmark data is from initial release papers and preliminary third-party evaluations. Eight dimensions currently missing; expect rapid data availability in next 30–60 days.
-- All other model data is sourced from official publications and established leaderboards as of April 24, 2026.
+- **DeepSeek V4-Pro** (April 24, 2026): provisional entry. 10+ dimensions ⊘. Expect rapid data availability in next 2–4 weeks as AA Index processes and leaderboards update.
+- **GPT-5.5** (April 23, 2026): 6 dimensions still ⊘. IFBench and SWE-bench Verified filled in v3.0. Speed, LCB, LCR, AIME, SciCode, MMLU-Pro pending.
+- All other model data is sourced from official publications and established leaderboards as of April 25, 2026.
 
-### 14.2 Benchmark Contamination Risk
+### 14.2 GPT-5.5 SWE-bench Verified Uncertainty
+
+The 88.7%† value is from OpenAI's launch tech card (April 23). The canonical swebench.com leaderboard showed Claude Opus 4.7 (87.6%) as leader as of April 24 — GPT-5.5 may not have been formally submitted yet. If confirmed, GPT-5.5 becomes #1 on SWE-bench Verified. If actual swebench.com leaderboard result differs materially, the SWE column will be corrected in v3.1.
+
+### 14.3 Benchmark Contamination Risk
 
 LiveCodeBench v4 and τ²-Bench use rolling test sets specifically to address contamination, but older benchmarks (GPQA, SWE-bench) may have varying contamination levels across models depending on training cutoff and data curation practices.
 
-### 14.3 Mode Selection Ambiguity
+### 14.4 Mode Selection Ambiguity
 
-Several models offer multiple reasoning modes (xhigh/high/standard for GPT-5.5; extended thinking for Claude; think mode for Gemini). Published benchmark scores typically reflect the best available mode. Production deployments often use lower-cost modes. Rankings may not reflect the model's behavior at its production-default mode.
+Several models offer multiple reasoning modes. Published benchmark scores typically reflect the best available mode. Rankings may not reflect the model's behavior at its production-default mode.
 
-### 14.4 GPT-5.5 AA-Omniscience
+### 14.5 GPT-5.5 AA-Omniscience
 
-The 86% hallucination rate driving the −29 raw Omniscience score comes from early independent evaluations specifically targeting GPT-5.5's xhigh reasoning mode. At standard or high reasoning modes, both accuracy and hallucination rates would differ. This is noted but not adjusted — rankings use published figures.
+The 86% hallucination rate driving the −29 raw Omniscience score comes from early independent evaluations specifically targeting GPT-5.5's xhigh reasoning mode. At standard or high reasoning modes, both accuracy and hallucination rates would differ significantly.
 
-### 14.5 GPT-5.4 AIME Conflict
+### 14.6 GPT-5.4 AIME Conflict
 
 LayerLens independent testing: 16.67%. Multiple secondary sources attribute 100% performance to GPT-5.4 (possibly misattributed from GPT-5.2 xhigh). Unresolvable with current data. GPT-5.4 receives ⊘=50 on AIME 2025.
 
-### 14.6 Framework Design Constraints
+### 14.7 New Dimension Coverage Thresholds
 
-The 28% cost weight reflects a deliberate choice for production scale optimization. Academic or research applications would reasonably down-weight cost and up-weight quality dimensions. Custom weight configurations are recommended for teams with different budget constraints.
+BrowseComp (6/12 models), SWE-bench Pro (5/12), MMLU-Pro (4/12) were activated at v3.0 at minimum threshold. Models receiving ⊘ on these dimensions (especially MMLU-Pro, where 8/12 are ⊘) receive neutral-50, reducing the dimension's discriminative power. As coverage improves in v3.1+, these dimensions will gain more precision.
 
-### 14.7 BigCodeBench and GAIA Slots
+### 14.8 Framework Design Constraints
 
-Both benchmarks are reserved as scored dimensions pending ≥4 model submissions. These will be activated in v3.0.
+The 25% cost weight reflects a deliberate choice for production scale optimization. Academic or research applications would reasonably down-weight cost and up-weight quality dimensions. Custom weight configurations are recommended for teams with different budget constraints.
+
+### 14.9 BigCodeBench and GAIA Slots
+
+Both benchmarks remain reserved as scored dimensions pending ≥4 model submissions from the current 12-model inventory. Will be re-evaluated in v4.0.
 
 ---
 
@@ -622,20 +655,23 @@ Both benchmarks are reserved as scored dimensions pending ≥4 model submissions
 | Benchmark | Dimension | Type | What it Measures | Source |
 |---|---|---|---|---|
 | AA Index Eval Cost | Cost | USD | Total cost to run AA's full Intelligence Index benchmark suite (price × actual token usage) | artificialanalysis.ai |
-| IFBench | IF | Accuracy % | Instruction-following compliance across task types | alo-exp/IFBench leaderboard |
-| Terminal-Bench 2.0 | Term | Accuracy % | Terminal/CLI agentic task completion | alo-exp/terminal-bench |
+| IFBench | IF | Accuracy % | Instruction-following compliance across task types | Artificial Analysis IFBench leaderboard |
+| Terminal-Bench 2.0 | Term | Accuracy % | Terminal/CLI agentic task completion | tbench.ai |
 | SWE-bench Verified | SWE | Accuracy % | Real GitHub issue resolution (verified subset) | swebench.com |
+| SWE-bench Pro | SWEPro | Accuracy % | Harder single-pass GitHub issue resolution; stricter criteria | Scale Labs leaderboard |
 | LiveCodeBench v4 | LCB | Accuracy % | Rolling contamination-resistant coding eval | livecodebench.github.io |
-| GDPval-AA ELO | GDP | ELO rating | Human preference pairwise comparisons, 141 models | alo-exp/GDPval-AA |
+| GDPval-AA ELO | GDP | ELO rating | Human preference pairwise comparisons, 141 models | Artificial Analysis GDPval |
 | Speed (tok/s) | Spd | Tokens/second | Output generation throughput | Artificial Analysis; provider specs |
-| τ²-Bench | τ² | Accuracy % | Multi-step phone/computer agent task success | tau2-bench leaderboard |
+| τ²-Bench | τ² | Accuracy % | Multi-step phone/computer agent task success | Artificial Analysis τ²-Bench leaderboard |
 | OSWorld | OSW | Accuracy % | Desktop GUI agent task success | os-world.github.io |
-| RULER (LCR) | LCR | Accuracy % | Long-context retrieval fidelity (128K–1M) | ruler-bench.github.io |
-| Humanity's Last Exam | HLE | Accuracy % | Expert-level knowledge breadth (3000 questions) | scale.ai/hle |
+| BrowseComp | BC | Accuracy % | Persistent web navigation; 1,266 hard-to-find information retrieval | BenchLM / llm-stats.com/benchmarks/browsecomp |
+| RULER (LCR) | LCR | Accuracy % | Long-context retrieval fidelity (128K–1M) | ruler-bench.github.io (provisional data) |
+| Humanity's Last Exam | HLE | Accuracy % | Expert-level knowledge breadth; 3,000 questions; WITHOUT-TOOLS canonical | Scale Labs / agi.safe.ai |
 | GPQA Diamond | GPQA | Accuracy % | Graduate-level science reasoning (diamond subset) | arXiv:2311.12022 |
+| MMLU-Pro | MMLU | Accuracy % | Enhanced MMLU with 10-choice reasoning-focused questions | Artificial Analysis / Kaggle MMLU-Pro leaderboard |
 | AIME 2025 | AIME | Accuracy % | American Invitational Mathematics Exam 2025 | aops.com / arXiv reports |
 | SciCode | Sci | Accuracy % | Scientific coding tasks (domain-expert problems) | scicode-bench.github.io |
-| AA-Omniscience | Omni | Score | accuracy% − hallucination_rate% | alo-exp/AA-Omniscience v2 |
+| AA-Omniscience | Omni | Score | accuracy% − hallucination_rate% | Artificial Analysis Omniscience v2 |
 | TTFT | Ref only | Milliseconds | Time-to-first-token (not scored; see §3.3) | Artificial Analysis |
 | BigCodeBench | (reserved) | Accuracy % | Function-level coding with complex instructions | bigcodebench.github.io |
 | GAIA Level 3 | (reserved) | Accuracy % | General AI assistant real-world tasks, hardest tier | huggingface.co/GAIA |
@@ -646,30 +682,26 @@ Both benchmarks are reserved as scored dimensions pending ≥4 model submissions
 
 ### 16A. Normalization Examples
 
-**Example 1: IFBench (n=10 models with real data, 1 model ⊘)**
+**Example 1: IFBench v3.0 (n=11 models with real data, 1 model ⊘)**
 
-Raw scores: Gemini 89.4%, GLM 85.9%, Kimi 82.1%, MiniMax 76.5%, Qwen 70.8%, GPT-5.4 64.2%, KAT 58.3%, Opus 4.7 52.1%, Sonnet 45.6%, Opus 4.6 40.2%
-GPT-5.5: ⊘ → 50.0
+Raw scores: Gemini 89.4%, GLM 85.9%, Kimi 82.1%, GPT-5.5 75.9%, MiniMax 75.7%, Qwen 74.2%, GPT-5.4 73.9%, KAT 67.0%, Opus 4.7 52.1%, Sonnet 45.6%, Opus 4.6 40.2%
+DeepSeek: ⊘ → 50.0
 
-Ranks (1=best): Gemini=1, GLM=2, Kimi=3, MiniMax=4, Qwen=5, GPT-5.4=6, KAT=7, Opus 4.7=8, Sonnet=9, Opus 4.6=10
-Formula `((n-rank)/(n-1)) × 100` where n=10:
-- Gemini: (9/9)×100 = **100.0**
-- GLM: (8/9)×100 = **88.9**
-- Kimi: (7/9)×100 = **77.8**
-- Opus 4.6: (0/9)×100 = **0.0**
+Ranks (1=best): Gemini=1, GLM=2, Kimi=3, GPT-5.5=4, MiniMax=5, Qwen=6, GPT-5.4=7, KAT=8, Opus 4.7=9, Sonnet=10, Opus 4.6=11
+Formula `((n-rank)/(n-1)) × 100` where n=11:
+- Gemini: (10/10)×100 = **100.0**
+- GLM: (9/10)×100 = **90.0**
+- GPT-5.5: (7/10)×100 = **70.0** ← filled from ⊘ in v2.5
+- Opus 4.6: (0/10)×100 = **0.0**
 
-**Example 2: Cost (n=11, all models ranked, no ties — v2.5 AA Index Eval Cost)**
+**Example 2: Cost v3.0 (n=11 real scorers, DeepSeek ⊘)**
 
-KAT-Coder-Pro-V2: eval cost $73.49, rank 1. Formula `((11-1)/(11-1)) × 100 = (10/10) × 100 = **100.0**`
-Claude Opus 4.6: eval cost $4,969.68, rank 11. Formula `((11-11)/(11-1)) × 100 = (0/10) × 100 = **0.0**`
-Gemini 3.1 Pro: eval cost $892.28, rank 5. Formula `((11-5)/(11-1)) × 100 = (6/10) × 100 = **60.0**`
+Same as v2.5. KAT-Coder-Pro-V2: rank 1 → (10/10)×100 = **100.0**. Gemini: rank 5 → (6/10)×100 = **60.0**. Opus 4.6: rank 11 → (0/10)×100 = **0.0**. DeepSeek: ⊘ → **50.0⊘**.
 
-**Example 3: GPT-5.5 AA-Omniscience**
+**Example 3: SWE-bench Verified v3.0 (n=10 scorers, 2 ties)**
 
-GPT-5.5 raw score: 57% accuracy − 86% hallucination = −29
-Other models with real scores: Gemini(+34), Claude Opus 4.7(+22), Claude Opus 4.6(+8), MiniMax(+12), GLM(−1)
-n=6. Rank order: Gemini(1), Opus 4.7(2), MiniMax(3), Opus 4.6(4), GLM(5), GPT-5.5(6)
-GPT-5.5: ((6-6)/(6-1))×100 = **0.0**
+GPT-5.5 (88.7%) rank 1, Opus 4.7 (87.6%) rank 2, Opus 4.6 (80.8%) rank 3, Gemini+DeepSeek (80.6%) tie rank 4.5, Kimi (80.2%) rank 6, KAT+Sonnet (79.6%) tie rank 7.5, Qwen (78.8%) rank 9, GLM (77.8%) rank 10. MiniMax+GPT-5.4 ⊘.
+Ties: `(n-avg_rank)/(n-1)×100`: Gemini/DeepSeek = (10-4.5)/9×100 = **61.1**; KAT/Sonnet = (10-7.5)/9×100 = **27.8**.
 
 ### 16B. Sensitivity Analysis
 
@@ -677,37 +709,37 @@ GPT-5.5: ((6-6)/(6-1))×100 = **0.0**
 
 | Rank | Model | Score |
 |---|---|---|
-| 1 | Gemini 3.1 Pro | 73.1 |
-| 2 | GPT-5.5 | 60.8 |
-| 3 | Kimi K2.6 | 58.8 |
-| 4 | GLM 5.1 | 56.9 |
-| 5 | GPT-5.4 | 52.5 |
+| 1 | Gemini 3.1 Pro | 72.8 |
+| 2 | GPT-5.5 | 67.7 |
+| 3 | Claude Opus 4.7 | 61.8 |
+| 4 | GPT-5.4 | 56.5 |
+| 5 | GLM 5.1 | 55.0 |
 
-At 15% cost weight, GPT-5.5 rises to #2 (quality #3 plus partial cost credit) and Kimi recovers to #3. KAT-Coder-Pro-V2 drops out of top-5 as its cost advantage shrinks and quality (#8) is the binding constraint. Claude Opus 4.7 (#2 quality) reaches #6 at 48.1.
+At 15% cost weight, GPT-5.5 extends its #2 advantage (quality leads on 6+ agentic dims). Claude Opus 4.7 recovers to #3 as cost penalty ($4,811) shrinks. KAT-Coder-Pro-V2 drops out of top-5 as its quality (#10) becomes the binding constraint at lower cost weight.
 
 **What if cost weight = 40% (cost-extreme scenario)?**
 
 | Rank | Model | Score |
 |---|---|---|
-| 1 | Gemini 3.1 Pro | 69.3 |
-| 2 | KAT-Coder-Pro-V2 | 67.3 |
-| 3 | MiniMax M2.7 | 62.9 |
+| 1 | KAT-Coder-Pro-V2 | 66.1 |
+| 2 | Gemini 3.1 Pro | 65.2 |
+| 3 | MiniMax M2.7 | 62.8 |
 | 4 | GLM 5.1 | 60.8 |
-| 5 | Kimi K2.6 | 56.3 |
+| 5 | Qwen 3.6 Plus | 57.0 |
 
-At 40% cost weight, Gemini holds #1 (eval cost rank 5 contributes 24.0 pts) but KAT surges to #2 (cost score 100.0 contributes 40.0 pts). MiniMax rises to #3. GPT-5.5 ranks #7 (51.8) — cost score 30.0 at 40% weight is a modest 12.0 pts contribution; it no longer drops out of contention as it did in v2.4's API-price framework. Claude Opus 4.6 falls to #11 (17.1) — cost=0 at 40% is a structurally fatal penalty.
+At 40% cost weight, KAT overtakes Gemini. MiniMax rises to #3. GPT-5.5 drops to #8 (cost 40% weight at 30.0 score = 12.0 pts). Claude Opus 4.6 collapses to #12 (cost score 0.0 at 40% = structurally fatal).
 
 ### 16C. Adding a New Model (Maintenance Protocol)
 
 When a new model is released:
 
-1. **Collect all 15 dimension values** — use official publications, then established third-party evaluators (Artificial Analysis, LMSYS, alo-exp leaderboards). Mark any missing as ⊘.
+1. **Collect all 18 dimension values** — use official publications, then established third-party evaluators (Artificial Analysis, LMSYS, alo-exp leaderboards). Mark any missing as ⊘.
 2. **Recompute all ranks** — every dimension with real data for the new model requires full reranking of ALL models in that dimension. Do not preserve old ranks.
 3. **Apply normalization formula** using the new `n` (count of models with real data per dimension).
 4. **Recalculate all final scores** — renormalization changes every model's score, not just the new arrival's.
 5. **Update Ranking Changes table** — document Δ vs previous version for every model.
-6. **Tag version** — increment minor version (e.g., v2.1 → v2.2) for model additions; increment major version for dimension additions or weight changes.
-7. **Flag provisional** — mark models with >4 missing dimensions as "provisional ranking" in the Executive Summary.
+6. **Tag version** — increment minor version (e.g., v3.0 → v3.1) for model additions; increment major version for dimension additions or weight changes.
+7. **Flag provisional** — mark models with >6 missing dimensions as "provisional ranking" in the Executive Summary.
 
 ### 16D. Dimension Activation Protocol
 
@@ -733,8 +765,22 @@ Retirement requires: remove from scoring, mark as "retired" in §15, document ra
 |---|---|
 | New frontier model launch | Add to inventory within 7 days; publish next minor version within 14 days |
 | Major benchmark update | Evaluate for dimension replacement; publish impact analysis |
-| Quarterly | Full data refresh on all 15 dimensions for all models |
-| Semi-annual | Weight review — validate 28% cost weight against production survey data |
+| Quarterly | Full data refresh on all 18 dimensions for all models |
+| Semi-annual | Weight review — validate 25% cost weight against production survey data |
+
+### 16G. v3.0 Research Sources
+
+Key sources used for v3.0 data updates (from deep-research pipeline, April 25, 2026):
+- Artificial Analysis Kimi K2.6 article (GDPval 1,520 confirmed)
+- Digital Applied / AA τ²-Bench leaderboard (Gemini 99.3% confirmed)
+- OpenAI GPT-5.5 technical card, Harvey research preview, designforonline.com (IFBench 75.9% confirmed)
+- VentureBeat, BuildFastWithAI (DeepSeek V4-Pro SWE-bench 80.6% confirmed)
+- BuildFastWithAI, OfficeChai (DeepSeek V4-Pro LCB 93.5% confirmed)
+- Artificial Analysis (DeepSeek V4-Pro Speed 33.5 tok/s confirmed)
+- Scale Labs leaderboard, agi.safe.ai (HLE methodology resolved: without-tools canonical)
+- BenchLM, Vellum, multiple sources (BrowseComp scores for 6 models)
+- Scale Labs SWE-bench Pro leaderboard, marc0.dev (SWE-Pro scores for 5 models)
+- Artificial Analysis MMLU-Pro, Kaggle MMLU-Pro leaderboard (MMLU-Pro scores for 4 models)
 
 ---
 
