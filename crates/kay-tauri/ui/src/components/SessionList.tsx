@@ -2,7 +2,7 @@
 // Phase 10 Wave 7: Session management UI
 // Success criteria: list sessions, spawn/pause/resume/fork/kill from GUI
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
 export interface SessionInfo {

@@ -2,7 +2,7 @@
 // Phase 10 Wave 5/7: Interactive sandbox confirmation
 // Success criteria: approval dialog shows on first tool call, subsequent calls skip
 
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export interface ApprovalRequest {
   tool_name: string;
@@ -192,9 +192,10 @@ export function CommandApprovalDialog({
 // Hook to manage approval state
 export function useApprovalDialog() {
   const [currentRequest, setCurrentRequest] = useState<ApprovalRequest | null>(null);
-  const [pendingApproval, setPendingApproval] = useState<() => void>(() => {});
   const [approvedTools, setApprovedTools] = useState<Set<string>>(new Set());
   const [mode, setMode] = useState<"on_first_use" | "always">("on_first_use");
+
+  const [pendingResolve, setPendingResolve] = useState<((v: boolean) => void) | null>(null);
 
   function requestApproval(
     tool_name: string,
@@ -209,7 +210,7 @@ export function useApprovalDialog() {
         sandbox_status,
         session_id,
       });
-      setPendingApproval(() => resolve);
+      setPendingResolve(() => resolve);
     });
   }
 
@@ -218,12 +219,18 @@ export function useApprovalDialog() {
       setApprovedTools((prev) => new Set([...prev, currentRequest.tool_name]));
     }
     setCurrentRequest(null);
-    pendingApproval(true);
+    if (pendingResolve) {
+      pendingResolve(true);
+      setPendingResolve(null);
+    }
   }
 
   function handleDeny() {
     setCurrentRequest(null);
-    pendingApproval(false);
+    if (pendingResolve) {
+      pendingResolve(false);
+      setPendingResolve(null);
+    }
   }
 
   function clearApprovedTools() {

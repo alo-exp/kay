@@ -85,7 +85,6 @@ export function ModelPicker({
   onModelSelect,
   onTierChange,
 }: ModelPickerProps) {
-  const [showAllModels, setShowAllModels] = useState(false);
   const [customModelInput, setCustomModelInput] = useState("");
 
   function formatCost(cost: number): string {

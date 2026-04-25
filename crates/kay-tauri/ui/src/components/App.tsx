@@ -1,7 +1,7 @@
 // Tauri UI — Main App Component
 // Phase 10: Multi-session manager integration
 
-import React, { useReducer, useCallback, useState } from 'react';
+import { useReducer, useCallback, useState } from 'react';
 import { Channel } from '@tauri-apps/api/core';
 import type { IpcAgentEvent } from '../bindings';
 import { commands } from '../bindings';
@@ -9,13 +9,9 @@ import { SessionView } from './SessionView';
 import { PromptInput } from './PromptInput';
 import { SessionList } from './SessionList';
 import { SettingsPanel } from './SettingsPanel';
-import { ModelPicker, useModelPicker } from './ModelPicker';
-import {
-  CommandApprovalDialog,
-  useApprovalDialog,
-} from './CommandApprovalDialog';
-import type { SessionInfo } from './SessionList';
-import type { ModelTier } from './ModelPicker';
+import { useModelPicker } from './ModelPicker';
+import { CommandApprovalDialog, useApprovalDialog } from './CommandApprovalDialog';
+
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -81,15 +77,15 @@ export function App() {
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [activeSettingsTab, setActiveSettingsTab] = useState<'session' | 'model' | 'verifier' | 'sandbox'>('session');
 
-  // Model picker state
+  // Model picker state (used by PromptInput)
   const { selectedModel, selectedTier, onModelSelect, onTierChange } = useModelPicker();
+  void selectedModel; void selectedTier; void onModelSelect; void onTierChange;
 
   // Command approval state
   const {
     currentRequest,
     approvedTools,
     mode: approvalMode,
-    setMode: setApprovalMode,
     requestApproval,
     handleApprove,
     handleDeny,
