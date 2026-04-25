@@ -4,7 +4,7 @@ Open-source terminal coding agent — a Rust fork of ForgeCode, hardened with Te
 
 ## Status
 
-Pre-1.0. Phase 1 (Fork, Governance, Infrastructure) in progress. See `.planning/ROADMAP.md`.
+Pre-1.0. Phase 1–11 shipped (v0.5.0). Phase 12 (TB 2.0 Submission + v1 Hardening) planned. See `.planning/ROADMAP.md`.
 
 ## Acknowledgments
 

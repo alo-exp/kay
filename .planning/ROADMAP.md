@@ -303,20 +303,20 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Fork, Governance, Infrastructure | 6/6   | Complete | 2026-04-19 |
+| 1. Fork, Governance, Infrastructure | 6/6 | Complete | 2026-04-19 |
 | 2. Provider HAL + Tolerant JSON Parser | 9/9 (02-05 superseded by 2.5) | Complete | 2026-04-20 |
 | 2.5. kay-core sub-crate split *(INSERTED 2026-04-20)* | 4/4 | Complete (verifier PASS 8/8) | 2026-04-20 |
-| 3. Tool Registry + KIRA Core Tools | 0/5 | Planning complete | - |
-| 4. Sandbox (All Three Platforms) | 0/TBD | Not started | - |
-| 5. Agent Loop (Event-Driven Core) | 0/TBD | Not started | - |
-| 6. Session Store + Transcript | 0/TBD | Not started | - |
-| 7. Context Engine | 0/TBD | Not started | - |
-| 8. Multi-Perspective Verification (KIRA Critics) | 0/TBD | Not started | - |
-| 9. Tauri Desktop Shell | 0/TBD | Complete | 2026-04-24 |
-| 9.5 TUI Frontend (ratatui) | 0/TBD | Complete | 2026-04-24 |
-| 10. Multi-Session Manager + Project Settings | 0/TBD | Planning complete | - |
-| 11. Cross-Platform Hardening + Release Pipeline | 0/TBD | Not started | - |
-| 12. Terminal-Bench 2.0 Submission + v1 Hardening | 0/TBD | Not started | - |
+| 3. Tool Registry + KIRA Core Tools | 5/5 | Complete | 2026-04-21 |
+| 4. Sandbox (All Three Platforms) | 7 waves | Complete | 2026-04-21 |
+| 5. Agent Loop (Event-Driven Core) | PR #8 | Complete | 2026-04-22 |
+| 6. Session Store + Transcript | PR #12 | Complete | 2026-04-22 |
+| 7. Context Engine | PR #13 | Complete | 2026-04-22 |
+| 8. Multi-Perspective Verification (KIRA Critics) | PR #17 | Complete | 2026-04-23 |
+| 9. Tauri Desktop Shell | PR #18 | Complete | 2026-04-24 |
+| 9.5 TUI Frontend (ratatui) | PR #19 | Complete | 2026-04-24 |
+| 10. Multi-Session Manager + Project Settings | 8 waves | Complete | 2026-04-25 |
+| 11. Cross-Platform Hardening + Release Pipeline | CI matrix + code signing + crates.io + Tauri updater | Complete | 2026-04-25 |
+| 12. Terminal-Bench 2.0 Submission + v1 Hardening | TBD | Not started | - |
 
 ## Backlog
 
