@@ -80,6 +80,27 @@ export type IpcAgentEvent = { type: "TextDelta"; data: {
 } } | { type: "VerifierDisabled"; data: {
 	reason: string,
 	cost_usd: number,
+} } | { type: "SessionSpawned"; data: {
+	session_id: string,
+	persona: string,
+	created_at: number,
+} } | { type: "SessionPaused"; data: {
+	session_id: string,
+	paused_at: number,
+} } | { type: "SessionResumed"; data: {
+	session_id: string,
+	resumed_at: number,
+} } | { type: "SessionForked"; data: {
+	parent_id: string,
+	child_id: string,
+} } | { type: "ApprovalRequested"; data: {
+	tool_name: string,
+	command: string,
+	sandbox_status: string,
+} } | { type: "ApprovalDecision"; data: {
+	tool_name: string,
+	approved: boolean,
+	decided_at: number,
 } } | { type: "Unknown"; data: {
 	event_type: string,
 } };
@@ -99,11 +120,8 @@ export type IpcVerificationOutcome = ({ Pending: {
 	reason: string,
 } }) & { Pass?: never; Pending?: never };
 
-/**
- *  Phase 9 session status — Running or Complete.
- *  Phase 10 will add Aborted with a reason field.
- */
-export type SessionStatus = "Running" | "Complete";
+// Session lifecycle status.
+export type SessionStatus = "Running" | "Paused" | "Completed" | "Failed" | "Killed";
 
 /* Tauri Specta runtime */
 async function typedError<T, E>(result: Promise<T>): Promise<{ status: "ok"; data: T } | { status: "error"; error: E }> {

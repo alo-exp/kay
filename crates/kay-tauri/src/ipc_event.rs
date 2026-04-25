@@ -8,7 +8,7 @@
 //! `IpcAgentEvent` owns all IPC concerns. `AgentEvent` is never modified.
 
 use base64::Engine;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use specta::Type;
 
 use kay_tools::events::{AgentEvent, ToolOutputChunk};
@@ -16,7 +16,7 @@ use kay_tools::seams::verifier::VerificationOutcome;
 
 /// IPC-safe mirror of `AgentEvent`. All fields are JSON-serializable.
 /// `Clone` is safe — no non-Clone types here (unlike `AgentEvent`).
-#[derive(Debug, Clone, Serialize, Type)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 #[serde(tag = "type", content = "data")]
 pub enum IpcAgentEvent {
     // Phase 2 variants
@@ -47,12 +47,20 @@ pub enum IpcAgentEvent {
     Verification      { critic_role: String, verdict: String, reason: String, cost_usd: f64 },
     VerifierDisabled  { reason: String, cost_usd: f64 },
 
+    // Phase 10 WAVE 3: Session lifecycle variants
+    SessionSpawned    { session_id: String, persona: String, created_at: i64 },
+    SessionPaused     { session_id: String, paused_at: i64 },
+    SessionResumed    { session_id: String, resumed_at: i64 },
+    SessionForked     { parent_id: String, child_id: String },
+    ApprovalRequested  { tool_name: String, command: String, sandbox_status: String },
+    ApprovalDecision   { tool_name: String, approved: bool, decided_at: i64 },
+
     // Catch-all: future #[non_exhaustive] variants become Unknown
     Unknown           { event_type: String },
 }
 
 /// IPC-safe mirror of `ToolOutputChunk`.
-#[derive(Debug, Clone, Serialize, Type)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub enum IpcToolOutputChunk {
     Stdout(String),
     Stderr(String),
@@ -60,7 +68,7 @@ pub enum IpcToolOutputChunk {
 }
 
 /// IPC-safe mirror of `VerificationOutcome`.
-#[derive(Debug, Clone, Serialize, Type)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub enum IpcVerificationOutcome {
     Pending { reason: String },
     Pass    { note: String },
@@ -231,6 +239,95 @@ mod tests {
         let ev = AgentEvent::Paused;
         let ipc = IpcAgentEvent::from(ev);
         assert!(matches!(ipc, IpcAgentEvent::Paused));
+    }
+
+    // ── Phase 10 WAVE 3: Session lifecycle event tests ─────────────────────
+
+    #[test]
+    fn session_spawned_roundtrip() {
+        let ev = IpcAgentEvent::SessionSpawned {
+            session_id: "test-session-123".to_string(),
+            persona: "forge".to_string(),
+            created_at: 1714000000,
+        };
+        let json = serde_json::to_string(&ev).unwrap();
+        let parsed: IpcAgentEvent = serde_json::from_str(&json).unwrap();
+        assert!(matches!(parsed, IpcAgentEvent::SessionSpawned { session_id, .. } if session_id == "test-session-123"));
+    }
+
+    #[test]
+    fn session_paused_roundtrip() {
+        let ev = IpcAgentEvent::SessionPaused {
+            session_id: "test-session-456".to_string(),
+            paused_at: 1714000100,
+        };
+        let json = serde_json::to_string(&ev).unwrap();
+        let parsed: IpcAgentEvent = serde_json::from_str(&json).unwrap();
+        assert!(matches!(parsed, IpcAgentEvent::SessionPaused { session_id, .. } if session_id == "test-session-456"));
+    }
+
+    #[test]
+    fn session_resumed_roundtrip() {
+        let ev = IpcAgentEvent::SessionResumed {
+            session_id: "test-session-789".to_string(),
+            resumed_at: 1714000200,
+        };
+        let json = serde_json::to_string(&ev).unwrap();
+        let parsed: IpcAgentEvent = serde_json::from_str(&json).unwrap();
+        assert!(matches!(parsed, IpcAgentEvent::SessionResumed { session_id, .. } if session_id == "test-session-789"));
+    }
+
+    #[test]
+    fn session_forked_roundtrip() {
+        let ev = IpcAgentEvent::SessionForked {
+            parent_id: "parent-abc".to_string(),
+            child_id: "child-xyz".to_string(),
+        };
+        let json = serde_json::to_string(&ev).unwrap();
+        let parsed: IpcAgentEvent = serde_json::from_str(&json).unwrap();
+        assert!(matches!(parsed, IpcAgentEvent::SessionForked { parent_id, child_id } if parent_id == "parent-abc" && child_id == "child-xyz"));
+    }
+
+    #[test]
+    fn approval_requested_roundtrip() {
+        let ev = IpcAgentEvent::ApprovalRequested {
+            tool_name: "execute_commands".to_string(),
+            command: "rm -rf /tmp".to_string(),
+            sandbox_status: "allowed".to_string(),
+        };
+        let json = serde_json::to_string(&ev).unwrap();
+        let parsed: IpcAgentEvent = serde_json::from_str(&json).unwrap();
+        assert!(matches!(parsed, IpcAgentEvent::ApprovalRequested { tool_name, .. } if tool_name == "execute_commands"));
+    }
+
+    #[test]
+    fn approval_decision_approved_roundtrip() {
+        let ev = IpcAgentEvent::ApprovalDecision {
+            tool_name: "execute_commands".to_string(),
+            approved: true,
+            decided_at: 1714000300,
+        };
+        let json = serde_json::to_string(&ev).unwrap();
+        let parsed: IpcAgentEvent = serde_json::from_str(&json).unwrap();
+        match parsed {
+            IpcAgentEvent::ApprovalDecision { approved, .. } => assert!(approved),
+            other => panic!("expected ApprovalDecision, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn approval_decision_denied_roundtrip() {
+        let ev = IpcAgentEvent::ApprovalDecision {
+            tool_name: "fs_write".to_string(),
+            approved: false,
+            decided_at: 1714000400,
+        };
+        let json = serde_json::to_string(&ev).unwrap();
+        let parsed: IpcAgentEvent = serde_json::from_str(&json).unwrap();
+        match parsed {
+            IpcAgentEvent::ApprovalDecision { approved, .. } => assert!(!approved),
+            other => panic!("expected ApprovalDecision, got {other:?}"),
+        }
     }
 
     #[test]
