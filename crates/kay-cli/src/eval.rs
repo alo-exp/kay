@@ -10,8 +10,9 @@ use clap::Subcommand;
 pub enum EvalTarget {
     /// Terminal-Bench 2.0 parity run via Harbor (scaffolded; run deferred to EVAL-01a)
     Tb2 {
-        /// OpenRouter model to use (Exacto-Claude-Opus-4.6 or Exacto-GPT-5.4 per D-19).
-        #[arg(long, default_value = "anthropic/claude-opus-4.6")]
+        /// MiniMax model to use (MiniMax-M2.7 or MiniMax-M2.5).
+        /// MiniMax is OpenRouter-compatible; no separate OpenRouter key needed.
+        #[arg(long, default_value = "minimax/MiniMax-M2.7")]
         model: String,
 
         /// Number of Terminal-Bench 2.0 tasks to run (89 is the full suite).
@@ -49,13 +50,13 @@ pub fn run(target: EvalTarget) -> anyhow::Result<()> {
                 "See .planning/phases/01-fork-governance-infrastructure/parity-baseline/PARITY-DEFERRED.md"
             );
             eprintln!(
-                "Would run: harbor run -d terminal-bench/terminal-bench-2 -m {model} -n {tasks}"
+                "Would run: harbor run -d terminal-bench/terminal-bench-2 -m minimax/{model} -n {tasks}"
             );
             eprintln!("Archive directory: {archive_dir}");
             eprintln!("Prerequisites (when run is enabled):");
             eprintln!("  - Docker installed + running");
             eprintln!("  - uv tool install harbor  (or pip install harbor)");
-            eprintln!("  - OPENROUTER_API_KEY set (scope: benchmark budget <= $100)");
+            eprintln!("  - MINIMAX_API_KEY set (MiniMax key; OpenRouter key NOT required)");
             eprintln!("  - DAYTONA_API_KEY set (for --env daytona)");
             eprintln!(
                 "On completion, compare the score against the existing 'forgecode-parity-baseline' \
