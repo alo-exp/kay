@@ -1,19 +1,19 @@
 ---
 ---
 gsd_state_version: 1.0
-milestone: v0.4.0
-milestone_name: Tauri Desktop Shell + TUI Frontend
-status: in_progress
-last_updated: "2026-04-25T20:00:00Z"
+milestone: v0.5.0
+milestone_name: Phase 12 — TB 2.0 Submission + v1 Hardening
+status: planning
+last_updated: "2026-04-26T00:00:00Z"
 next_phase: 12
-next_action: "M12 Phase 4: Run smoke tests with MiniMax — cargo test -p kay-cli (always-on) then MINIMAX_API_KEY=<key> cargo test -p kay-cli --features live (live smoke)"
-last_activity: "2026-04-25 — Phase 11 CLOSED. M12 Phase 1-3 complete: test pyramid gaps filled (kay-session, kay-sandbox-*, kay-core inline, kay-context inline), MiniMax API key configured, kay run --live wired, live smoke suite added."
+next_action: "Phase 12 W1: EVAL-01a parity baseline — run unmodified fork on TB 2.0 ≥80%"
+last_activity: "2026-04-26 — Phase 12 plan created. W1: EVAL-01a (Harbor + MiniMax ≥80%); W2: kay eval tb2 command; W3: held-out task validation; W4: real-repo eval; W5: v1.0.0 release."
 progress:
-  total_phases: 17
+  total_phases: 12
   completed_phases: 11
-  total_plans: 36
+  total_plans: 41
   completed_plans: 44
-  percent: 65
+  percent: 73
 # Project State
 
 ## Project Reference
@@ -27,15 +27,24 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 
 Phase: **Phase 11 CLOSED (v0.5.0)** — Cross-platform release pipeline shipped.
 
-**Phase 10 shipped (PR #18, 2026-04-24):** Tauri 2.x desktop shell with specta-typed IPC, `Channel<AgentEvent>` streaming, session view with tool-call timeline + token/cost meter, 4h memory canary.
+**Progress: [██████████████████████░░░░] 73% (11 of 12 phases done; v0.5.0)**
 
-**Phase 10 completed (2026-04-25):** Multi-Session Manager shipped — spawn/pause/resume/fork/kill sessions from both frontends. OS keyring for API key storage (macOS Keychain, Linux libsecret, Windows Credential Manager). Settings panel (4 tabs: Session/Model/Verifier/Sandbox). 8 Tauri commands, 41 tests passing.
+**Phase 12 planned (2026-04-26):** TB 2.0 Submission + v1 Hardening
+
+- W1: EVAL-01a parity baseline (Harbor + MiniMax ≥80%)
+- W2: `kay eval tb2` command
+- W3: Held-out task subset validation
+- W4: Real-repo eval (Rails, React+TS, Rust, Python, monorepo)
+- W5: v1.0.0 signed release
 
 **Phase 11 completed (2026-04-25):** Cross-platform CI (macOS/Windows/Linux), code signing (notarytool + Azure), crates.io publish workflow, Tauri minisign updater.
 
-**Phase 12 next:** TBD — EVAL-01a baseline run or feature development.
+**Phase 10 completed (2026-04-25):** Multi-Session Manager shipped — spawn/pause/resume/fork/kill sessions from both frontends. OS keyring for API key storage. Settings panel (4 tabs). 8 Tauri commands, 41 tests passing.
 
-Progress: [████████████████████░░░░░░░░░] 65% (11 of 17 phases done; v0.5.0 tag ready)
+**Phase 9 shipped (PR #18, 2026-04-24):** Tauri 2.x desktop shell with specta-typed IPC, Channel streaming, session view with tool-call timeline + token/cost meter, 4h memory canary.
+
+Next: Phase 12 W1 — EVAL-01a baseline run.
+
 ## Performance Metrics
 
 **Velocity:**
@@ -137,8 +146,8 @@ Items acknowledged and carried forward:
 
 ## Session Continuity
 
-Last session: 2026-04-25 — Phase 11 cross-platform release pipeline shipped (CI matrix, code signing, crates.io, Tauri updater). Branch `phase/10-multi-session-manager` (will rename to `phase/11-release` on merge). Phase 12 plan TBD — EVAL-01a baseline run or continue feature development.
+Last session: 2026-04-26 — Phase 12 plan created (.planning/phases/12-terminal-bench-submission/12-PLAN.md). W1: EVAL-01a parity baseline (Harbor + MiniMax ≥80%); W2: kay eval tb2 command; W3: held-out task validation; W4: real-repo eval (Rails, React+TS, Rust, Python, monorepo); W5: v1.0.0 signed release. ROADMAP.md updated with Phase 1-11 completion. README.md updated to v0.5.0. Branch `phase/10-multi-session-manager`.
 
-Stopped at: Phase 11 closure complete. All 11 phases shipped. v0.5.0 tag ready.
+Stopped at: Phase 12 planning complete. Committed as 7698c89. Ready for EVAL-01a execution.
 
-Resume action: Run EVAL-01a — parity baseline on TB 2.0 ≥80%. MiniMax-M2.7 API key configured (use `MINIMAX_API_KEY` env var). No OpenRouter key required.
+Resume action: Phase 12 W1 — run EVAL-01a baseline. MiniMax-M2.7 API key configured (use `MINIMAX_API_KEY` env var). Harbor harness + TB 2.0 Docker images needed. ~$100 budget for eval runs.
