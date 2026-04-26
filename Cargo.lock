@@ -5421,6 +5421,7 @@ dependencies = [
  "predicates",
  "pretty_assertions",
  "reedline",
+ "regex",
  "serde",
  "serde_json",
  "serde_yml",

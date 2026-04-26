@@ -98,7 +98,7 @@ use kay_core::control::{control_channel, install_ctrl_c_handler};
 use kay_core::r#loop::{RunTurnArgs, run_turn};
 use kay_core::persona::Persona;
 use kay_provider_errors::ProviderError;
-use kay_provider_openrouter as minimax;
+use kay_provider_openrouter::Provider;
 use kay_tools::events_wire::AgentEventWire;
 use kay_tools::{
     AgentEvent, ImageQuota, NoOpSandbox, NoOpVerifier, ServicesHandle, ToolCallContext,
@@ -518,24 +518,25 @@ async fn live_provider(
     model_tx: mpsc::Sender<Result<AgentEvent, ProviderError>>,
     model_override: Option<String>,
 ) -> Result<(), ProviderError> {
-    use kay_provider_openrouter::OpenRouterProviderBuilder;
-    use kay_provider_openrouter::ChatRequest;
+    use kay_provider_openrouter::{OpenRouterProviderBuilder, ChatRequest, Message, Allowlist};
 
     let model = model_override.unwrap_or_else(|| "minimax/MiniMax-M2.7".to_string());
 
     let provider = OpenRouterProviderBuilder::default()
         .endpoint("https://api.minimax.io/v1/realtime/generation".to_string())
-        .allowlist(minimax::Allowlist::from_models(vec![model.clone()]))
+        .allowlist(Allowlist::from_models(vec![model.clone()]))
         .build()?;
 
     let request = ChatRequest {
         model: model.clone(),
-        messages: vec![minimax::Message {
+        messages: vec![Message {
             role: "user".to_string(),
             content: prompt,
             tool_call_id: None,
         }],
-        tools: None,
+        tools: vec![],
+        max_tokens: None,
+        temperature: None,
     };
 
     let mut stream = provider.chat(request).await?;
@@ -543,7 +544,8 @@ async fn live_provider(
         let event = match event_result {
             Ok(ev) => ev,
             Err(e) => {
-                let _ = model_tx.send(Err(e)).await;
+                // Cannot clone ProviderError, so just return without
+                // notifying the channel (error will surface to caller).
                 return Err(e);
             }
         };
