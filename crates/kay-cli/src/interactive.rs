@@ -125,18 +125,25 @@ pub fn run() -> Result<()> {
     // "something went wrong" marker without the REPL crashing.
     let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
 
-    let mut prompt = KayPrompt::new(cwd, AgentId::new("kay"));
-    // Minimal reedline editor — no completer/hinter/history in T7.9.
-    // Those are forge_main-coupled (InputCompleter, ForgeHighlighter,
-    // FileBackedHistory with forge-specific paths) and DL-3 keeps
-    // kay-cli free of that dependency. Phase 10+ REPL enhancement
-    // work will add kay-native equivalents.
-    //
+    let mut prompt = KayPrompt::new(cwd.clone(), AgentId::new("kay"));
+    
+    // History: file-backed history stored in ~/.kay/history
+    // This enables arrow key navigation and Ctrl+R search
+    let history_path = kay_config::base_path().join("history");
+    std::fs::create_dir_all(history_path.parent().unwrap()).ok();
+    let history = reedline::FileBackedHistory::with_file(1000, history_path).ok();
+
+    // Minimal reedline editor with history support.
     // `with_ansi_colors(true)` enables the nu-ansi-term color codes
     // KayPrompt emits in `render_prompt_left` / `render_prompt_right`.
     // Without this, those ANSI sequences render as literal text
     // (e.g., `[1;36m` as characters) instead of being interpreted.
-    let mut editor = Reedline::create().with_ansi_colors(true);
+    let mut editor = Reedline::create()
+        .with_ansi_colors(true);
+    
+    if let Some(history) = history {
+        editor = editor.with_history(Box::new(history));
+    }
 
     loop {
         // `read_line` takes `&dyn Prompt` — immutable borrow for the
@@ -158,10 +165,7 @@ pub fn run() -> Result<()> {
                 if !trimmed.is_empty() {
                     // Wire the REPL input to the live MiniMax provider.
                     // Build a current-thread runtime scoped to this turn.
-                    let runtime = match Builder::new_current_thread()
-                        .enable_all()
-                        .build()
-                    {
+                    let runtime = match Builder::new_current_thread().enable_all().build() {
                         Ok(r) => r,
                         Err(e) => {
                             eprintln!("interactive: failed to start runtime: {e}");
