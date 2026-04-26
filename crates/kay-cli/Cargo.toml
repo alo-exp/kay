@@ -58,6 +58,9 @@ kay-provider-minimax = { path = "../kay-provider-minimax" }
 # Kay configuration (Phase 12): TOML config file + env var resolution.
 kay-config = { path = "../kay-config" }
 
+# Kay display (Phase 13): Forge-compatible streaming markdown output.
+kay-display = { path = "../kay-display" }
+
 # Serialization (JSONL event stream + YAML persona loader)
 serde = { workspace = true }
 serde_json = { workspace = true }

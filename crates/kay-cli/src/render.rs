@@ -1,20 +1,26 @@
 //! Kay CLI Output Renderer.
 //!
 //! Renders streaming agent events into clean, readable output for users.
-//! Handles text accumulation, partial updates, and final answer display.
+//! Uses kay-display for Forge-compatible markdown rendering.
 //!
-//! # Markdown Rendering
+//! # Markdown Rendering (Forge-compatible)
 //!
-//! Text deltas are processed through the markdown renderer to convert
-//! markdown formatting to ANSI terminal codes:
+//! Text deltas are processed through kay_display::MarkdownRenderer:
+//! - `# Heading` → UPPERCASE bold (H1), Bold (H2), Italic (H3+)
 //! - `**bold**` → ANSI bold
-//! - `*italic*` → ANSI italic
+//! - `*italic*` → ANSI italic  
 //! - `` `code` `` → ANSI bright
-//! - `- item` → bullet point
+//! - `- item` → bullet point (•)
+//! - `|col1|col2|` → ANSI table with borders
+//! - `[link](url)` → dimmed link text
+//!
+//! Reasoning content is automatically dimmed when detected.
 
 use std::io::{self, Write};
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+
+use kay_display::MarkdownRenderer;
 
 use crate::markdown::render_markdown;
 
@@ -89,10 +95,7 @@ impl OutputRenderer {
 
         self.completed = true;
 
-        TurnOutput {
-            text: self.buffer,
-            completed: true,
-        }
+        TurnOutput { text: self.buffer, completed: true }
     }
 
     /// Returns the accumulated text.
@@ -115,8 +118,10 @@ pub struct StreamingWriter {
     pub text: String,
     /// Whether the stream completed successfully.
     pub completed: bool,
-    /// Atomic flag for cancellation (not yet used).
+    /// Atomic flag for cancellation.
     cancelled: Arc<AtomicBool>,
+    /// Markdown renderer for Forge-compatible output.
+    renderer: MarkdownRenderer,
 }
 
 impl StreamingWriter {
@@ -126,6 +131,7 @@ impl StreamingWriter {
             text: String::new(),
             completed: false,
             cancelled: Arc::new(AtomicBool::new(false)),
+            renderer: MarkdownRenderer::new(),
         }
     }
 
@@ -135,26 +141,30 @@ impl StreamingWriter {
             text: String::new(),
             completed: false,
             cancelled,
+            renderer: MarkdownRenderer::new(),
         }
     }
 
+    /// Enable reasoning mode (dimmed output).
+    pub fn set_reasoning(&mut self, enabled: bool) {
+        self.renderer.set_reasoning(enabled);
+    }
+
     /// Handles a text_delta event, printing and accumulating.
-    /// Content is rendered through markdown parser for ANSI terminal formatting.
+    /// Content is rendered through kay_display MarkdownRenderer for ANSI terminal formatting.
     pub fn text_delta(&mut self, content: &str) {
         if content.is_empty() {
             return;
         }
 
-        // Render markdown to ANSI and print
-        let rendered = render_markdown(content);
-        print!("{}", rendered);
-        io::stdout().flush().ok();
+        // Push to kay_display renderer for Forge-compatible markdown output
+        self.renderer.push(content).ok();
         self.text.push_str(content);
     }
 
     /// Handles the final task_complete event.
     pub fn task_complete(&mut self) {
-        println!(); // Move to new line
+        self.renderer.finish().ok();
         self.completed = true;
     }
 

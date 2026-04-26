@@ -47,6 +47,7 @@ members = [
     "crates/forge_repo",
     "crates/forge_api",
     "crates/forge_main",
+    "crates/kay-display",
 ]
 
 [workspace.package]
@@ -244,3 +245,6 @@ lto = true
 codegen-units = 1
 opt-level = 3
 strip = true
+
+[workspace.dependencies.kay-display]
+path = "crates/kay-display"
