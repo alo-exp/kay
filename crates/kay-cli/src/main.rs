@@ -34,6 +34,7 @@ use clap::Parser;
 
 mod banner;
 mod boot;
+mod commands;
 mod eval;
 mod exit;
 mod interactive;
@@ -77,6 +78,18 @@ enum Command {
     },
     /// Rewind to the most recent pre-edit snapshot.
     Rewind(session::RewindArgs),
+    /// Build the workspace or a specific crate.
+    Build(commands::build::BuildArgs),
+    /// Type-check the workspace or a specific crate.
+    Check(commands::check::CheckArgs),
+    /// Format code.
+    Fmt(commands::fmt::FmtArgs),
+    /// Run clippy linter.
+    Clippy(commands::clippy::ClippyArgs),
+    /// Run tests.
+    Test(commands::test::TestArgs),
+    /// Run code review (clippy + formatting check).
+    Review(commands::review::ReviewArgs),
 }
 
 #[derive(clap::Subcommand)]
@@ -137,6 +150,48 @@ fn main() {
             }
         },
         Some(Command::Rewind(args)) => match session::rewind_cmd(args) {
+            Ok(()) => ExitCode::Success,
+            Err(e) => {
+                eprintln!("Error: {e:?}");
+                classify_error(&e)
+            }
+        },
+        Some(Command::Build(args)) => match commands::build::run(args) {
+            Ok(()) => ExitCode::Success,
+            Err(e) => {
+                eprintln!("Error: {e:?}");
+                classify_error(&e)
+            }
+        },
+        Some(Command::Check(args)) => match commands::check::run(args) {
+            Ok(()) => ExitCode::Success,
+            Err(e) => {
+                eprintln!("Error: {e:?}");
+                classify_error(&e)
+            }
+        },
+        Some(Command::Fmt(args)) => match commands::fmt::run(args) {
+            Ok(()) => ExitCode::Success,
+            Err(e) => {
+                eprintln!("Error: {e:?}");
+                classify_error(&e)
+            }
+        },
+        Some(Command::Clippy(args)) => match commands::clippy::run(args) {
+            Ok(()) => ExitCode::Success,
+            Err(e) => {
+                eprintln!("Error: {e:?}");
+                classify_error(&e)
+            }
+        },
+        Some(Command::Test(args)) => match commands::test::run(args) {
+            Ok(()) => ExitCode::Success,
+            Err(e) => {
+                eprintln!("Error: {e:?}");
+                classify_error(&e)
+            }
+        },
+        Some(Command::Review(args)) => match commands::review::run(args) {
             Ok(()) => ExitCode::Success,
             Err(e) => {
                 eprintln!("Error: {e:?}");
