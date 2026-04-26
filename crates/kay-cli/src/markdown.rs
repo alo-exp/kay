@@ -42,10 +42,18 @@ pub fn render_markdown(input: &str) -> String {
 fn render_line(line: &str) -> String {
     let trimmed = line.trim();
 
-    // Heading: "# text"
-    if trimmed.starts_with("# ") {
-        let content = &trimmed[2..];
-        return format!("\x1b[1m{}\x1b[0m", content);
+    // Heading: "# text" to "###### text"
+    if trimmed.starts_with('#') {
+        let hash_count = trimmed.chars().take_while(|&c| c == '#').count();
+        if hash_count > 0 && trimmed.chars().nth(hash_count) == Some(' ') {
+            let content = &trimmed[hash_count + 1..];
+            let style = match hash_count {
+                1 => "\x1b[1m\x1b[4m",     // Bold + underline for h1
+                2 => "\x1b[1m",             // Bold for h2
+                _ => "\x1b[1m\x1b[3m",      // Bold + italic for h3+
+            };
+            return format!("{style}{content}\x1b[0m");
+        }
     }
 
     // Quoted text: "> text"
@@ -64,14 +72,15 @@ fn render_line(line: &str) -> String {
         return format!("\x1b[2m• {}\x1b[0m", render_inline(content));
     }
 
-    // Numbered list: "1. item"
-    if trimmed.len() > 2
-        && trimmed.chars().next().map(|c| c.is_ascii_digit()).unwrap_or(false)
-        && trimmed.chars().nth(1) == Some('.')
-        && trimmed.chars().nth(2) == Some(' ')
-    {
-        let content = &trimmed[3..];
-        return format!("\x1b[2m{}\x1b[0m", render_inline(content));
+    // Numbered list: "1. item" or "1) item"
+    if trimmed.len() > 2 {
+        let first = trimmed.chars().next().unwrap_or(' ');
+        let second = trimmed.chars().nth(1).unwrap_or(' ');
+        let third = trimmed.chars().nth(2).unwrap_or(' ');
+        if first.is_ascii_digit() && (second == '.' || second == ')') && third == ' ' {
+            let content = &trimmed[3..];
+            return format!("\x1b[2m{}\x1b[0m", render_inline(content));
+        }
     }
 
     // Regular line - render inline markdown only
