@@ -38,6 +38,7 @@ mod eval;
 mod exit;
 mod interactive;
 mod prompt;
+mod render;
 mod run;
 mod session;
 

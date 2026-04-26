@@ -107,6 +107,7 @@ use kay_tools::{
 };
 
 use crate::exit::ExitCode;
+use crate::render::StreamingWriter;
 
 /// Arguments for `kay run`. T7.5 adds `-p` short alias on
 /// `--prompt` and `allow_hyphen_values` so prompts that begin with
@@ -446,6 +447,10 @@ async fn run_async(
     let mut stdout = std::io::stdout().lock();
     let mut sandbox_violation_seen = false;
     let mut aborted_seen = false;
+
+    // Use StreamingWriter for clean output (render.rs)
+    let mut writer = StreamingWriter::new();
+
     while let Some(ev) = event_rx.recv().await {
         if matches!(ev, AgentEvent::SandboxViolation { .. }) {
             sandbox_violation_seen = true;
@@ -453,15 +458,22 @@ async fn run_async(
         if matches!(ev, AgentEvent::Aborted { .. }) {
             aborted_seen = true;
         }
-        write!(stdout, "{}", AgentEventWire::from(&ev))?;
-        // `.ok()`: a broken-pipe error here (e.g., `kay run ... |
-        // head -n 1` closes its end after one line) should not be
-        // fatal — the loop will naturally observe the next write
-        // failing via the `?` above, or the event channel dropping
-        // when run_turn exits. Best-effort flush is sufficient;
-        // broken-pipe still routes to `ExitCode::RuntimeError` via
-        // the `?` on `write!` above if the write itself fails.
-        stdout.flush().ok();
+
+        // For live mode: render text deltas cleanly instead of JSONL
+        // For offline/special events: emit full JSONL for compatibility
+        match &ev {
+            AgentEvent::TextDelta { content, .. } if live => {
+                writer.text_delta(content);
+            }
+            AgentEvent::TaskComplete { .. } if live => {
+                writer.task_complete();
+            }
+            _ => {
+                // Non-live or special events: write JSONL
+                write!(stdout, "{}", AgentEventWire::from(&ev))?;
+                stdout.flush().ok();
+            }
+        }
 
         // Phase 6 event-tap: passive fan-out to session transcript (E-2 from 06-BRAINSTORM.md).
         // Zero changes to run_turn / kay-core — drain loop is the sole subscriber. QG-C4 intact.

@@ -77,8 +77,9 @@ use tokio::runtime::Builder;
 
 use crate::banner;
 use crate::prompt::{KAY_PROMPT, KayPrompt};
+use crate::render::StreamingWriter;
 use kay_config::KayConfig;
-use kay_provider_minimax::{ChatRequest, Message, MiniMaxProviderBuilder, Provider};
+use kay_provider_minimax::{AgentEvent, ChatRequest, Message, MiniMaxProviderBuilder, Provider};
 
 /// Entry point for the interactive-fallback surface.
 ///
@@ -222,7 +223,7 @@ pub fn run() -> Result<()> {
 }
 
 /// Run a single live turn with the MiniMax provider.
-/// Streams events to stdout as JSONL.
+/// Streams events to stdout as clean text (render.rs).
 async fn run_live_turn(prompt: String) -> anyhow::Result<i32> {
     // Load Kay config (reads ~/.kay/kay.toml, env vars, embedded defaults)
     let config = KayConfig::read().map_err(|e| anyhow::anyhow!("config error: {e}"))?;
@@ -252,14 +253,24 @@ async fn run_live_turn(prompt: String) -> anyhow::Result<i32> {
 
     let mut stream = provider.chat(request).await?;
 
-    let mut stdout = std::io::stdout().lock();
+    // Use StreamingWriter for clean output
+    let mut writer = StreamingWriter::new();
+
     while let Some(event_result) = stream.next().await {
         match event_result {
             Ok(ev) => {
-                // Convert to wire format and write to stdout
-                let wire = kay_tools::events_wire::AgentEventWire::from(&ev);
-                write!(stdout, "{wire}")?;
-                stdout.flush().ok();
+                match &ev {
+                    AgentEvent::TextDelta { content, .. } => {
+                        writer.text_delta(content);
+                    }
+                    AgentEvent::TaskComplete { .. } => {
+                        writer.task_complete();
+                    }
+                    _ => {
+                        // Verbose mode: also log other events to stderr
+                        eprintln!("[event] {ev:?}");
+                    }
+                }
             }
             Err(e) => {
                 eprintln!("interactive: stream error: {e}");
