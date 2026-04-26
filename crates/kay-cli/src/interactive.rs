@@ -71,10 +71,13 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use forge_api::AgentId;
+use futures::StreamExt;
 use reedline::{Reedline, Signal};
+use tokio::runtime::Builder;
 
 use crate::banner;
 use crate::prompt::{KAY_PROMPT, KayPrompt};
+use kay_provider_minimax::{ChatRequest, Message, MiniMaxProviderBuilder, Provider};
 
 /// Entry point for the interactive-fallback surface.
 ///
@@ -151,21 +154,29 @@ pub fn run() -> Result<()> {
 
                 let trimmed = buf.trim();
                 if !trimmed.is_empty() {
-                    // T7.9 contract: REPL surface only, no agent-loop
-                    // integration. The headless surface (`kay run
-                    // --prompt "..."`) carries the agent loop today;
-                    // Phase 10+ will wire the REPL input line into
-                    // `run_turn` so a user can type a prompt at the
-                    // REPL and see streamed events.
-                    //
-                    // Printing a human-visible reminder here (not a
-                    // silent no-op) matches the UX principle that
-                    // every Enter press should produce feedback.
-                    println!(
-                        "(T7.9: interactive turn execution not yet wired — \
-                         use `kay run --prompt \"...\"` for headless mode, \
-                         or Ctrl-D to exit)"
-                    );
+                    // Wire the REPL input to the live MiniMax provider.
+                    // Build a current-thread runtime scoped to this turn.
+                    let runtime = match Builder::new_current_thread()
+                        .enable_all()
+                        .build()
+                    {
+                        Ok(r) => r,
+                        Err(e) => {
+                            eprintln!("interactive: failed to start runtime: {e}");
+                            continue;
+                        }
+                    };
+
+                    let result = runtime.block_on(run_live_turn(trimmed.to_string()));
+                    match result {
+                        Ok(0) => {} // Success
+                        Ok(code) => {
+                            eprintln!("interactive: turn ended with exit code {code}");
+                        }
+                        Err(e) => {
+                            eprintln!("interactive: turn error: {e}");
+                        }
+                    }
                 }
             }
             Ok(Signal::CtrlC) => {
@@ -207,4 +218,46 @@ pub fn run() -> Result<()> {
     }
 
     Ok(())
+}
+
+/// Run a single live turn with the MiniMax provider.
+/// Streams events to stdout as JSONL.
+async fn run_live_turn(prompt: String) -> anyhow::Result<i32> {
+    let model = "MiniMax-M2.1".to_string();
+
+    let provider = MiniMaxProviderBuilder::default()
+        .allowlist(vec![model.clone()])
+        .build()?;
+
+    let request = ChatRequest {
+        model: model.clone(),
+        messages: vec![Message {
+            role: "user".to_string(),
+            content: prompt,
+            tool_call_id: None,
+        }],
+        tools: vec![],
+        max_tokens: None,
+        temperature: None,
+    };
+
+    let mut stream = provider.chat(request).await?;
+
+    let mut stdout = std::io::stdout().lock();
+    while let Some(event_result) = stream.next().await {
+        match event_result {
+            Ok(ev) => {
+                // Convert to wire format and write to stdout
+                let wire = kay_tools::events_wire::AgentEventWire::from(&ev);
+                write!(stdout, "{wire}")?;
+                stdout.flush().ok();
+            }
+            Err(e) => {
+                eprintln!("interactive: stream error: {e}");
+                return Err(anyhow::anyhow!("provider error: {e}"));
+            }
+        }
+    }
+
+    Ok(0)
 }
