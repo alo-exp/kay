@@ -83,6 +83,34 @@ fn render_line(line: &str) -> String {
         }
     }
 
+    // Table row: "| col1 | col2 |" or "|---|"
+    if trimmed.starts_with('|') && trimmed.ends_with('|') {
+        // Check if it's a separator row (|---|)
+        if trimmed.chars().filter(|&c| c == '-').count() >= 3 {
+            // Separator row - render with dimmed dashes
+            return format!("\x1b[2m{}\x1b[0m", trimmed);
+        }
+        // Data row - render cells with borders
+        let cells: Vec<&str> = trimmed
+            .trim_matches('|')
+            .split('|')
+            .map(|s| s.trim())
+            .filter(|s| !s.is_empty())
+            .collect();
+        
+        if cells.is_empty() {
+            return render_inline(line);
+        }
+        
+        // Render as: │ Cell1 │ Cell2 │
+        let rendered_cells: Vec<String> = cells
+            .iter()
+            .map(|c| format!(" {}", render_inline(c)))
+            .collect();
+        
+        return format!("\x1b[2m│{}│\x1b[0m", rendered_cells.join(" │"));
+    }
+
     // Regular line - render inline markdown only
     render_inline(line)
 }
@@ -98,6 +126,39 @@ fn render_inline(text: &str) -> String {
                 // Inline code: `code`
                 let content = take_until_char(&mut chars, '`');
                 result.push_str(&ansi_code(&content));
+            }
+            '[' => {
+                // Check for link: [text](url)
+                let mut peek = chars.clone();
+                let mut bracket_content = String::new();
+                while let Some(&c) = peek.peek() {
+                    if c == ']' {
+                        break;
+                    }
+                    peek.next();
+                    bracket_content.push(c);
+                }
+                if peek.peek() == Some(&']') && peek.clone().nth(1) == Some('(') {
+                    // It's a link
+                    // Consume '['
+                    chars.next();
+                    let text = bracket_content;
+                    // Skip ']('
+                    chars.next(); // ]
+                    chars.next(); // (
+                    // Collect URL
+                    let mut url = String::new();
+                    while let Some(c) = chars.next() {
+                        if c == ')' {
+                            break;
+                        }
+                        url.push(c);
+                    }
+                    // Render as cyan link text with URL hint
+                    result.push_str(&ansi_link(&text));
+                } else {
+                    result.push(ch);
+                }
             }
             '_' => {
                 // Underscore italic: _text_

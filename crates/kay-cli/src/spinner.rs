@@ -77,6 +77,7 @@ impl Drop for Spinner {
 }
 
 /// Create a simple progress bar.
+#[allow(dead_code)]
 pub struct ProgressBar {
     current: u32,
     total: u32,
@@ -122,12 +123,14 @@ impl ProgressBar {
     }
 
     /// Print the progress bar to stdout.
+    #[allow(dead_code)]
     pub fn print(&self) {
         print!("\r{}", self.render());
         io::stdout().flush().ok();
     }
 
     /// Finish and print newline.
+    #[allow(dead_code)]
     pub fn finish(&self) {
         println!();
     }
