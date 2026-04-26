@@ -518,8 +518,8 @@ async fn live_provider(
     model_tx: mpsc::Sender<Result<AgentEvent, ProviderError>>,
     model_override: Option<String>,
 ) -> Result<(), ProviderError> {
-    use kay_provider_openrouter::openrouter_provider::OpenRouterProviderBuilder;
-    use kay_provider_openrouter::provider::ChatRequest;
+    use kay_provider_openrouter::OpenRouterProviderBuilder;
+    use kay_provider_openrouter::ChatRequest;
 
     let model = model_override.unwrap_or_else(|| "minimax/MiniMax-M2.7".to_string());
 
@@ -530,9 +530,10 @@ async fn live_provider(
 
     let request = ChatRequest {
         model: model.clone(),
-        messages: vec![minimax::provider::Message {
+        messages: vec![minimax::Message {
             role: "user".to_string(),
             content: prompt,
+            tool_call_id: None,
         }],
         tools: None,
     };
