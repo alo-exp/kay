@@ -45,6 +45,7 @@ mod prompt;
 mod render;
 mod run;
 mod session;
+mod spinner;
 
 use exit::{ExitCode, classify_error};
 
@@ -92,6 +93,23 @@ enum Command {
     Test(commands::test::TestArgs),
     /// Run code review (clippy + formatting check).
     Review(commands::review::ReviewArgs),
+    /// Show help for commands and topics.
+    ShowHelp {
+        #[command(subcommand)]
+        topic: Option<HelpTopic>,
+    },
+}
+
+#[derive(clap::Subcommand)]
+enum HelpTopic {
+    /// General help
+    General,
+    /// Help for the run command
+    Run,
+    /// Help for session management
+    Session,
+    /// Help for build commands
+    Build,
 }
 
 #[derive(clap::Subcommand)]
@@ -200,6 +218,17 @@ fn main() {
                 classify_error(&e)
             }
         },
+        Some(Command::ShowHelp { topic }) => {
+            let topic_str = match &topic {
+                Some(HelpTopic::General) => Some("general"),
+                Some(HelpTopic::Run) => Some("run"),
+                Some(HelpTopic::Session) => Some("session"),
+                Some(HelpTopic::Build) => Some("build"),
+                None => None,
+            };
+            help::dispatch_help(topic_str);
+            ExitCode::Success
+        }
         None => match interactive_fallback() {
             Ok(()) => ExitCode::Success,
             Err(e) => {

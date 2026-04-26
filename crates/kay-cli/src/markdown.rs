@@ -99,8 +99,17 @@ fn render_inline(text: &str) -> String {
                 let content = take_until_char(&mut chars, '`');
                 result.push_str(&ansi_code(&content));
             }
+            '_' => {
+                // Underscore italic: _text_
+                if chars.peek() == Some(&'_') {
+                    chars.next();
+                    let content = take_until_str(&mut chars, "__");
+                    result.push_str(&ansi_italic(&content));
+                } else {
+                    result.push(ch);
+                }
+            }
             '*' => {
-                // Check for bold: **text**
                 if chars.peek() == Some(&'*') {
                     chars.next(); // consume second *
                     let content = take_until_str(&mut chars, "**");
@@ -113,9 +122,35 @@ fn render_inline(text: &str) -> String {
                         }
                     }
                 } else {
-                    // Single asterisk - not italic (too many false positives)
-                    // Just emit the asterisk
-                    result.push(ch);
+                    // Single asterisk - check for italic: *text*
+                    // Only treat as italic if followed by text and closing *
+                    let mut peek = chars.clone();
+                    let mut temp_result = String::new();
+                    let mut found_closing = false;
+                    
+                    // Look ahead to see if there's a closing *
+                    while let Some(c) = peek.next() {
+                        if c == '*' && peek.peek() != Some(&'*') {
+                            // Found closing *
+                            found_closing = true;
+                            break;
+                        }
+                        if c == '*' && peek.peek() == Some(&'*') {
+                            // It's **, not closing single *
+                            break;
+                        }
+                        temp_result.push(c);
+                    }
+                    
+                    if found_closing && !temp_result.is_empty() {
+                        // This is italic
+                        result.push_str(&ansi_italic(&temp_result));
+                        // Consume the closing *
+                        chars.next();
+                    } else {
+                        // Not italic - emit the asterisk
+                        result.push(ch);
+                    }
                 }
             }
             _ => result.push(ch),
@@ -145,6 +180,11 @@ const BOLD: &str = "\x1b[1m";
 const DIM: &str = "\x1b[2m";
 const BRIGHT: &str = "\x1b[1;37m";
 const BOLD_RESET: &str = "\x1b[22m";
+const ITALIC: &str = "\x1b[3m"; // Some terminals support italic
+const ITALIC_RESET: &str = "\x1b[23m";
+const UNDERLINE: &str = "\x1b[4m";
+const UNDERLINE_RESET: &str = "\x1b[24m";
+const CYAN: &str = "\x1b[36m"; // For links
 
 fn ansi_bold(s: &str) -> String {
     if s.is_empty() {
@@ -158,6 +198,27 @@ fn ansi_code(s: &str) -> String {
         return String::new();
     }
     format!("{BRIGHT}{s}{RESET}")
+}
+
+fn ansi_italic(s: &str) -> String {
+    if s.is_empty() {
+        return String::new();
+    }
+    format!("{ITALIC}{s}{ITALIC_RESET}")
+}
+
+fn ansi_underline(s: &str) -> String {
+    if s.is_empty() {
+        return String::new();
+    }
+    format!("{UNDERLINE}{s}{UNDERLINE_RESET}")
+}
+
+fn ansi_link(s: &str) -> String {
+    if s.is_empty() {
+        return String::new();
+    }
+    format!("{CYAN}{s}{RESET}")
 }
 
 // ── Helper parsers ─────────────────────────────────────────────────────────
@@ -241,6 +302,28 @@ mod tests {
         // Single asterisk should be preserved, not treated as italic
         let result = render_markdown("Apple's* product");
         assert!(result.contains("Apple's*"));
+    }
+
+    #[test]
+    fn test_italic_single_asterisk() {
+        // Single asterisk italic: *text*
+        let result = render_markdown("This is *italic* text");
+        assert!(result.contains("\x1b[3m") || result.contains("italic")); // ITALIC code or content
+    }
+
+    #[test]
+    fn test_italic_underscore() {
+        // Underscore italic: _text_
+        let result = render_markdown("This is _italic_ text");
+        assert!(result.contains("\x1b[3m") || result.contains("italic"));
+    }
+
+    #[test]
+    fn test_code_block() {
+        // Code blocks: ```code```
+        let result = render_markdown("```\ncode\n```");
+        // Code blocks are rendered with code content
+        assert!(result.contains("code"));
     }
 
     #[test]

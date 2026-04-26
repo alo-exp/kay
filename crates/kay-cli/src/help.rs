@@ -86,6 +86,7 @@ pub fn print_build_help() {
 }
 
 /// Print error help for common issues
+/// Print error help for common issues
 pub fn print_error_help(error: &str) {
     println!("Error: {}", error);
     println!();
@@ -98,13 +99,18 @@ pub fn print_error_help(error: &str) {
     
     if error.contains("session") {
         println!("Session issues? Try:");
-        println!("  kay session list     # List sessions");
-        println!("  kay session load <id>  # Load a session");
+        println!("  kay session list");
+        println!("  kay help session");
     }
-    
-    if error.contains("permission") || error.contains("denied") {
-        println!("Permission issues? Check:");
-        println!("  - .kay directory permissions");
-        println!("  - Sandbox configuration");
+}
+
+/// Dispatch help based on topic
+/// topic is a simple string representation to avoid circular deps
+pub fn dispatch_help(topic: Option<&str>) {
+    match topic {
+        Some("run") => print_run_help(),
+        Some("session") => print_session_help(),
+        Some("build") | Some("check") | Some("fmt") | Some("clippy") => print_build_help(),
+        _ => print_general_help(),
     }
 }
