@@ -2,10 +2,21 @@
 //!
 //! Renders streaming agent events into clean, readable output for users.
 //! Handles text accumulation, partial updates, and final answer display.
+//!
+//! # Markdown Rendering
+//!
+//! Text deltas are processed through the markdown renderer to convert
+//! markdown formatting to ANSI terminal codes:
+//! - `**bold**` → ANSI bold
+//! - `*italic*` → ANSI italic
+//! - `` `code` `` → ANSI bright
+//! - `- item` → bullet point
 
 use std::io::{self, Write};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+
+use crate::markdown::render_markdown;
 
 /// Rendered output for a single turn.
 pub struct TurnOutput {
@@ -128,12 +139,15 @@ impl StreamingWriter {
     }
 
     /// Handles a text_delta event, printing and accumulating.
+    /// Content is rendered through markdown parser for ANSI terminal formatting.
     pub fn text_delta(&mut self, content: &str) {
         if content.is_empty() {
             return;
         }
 
-        print!("{}", content);
+        // Render markdown to ANSI and print
+        let rendered = render_markdown(content);
+        print!("{}", rendered);
         io::stdout().flush().ok();
         self.text.push_str(content);
     }

@@ -37,6 +37,7 @@ mod boot;
 mod eval;
 mod exit;
 mod interactive;
+mod markdown;
 mod prompt;
 mod render;
 mod run;
