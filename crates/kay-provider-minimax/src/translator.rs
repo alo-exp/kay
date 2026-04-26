@@ -9,6 +9,13 @@
 //!
 //! Unlike OpenRouter, MiniMax doesn't use SSE format lines. The `data: `
 //! prefix is just plain text before each JSON object.
+//!
+//! # Content Handling
+//!
+//! MiniMax sends content in separate chunks:
+//! - `delta.reasoning_content` — chain-of-thought / thinking (NOT emitted)
+//! - `delta.content` — the actual answer (emitted as TextDelta)
+//! - `message.content` — complete answer in final chunk (only if no content streamed)
 
 use serde::Deserialize;
 
@@ -35,19 +42,22 @@ impl MiniMaxTranslator {
 
         // Handle completion markers
         if chunk.is_done() {
-            // Check for message.content in the final chunk (before returning None)
+            // Check for message.content in the final chunk
+            // Only emit if there's content (some providers send empty final message)
             if let Some(content) = chunk.final_message() {
-                return Ok(Some(AgentEvent::TextDelta { content }));
+                if !content.is_empty() {
+                    return Ok(Some(AgentEvent::TextDelta { content }));
+                }
             }
             return Ok(None); // Stream ended, caller will emit TaskComplete
         }
 
-        // Extract text delta
-        if let Some(content) = chunk.text_delta() {
+        // Extract text delta (only from content, NOT reasoning_content)
+        if let Some(content) = chunk.answer_delta() {
             return Ok(Some(AgentEvent::TextDelta { content }));
         }
 
-        // No text delta in this chunk — skip
+        // No answer delta in this chunk — skip (reasoning_content is intentionally ignored)
         Ok(None)
     }
 }
@@ -68,7 +78,7 @@ struct Choice {
     index: Option<usize>,
     finish_reason: Option<String>,
     delta: Option<Delta>,
-    message: Option<Message>,  // Final message when finish_reason is set
+    message: Option<Message>, // Final message when finish_reason is set
 }
 
 #[derive(Debug, Deserialize)]
@@ -80,7 +90,7 @@ struct Message {
 #[derive(Debug, Deserialize)]
 struct Delta {
     content: Option<String>,
-    reasoning_content: Option<String>,  // MiniMax puts text here
+    reasoning_content: Option<String>, // MiniMax chain-of-thought — intentionally NOT emitted
     role: Option<String>,
     name: Option<String>,
 }
@@ -104,42 +114,22 @@ impl MiniMaxChunk {
         false
     }
 
-    /// Extract the text delta from the delta field.
-    fn text_delta(&self) -> Option<String> {
-        // Try delta.content first (the actual response)
-        if let Some(content) = self
-            .choices
+    /// Extract the answer delta from the delta field.
+    /// ONLY returns `delta.content`, NOT `delta.reasoning_content`.
+    /// Reasoning content is intentionally ignored to avoid confusing output.
+    fn answer_delta(&self) -> Option<String> {
+        self.choices
             .as_ref()?
             .first()?
             .delta
             .as_ref()?
             .content
             .clone()
-        {
-            if !content.is_empty() {
-                return Some(content);
-            }
-        }
-
-        // Try delta.reasoning_content (chain-of-thought, skip)
-        if let Some(reasoning) = self
-            .choices
-            .as_ref()?
-            .first()?
-            .delta
-            .as_ref()?
-            .reasoning_content
-            .clone()
-        {
-            if !reasoning.is_empty() {
-                return Some(reasoning);
-            }
-        }
-
-        None
+            .filter(|c| !c.is_empty())
     }
 
     /// Extract the final message content from the message field (in final chunk).
+    /// This is the complete answer that may appear in the last chunk.
     fn final_message(&self) -> Option<String> {
         self.choices
             .as_ref()?
@@ -148,7 +138,6 @@ impl MiniMaxChunk {
             .as_ref()?
             .content
             .clone()
-            .filter(|c| !c.is_empty())
     }
 }
 
@@ -164,10 +153,26 @@ mod unit {
     }
 
     #[test]
+    fn ignore_reasoning_content() {
+        // reasoning_content should be ignored
+        let json = r#"{"id":"abc","choices":[{"index":0,"delta":{"reasoning_content":"Let me think..."}}],"object":"chat.completion.chunk"}"#;
+        let event = MiniMaxTranslator::translate(json).unwrap();
+        assert!(event.is_none());
+    }
+
+    #[test]
     fn parse_done_chunk() {
         let json = r#"{"id":"abc","choices":[{"finish_reason":"stop"}]}"#;
         let event = MiniMaxTranslator::translate(json).unwrap();
         assert!(event.is_none());
+    }
+
+    #[test]
+    fn parse_done_with_message() {
+        // Final chunk with message.content should emit the content
+        let json = r#"{"id":"abc","choices":[{"finish_reason":"stop","message":{"content":"Final answer"}}]}"#;
+        let event = MiniMaxTranslator::translate(json).unwrap();
+        assert!(matches!(event, Some(AgentEvent::TextDelta { content }) if content == "Final answer"));
     }
 
     #[test]
