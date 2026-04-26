@@ -5,6 +5,7 @@ resolver = "2"
 # adding a crate.
 members = [
     "crates/kay-cli",
+    "crates/kay-config",
     "crates/kay-core",
     "crates/kay-provider-errors",
     "crates/kay-provider-openrouter",

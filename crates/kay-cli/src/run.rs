@@ -97,6 +97,7 @@ use tokio_util::sync::CancellationToken;
 use kay_core::control::{control_channel, install_ctrl_c_handler};
 use kay_core::r#loop::{RunTurnArgs, run_turn};
 use kay_core::persona::Persona;
+use kay_config::KayConfig;
 use kay_provider_errors::ProviderError;
 use kay_provider_minimax::Provider;
 use kay_tools::events_wire::AgentEventWire;
@@ -224,6 +225,10 @@ pub fn execute(args: RunArgs) -> anyhow::Result<ExitCode> {
         anyhow::bail!("--offline and --live are mutually exclusive");
     }
 
+    // ── Load Kay configuration ─────────────────────────────────────
+    // Reads from: embedded defaults → ~/.kay/kay.toml → env vars (KAY_*)
+    let config = KayConfig::read().map_err(|e| anyhow::anyhow!("config error: {e}"))?;
+
     // Load the persona synchronously so a bad `--persona` path fails
     // before we pay for the runtime. `PersonaError` is `thiserror`
     // so `?` converts to `anyhow::Error` automatically. The
@@ -244,7 +249,7 @@ pub fn execute(args: RunArgs) -> anyhow::Result<ExitCode> {
         .enable_all()
         .build()?;
 
-    runtime.block_on(run_async(args.prompt, persona, args.resume, args.live, args.model))
+    runtime.block_on(run_async(args.prompt, persona, args.resume, args.live, args.model, config))
 }
 
 /// The async half of `execute` — builds channels, spawns the offline
@@ -281,6 +286,7 @@ async fn run_async(
     resume: Option<uuid::Uuid>,
     live: bool,
     model: Option<String>,
+    config: KayConfig,
 ) -> anyhow::Result<ExitCode> {
     // ── Channel topology ────────────────────────────────────────
     //
@@ -324,7 +330,7 @@ async fn run_async(
     let session_title: String = prompt.chars().take(120).collect();
     let initial_prompt = prompt.clone();
     if live {
-        tokio::spawn(live_provider(prompt, model_tx, model)).await??;
+        tokio::spawn(live_provider(prompt, model_tx, model, config)).await??;
     } else {
         tokio::spawn(offline_provider(prompt, model_tx));
     }
@@ -505,24 +511,34 @@ async fn run_async(
 /// Live provider task — streams real `AgentEvent` frames from the MiniMax
 /// native API via `kay_provider_minimax`.
 ///
-/// API key resolution: `MINIMAX_API_KEY` env var (Kay's primary).
+/// API key resolution: Uses KayConfig which reads from:
+///   1. Environment variable (MINIMAX_API_KEY or OPENROUTER_API_KEY)
+///   2. ~/.kay/kay.toml user config
+///   3. Embedded defaults
 ///
-/// Default model: `MiniMax-M2.1` (Phase 12 EVAL-01a entry gate).
-/// Override with the `--model` CLI flag.
+/// Model: CLI `--model` flag > KayConfig default_model > "MiniMax-M2.1"
 ///
 /// All send errors are silently dropped — same as `offline_provider`.
 async fn live_provider(
     prompt: String,
     model_tx: mpsc::Sender<Result<AgentEvent, ProviderError>>,
     model_override: Option<String>,
+    config: KayConfig,
 ) -> Result<(), ProviderError> {
     use kay_provider_minimax::{MiniMaxProviderBuilder, ChatRequest, Message};
 
-    let model = model_override.unwrap_or_else(|| "MiniMax-M2.1".to_string());
+    // Resolve model: CLI flag > config default > embedded default
+    let model = model_override
+        .or_else(|| config.provider.default_model.clone())
+        .unwrap_or_else(|| "MiniMax-M2.1".to_string());
 
     let provider = MiniMaxProviderBuilder::default()
         .allowlist(vec![model.clone()])
         .build()?;
+
+    // Resolve API settings from config
+    let max_tokens = config.api.max_tokens;
+    let temperature = config.api.temperature.map(|t| t as f32);
 
     let request = ChatRequest {
         model: model.clone(),
@@ -532,8 +548,8 @@ async fn live_provider(
             tool_call_id: None,
         }],
         tools: vec![],
-        max_tokens: None,
-        temperature: None,
+        max_tokens,
+        temperature,
     };
 
     let mut stream = provider.chat(request).await?;

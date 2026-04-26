@@ -55,6 +55,9 @@ kay-provider-openrouter = { path = "../kay-provider-openrouter" }
 # Handles MiniMax's JSON-over-SSE streaming format.
 kay-provider-minimax = { path = "../kay-provider-minimax" }
 
+# Kay configuration (Phase 12): TOML config file + env var resolution.
+kay-config = { path = "../kay-config" }
+
 # Serialization (JSONL event stream + YAML persona loader)
 serde = { workspace = true }
 serde_json = { workspace = true }

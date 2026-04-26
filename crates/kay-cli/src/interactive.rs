@@ -77,6 +77,7 @@ use tokio::runtime::Builder;
 
 use crate::banner;
 use crate::prompt::{KAY_PROMPT, KayPrompt};
+use kay_config::KayConfig;
 use kay_provider_minimax::{ChatRequest, Message, MiniMaxProviderBuilder, Provider};
 
 /// Entry point for the interactive-fallback surface.
@@ -223,11 +224,19 @@ pub fn run() -> Result<()> {
 /// Run a single live turn with the MiniMax provider.
 /// Streams events to stdout as JSONL.
 async fn run_live_turn(prompt: String) -> anyhow::Result<i32> {
-    let model = "MiniMax-M2.1".to_string();
+    // Load Kay config (reads ~/.kay/kay.toml, env vars, embedded defaults)
+    let config = KayConfig::read().map_err(|e| anyhow::anyhow!("config error: {e}"))?;
+
+    // Resolve model from config
+    let model = config.default_model();
 
     let provider = MiniMaxProviderBuilder::default()
         .allowlist(vec![model.clone()])
         .build()?;
+
+    // Resolve API settings from config
+    let max_tokens = config.api.max_tokens;
+    let temperature = config.api.temperature.map(|t| t as f32);
 
     let request = ChatRequest {
         model: model.clone(),
@@ -237,8 +246,8 @@ async fn run_live_turn(prompt: String) -> anyhow::Result<i32> {
             tool_call_id: None,
         }],
         tools: vec![],
-        max_tokens: None,
-        temperature: None,
+        max_tokens,
+        temperature,
     };
 
     let mut stream = provider.chat(request).await?;

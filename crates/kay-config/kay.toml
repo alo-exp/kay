@@ -1,0 +1,36 @@
+# Kay CLI Default Configuration
+# 
+# This file is embedded in the binary as default configuration.
+# User configuration is loaded from ~/.kay/kay.toml
+
+[provider]
+# Default model for live API calls
+default_model = "MiniMax-M2.1"
+
+# MiniMax API configuration
+[provider.minimax]
+# API key from environment variable (set in .env or shell)
+api_key_var = "MINIMAX_API_KEY"
+# MiniMax native endpoint
+endpoint = "https://api.minimax.io/v1/text/chatcompletion_v2"
+
+# OpenRouter API configuration (fallback)
+[provider.openrouter]
+api_key_var = "OPENROUTER_API_KEY"
+endpoint = "https://openrouter.ai/api/v1/chat/completions"
+
+# API request settings
+[api]
+# Maximum tokens per response (0 = provider default)
+max_tokens = 0
+# Temperature for sampling (0.0 = deterministic)
+temperature = 0.7
+# Timeout for API requests in seconds
+timeout_secs = 120
+
+# Session settings
+[session]
+# Maximum turns per session (0 = unlimited)
+max_turns = 0
+# Enable session persistence
+persist = true
