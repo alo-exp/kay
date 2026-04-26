@@ -8,6 +8,7 @@ members = [
     "crates/kay-core",
     "crates/kay-provider-errors",
     "crates/kay-provider-openrouter",
+    "crates/kay-provider-minimax",
     "crates/kay-sandbox-linux",
     "crates/kay-sandbox-macos",
     "crates/kay-sandbox-policy",

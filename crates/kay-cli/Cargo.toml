@@ -51,6 +51,10 @@ kay-provider-errors = { path = "../kay-provider-errors" }
 # Wired behind `kay run --live` flag. Not required for offline E2E tests.
 kay-provider-openrouter = { path = "../kay-provider-openrouter" }
 
+# MiniMax native provider for Phase 12 EVAL-01a baseline run.
+# Handles MiniMax's JSON-over-SSE streaming format.
+kay-provider-minimax = { path = "../kay-provider-minimax" }
+
 # Serialization (JSONL event stream + YAML persona loader)
 serde = { workspace = true }
 serde_json = { workspace = true }

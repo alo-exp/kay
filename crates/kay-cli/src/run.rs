@@ -98,7 +98,7 @@ use kay_core::control::{control_channel, install_ctrl_c_handler};
 use kay_core::r#loop::{RunTurnArgs, run_turn};
 use kay_core::persona::Persona;
 use kay_provider_errors::ProviderError;
-use kay_provider_openrouter::Provider;
+use kay_provider_minimax::Provider;
 use kay_tools::events_wire::AgentEventWire;
 use kay_tools::{
     AgentEvent, ImageQuota, NoOpSandbox, NoOpVerifier, ServicesHandle, ToolCallContext,
@@ -503,13 +503,11 @@ async fn run_async(
 }
 
 /// Live provider task — streams real `AgentEvent` frames from the MiniMax
-/// API (OpenRouter-compatible) via `kay_provider_openrouter`.
+/// native API via `kay_provider_minimax`.
 ///
-/// API key resolution (in priority order):
-///   1. `MINIMAX_API_KEY` env var (Kay's primary)
-///   2. `OPENROUTER_API_KEY` env var (legacy ForgeCode compat)
+/// API key resolution: `MINIMAX_API_KEY` env var (Kay's primary).
 ///
-/// Default model: `minimax/MiniMax-M2.7` (Phase 12 EVAL-01a entry gate).
+/// Default model: `MiniMax-M2.1` (Phase 12 EVAL-01a entry gate).
 /// Override with the `--model` CLI flag.
 ///
 /// All send errors are silently dropped — same as `offline_provider`.
@@ -518,13 +516,12 @@ async fn live_provider(
     model_tx: mpsc::Sender<Result<AgentEvent, ProviderError>>,
     model_override: Option<String>,
 ) -> Result<(), ProviderError> {
-    use kay_provider_openrouter::{OpenRouterProviderBuilder, ChatRequest, Message, Allowlist};
+    use kay_provider_minimax::{MiniMaxProviderBuilder, ChatRequest, Message};
 
-    let model = model_override.unwrap_or_else(|| "minimax/MiniMax-M2.7".to_string());
+    let model = model_override.unwrap_or_else(|| "MiniMax-M2.1".to_string());
 
-    let provider = OpenRouterProviderBuilder::default()
-        .endpoint("https://api.minimax.io/v1/realtime/generation".to_string())
-        .allowlist(Allowlist::from_models(vec![model.clone()]))
+    let provider = MiniMaxProviderBuilder::default()
+        .allowlist(vec![model.clone()])
         .build()?;
 
     let request = ChatRequest {

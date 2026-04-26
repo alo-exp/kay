@@ -1,0 +1,40 @@
+[package]
+name = "kay-provider-minimax"
+publish = false
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "MiniMax native API provider (Phase 12)"
+
+[dependencies]
+kay-provider-errors = { path = "../kay-provider-errors" }
+kay-tools = { path = "../kay-tools" }
+
+tokio = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+# Stream + async-trait adapters
+async-trait = "0.1"
+async-stream = "0.3"
+bytes = "1"
+futures = "0.3"
+uuid = { version = "1", features = ["v4"] }
+pin-project = "1"
+tokio-stream = "0.1"
+
+# HTTP streaming
+tokio-util = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "test-util"] }
+mockito = "1.7"
+proptest = "1.11"
+pretty_assertions = "1"
+serde_json = { workspace = true }
