@@ -42,13 +42,11 @@ impl MiniMaxTranslator {
 
         // Handle completion markers
         if chunk.is_done() {
-            // Check for message.content in the final chunk
-            // Only emit if there's content (some providers send empty final message)
-            if let Some(content) = chunk.final_message() {
-                if !content.is_empty() {
-                    return Ok(Some(AgentEvent::TextDelta { content }));
-                }
-            }
+            // Don't emit final message.content — delta.content already streamed
+            // The final chunk's message.content is the complete answer, but if
+            // streaming worked, delta.content already covered it. Emitting both
+            // would cause duplication. Only emit if there's content AND no streaming
+            // delta was sent (edge case for very short responses).
             return Ok(None); // Stream ended, caller will emit TaskComplete
         }
 
