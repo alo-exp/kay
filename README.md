@@ -4,7 +4,15 @@ Open-source terminal coding agent — a Rust fork of ForgeCode, hardened with Te
 
 ## Status
 
-Pre-1.0. Phase 1–11 shipped (v0.5.0). Phase 12 (TB 2.0 Submission + v1 Hardening) planned. See `.planning/ROADMAP.md`.
+v0.6.0 (Phase 13 complete). Feature parity with Forge achieved. 
+- Live API: MiniMax, OpenRouter
+- Commands: build, check, fmt, clippy, test, review, session
+- Tools: fs_search, shell, fetch, task, patch
+- Sessions: list, load, delete, rewind
+- Markdown rendering with ANSI colors
+- Token budget management, retry logic, JSON repair, diff highlighting
+
+Phase 12 (TB 2.0 Submission + v1 Hardening) planned. See `.planning/ROADMAP.md`.
 
 ## Acknowledgments
 
