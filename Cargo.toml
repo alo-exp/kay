@@ -48,6 +48,7 @@ members = [
     "crates/forge_api",
     "crates/forge_main",
     "crates/kay-display",
+    "crates/kay-repo",
 ]
 
 [workspace.package]
