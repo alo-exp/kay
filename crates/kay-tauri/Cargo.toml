@@ -1,12 +1,57 @@
 [package]
-name = "kay-tauri"
-publish = false
-version.workspace = true
-edition.workspace = true
+name        = "kay-tauri"
+publish     = false
+version.workspace   = true
+edition.workspace   = true
 rust-version.workspace = true
-authors.workspace = true
-license.workspace = true
+authors.workspace   = true
+license.workspace   = true
 repository.workspace = true
 description = "Kay Tauri 2.x desktop shell (Phase 9)"
 
+[build-dependencies]
+tauri-build = { workspace = true, features = ["codegen"] }
+
 [dependencies]
+chrono = { workspace = true }
+tauri             = { workspace = true }
+tauri-plugin-updater = "2"
+tauri-specta      = { workspace = true }
+specta            = { workspace = true, features = ["serde_json"] }
+specta-typescript = { workspace = true }  # required by main.rs for Typescript export
+serde             = { workspace = true }
+serde_json        = { workspace = true }
+thiserror         = { workspace = true }
+tokio             = { workspace = true }
+tokio-util        = { workspace = true }
+uuid              = { workspace = true }
+base64            = { workspace = true }
+infer             = { workspace = true }
+dashmap           = { workspace = true }
+tracing           = { workspace = true }
+async-trait       = { workspace = true }
+anyhow            = { workspace = true }
+forge_domain      = { path = "../forge_domain" }
+kay-core          = { path = "../kay-core" }
+kay-tools         = { path = "../kay-tools" }
+kay-provider-errors = { path = "../kay-provider-errors" }
+kay-session       = { path = "../kay-session" }
+kay-context       = { path = "../kay-context" }
+kay-verifier      = { path = "../kay-verifier" }
+kay-provider-openrouter = { path = "../kay-provider-openrouter" }
+kay-sandbox-policy = { path = "../kay-sandbox-policy" }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+kay-sandbox-macos   = { path = "../kay-sandbox-macos" }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+kay-sandbox-linux   = { path = "../kay-sandbox-linux" }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+kay-sandbox-windows = { path = "../kay-sandbox-windows" }
+
+[dev-dependencies]
+tauri             = { workspace = true, features = ["compression"] }
+tauri-specta      = { workspace = true }
+sysinfo           = { workspace = true }
+mockall           = "0.13"

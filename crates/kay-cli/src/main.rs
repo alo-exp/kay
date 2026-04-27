@@ -34,12 +34,18 @@ use clap::Parser;
 
 mod banner;
 mod boot;
+mod commands;
+mod diff;
 mod eval;
 mod exit;
+mod help;
 mod interactive;
+mod markdown;
 mod prompt;
+mod render;
 mod run;
 mod session;
+mod spinner;
 
 use exit::{ExitCode, classify_error};
 
@@ -75,6 +81,35 @@ enum Command {
     },
     /// Rewind to the most recent pre-edit snapshot.
     Rewind(session::RewindArgs),
+    /// Build the workspace or a specific crate.
+    Build(commands::build::BuildArgs),
+    /// Type-check the workspace or a specific crate.
+    Check(commands::check::CheckArgs),
+    /// Format code.
+    Fmt(commands::fmt::FmtArgs),
+    /// Run clippy linter.
+    Clippy(commands::clippy::ClippyArgs),
+    /// Run tests.
+    Test(commands::test::TestArgs),
+    /// Run code review (clippy + formatting check).
+    Review(commands::review::ReviewArgs),
+    /// Show help for commands and topics.
+    ShowHelp {
+        #[command(subcommand)]
+        topic: Option<HelpTopic>,
+    },
+}
+
+#[derive(clap::Subcommand)]
+enum HelpTopic {
+    /// General help
+    General,
+    /// Help for the run command
+    Run,
+    /// Help for session management
+    Session,
+    /// Help for build commands
+    Build,
 }
 
 #[derive(clap::Subcommand)]
@@ -141,6 +176,59 @@ fn main() {
                 classify_error(&e)
             }
         },
+        Some(Command::Build(args)) => match commands::build::run(args) {
+            Ok(()) => ExitCode::Success,
+            Err(e) => {
+                eprintln!("Error: {e:?}");
+                classify_error(&e)
+            }
+        },
+        Some(Command::Check(args)) => match commands::check::run(args) {
+            Ok(()) => ExitCode::Success,
+            Err(e) => {
+                eprintln!("Error: {e:?}");
+                classify_error(&e)
+            }
+        },
+        Some(Command::Fmt(args)) => match commands::fmt::run(args) {
+            Ok(()) => ExitCode::Success,
+            Err(e) => {
+                eprintln!("Error: {e:?}");
+                classify_error(&e)
+            }
+        },
+        Some(Command::Clippy(args)) => match commands::clippy::run(args) {
+            Ok(()) => ExitCode::Success,
+            Err(e) => {
+                eprintln!("Error: {e:?}");
+                classify_error(&e)
+            }
+        },
+        Some(Command::Test(args)) => match commands::test::run(args) {
+            Ok(()) => ExitCode::Success,
+            Err(e) => {
+                eprintln!("Error: {e:?}");
+                classify_error(&e)
+            }
+        },
+        Some(Command::Review(args)) => match commands::review::run(args) {
+            Ok(()) => ExitCode::Success,
+            Err(e) => {
+                eprintln!("Error: {e:?}");
+                classify_error(&e)
+            }
+        },
+        Some(Command::ShowHelp { topic }) => {
+            let topic_str = match &topic {
+                Some(HelpTopic::General) => Some("general"),
+                Some(HelpTopic::Run) => Some("run"),
+                Some(HelpTopic::Session) => Some("session"),
+                Some(HelpTopic::Build) => Some("build"),
+                None => None,
+            };
+            help::dispatch_help(topic_str);
+            ExitCode::Success
+        }
         None => match interactive_fallback() {
             Ok(()) => ExitCode::Success,
             Err(e) => {

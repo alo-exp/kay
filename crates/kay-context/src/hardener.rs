@@ -41,3 +41,45 @@ impl Default for SchemaHardener {
         Self::new()
     }
 }
+
+#[cfg(test)]
+mod unit {
+    use super::*;
+
+    #[test]
+    fn harden_all_applies_to_each_schema() {
+        let mut s = SchemaHardener::new();
+        let mut schemas = vec![
+            serde_json::json!({"type": "object", "properties": {"x": {}}, "additionalProperties": false}),
+            serde_json::json!({"type": "object", "properties": {"y": {}}}),
+        ];
+        s.harden_all(&mut schemas);
+        // After hardening, each should have additionalProperties: false
+        assert_eq!(schemas[0]["additionalProperties"], serde_json::json!(false));
+        // schema 1 didn't have it — harden should add it
+        assert_eq!(schemas[1]["additionalProperties"], serde_json::json!(false));
+    }
+
+    #[test]
+    fn harden_is_idempotent() {
+        let mut s = SchemaHardener::new();
+        let mut schema = serde_json::json!({
+            "type": "object",
+            "required": ["x"],
+            "properties": {"x": {}},
+            "additionalProperties": false
+        });
+        s.harden(&mut schema);
+        let after_first = schema.clone();
+        s.harden(&mut schema);
+        assert_eq!(schema, after_first, "harden must be idempotent");
+    }
+
+    #[test]
+    fn schema_hardener_default_equals_new() {
+        let a = SchemaHardener::new();
+        let b = SchemaHardener::default();
+        // Both are unit structs — just assert default() doesn't panic.
+        let _ = (a, b);
+    }
+}

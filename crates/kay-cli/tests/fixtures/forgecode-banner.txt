@@ -1,6 +1,16 @@
+ _  __
+| |/ /__ _ _   _
+| ' // _` | | | |
+| . \ (_| | |_| |
+|_|\_\__,_|\__, |
+           |___/
+
+         Version: 0.1.0
 New conversation: :new
      Get started: :info, :usage, :help, :conversation
     Switch model: :model
-    Switch agent: :forge or :muse or :agent
+    Switch agent: :kay or :muse or :agent
           Update: :update
             Quit: :exit or <CTRL+D>
+
+

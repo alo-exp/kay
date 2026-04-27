@@ -71,10 +71,15 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use forge_api::AgentId;
+use futures::StreamExt;
 use reedline::{Reedline, Signal};
+use tokio::runtime::Builder;
 
 use crate::banner;
 use crate::prompt::{KAY_PROMPT, KayPrompt};
+use crate::render::StreamingWriter;
+use kay_config::KayConfig;
+use kay_provider_minimax::{AgentEvent, ChatRequest, Message, MiniMaxProviderBuilder, Provider};
 
 /// Entry point for the interactive-fallback surface.
 ///
@@ -120,18 +125,25 @@ pub fn run() -> Result<()> {
     // "something went wrong" marker without the REPL crashing.
     let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
 
-    let mut prompt = KayPrompt::new(cwd, AgentId::new("kay"));
-    // Minimal reedline editor — no completer/hinter/history in T7.9.
-    // Those are forge_main-coupled (InputCompleter, ForgeHighlighter,
-    // FileBackedHistory with forge-specific paths) and DL-3 keeps
-    // kay-cli free of that dependency. Phase 10+ REPL enhancement
-    // work will add kay-native equivalents.
-    //
+    let mut prompt = KayPrompt::new(cwd.clone(), AgentId::new("kay"));
+    
+    // History: file-backed history stored in ~/.kay/history
+    // This enables arrow key navigation and Ctrl+R search
+    let history_path = kay_config::base_path().join("history");
+    std::fs::create_dir_all(history_path.parent().unwrap()).ok();
+    let history = reedline::FileBackedHistory::with_file(1000, history_path).ok();
+
+    // Minimal reedline editor with history support.
     // `with_ansi_colors(true)` enables the nu-ansi-term color codes
     // KayPrompt emits in `render_prompt_left` / `render_prompt_right`.
     // Without this, those ANSI sequences render as literal text
     // (e.g., `[1;36m` as characters) instead of being interpreted.
-    let mut editor = Reedline::create().with_ansi_colors(true);
+    let mut editor = Reedline::create()
+        .with_ansi_colors(true);
+    
+    if let Some(history) = history {
+        editor = editor.with_history(Box::new(history));
+    }
 
     loop {
         // `read_line` takes `&dyn Prompt` — immutable borrow for the
@@ -151,21 +163,26 @@ pub fn run() -> Result<()> {
 
                 let trimmed = buf.trim();
                 if !trimmed.is_empty() {
-                    // T7.9 contract: REPL surface only, no agent-loop
-                    // integration. The headless surface (`kay run
-                    // --prompt "..."`) carries the agent loop today;
-                    // Phase 10+ will wire the REPL input line into
-                    // `run_turn` so a user can type a prompt at the
-                    // REPL and see streamed events.
-                    //
-                    // Printing a human-visible reminder here (not a
-                    // silent no-op) matches the UX principle that
-                    // every Enter press should produce feedback.
-                    println!(
-                        "(T7.9: interactive turn execution not yet wired — \
-                         use `kay run --prompt \"...\"` for headless mode, \
-                         or Ctrl-D to exit)"
-                    );
+                    // Wire the REPL input to the live MiniMax provider.
+                    // Build a current-thread runtime scoped to this turn.
+                    let runtime = match Builder::new_current_thread().enable_all().build() {
+                        Ok(r) => r,
+                        Err(e) => {
+                            eprintln!("interactive: failed to start runtime: {e}");
+                            continue;
+                        }
+                    };
+
+                    let result = runtime.block_on(run_live_turn(trimmed.to_string()));
+                    match result {
+                        Ok(0) => {} // Success
+                        Ok(code) => {
+                            eprintln!("interactive: turn ended with exit code {code}");
+                        }
+                        Err(e) => {
+                            eprintln!("interactive: turn error: {e}");
+                        }
+                    }
                 }
             }
             Ok(Signal::CtrlC) => {
@@ -207,4 +224,64 @@ pub fn run() -> Result<()> {
     }
 
     Ok(())
+}
+
+/// Run a single live turn with the MiniMax provider.
+/// Streams events to stdout as clean text (render.rs).
+async fn run_live_turn(prompt: String) -> anyhow::Result<i32> {
+    // Load Kay config (reads ~/.kay/kay.toml, env vars, embedded defaults)
+    let config = KayConfig::read().map_err(|e| anyhow::anyhow!("config error: {e}"))?;
+
+    // Resolve model from config
+    let model = config.default_model();
+
+    let provider = MiniMaxProviderBuilder::default()
+        .allowlist(vec![model.clone()])
+        .build()?;
+
+    // Resolve API settings from config
+    let max_tokens = config.api.max_tokens;
+    let temperature = config.api.temperature.map(|t| t as f32);
+
+    let request = ChatRequest {
+        model: model.clone(),
+        messages: vec![Message {
+            role: "user".to_string(),
+            content: prompt,
+            tool_call_id: None,
+        }],
+        tools: vec![],
+        max_tokens,
+        temperature,
+    };
+
+    let mut stream = provider.chat(request).await?;
+
+    // Use StreamingWriter for clean output
+    let mut writer = StreamingWriter::new();
+
+    while let Some(event_result) = stream.next().await {
+        match event_result {
+            Ok(ev) => {
+                match &ev {
+                    AgentEvent::TextDelta { content, .. } => {
+                        writer.text_delta(content);
+                    }
+                    AgentEvent::TaskComplete { .. } => {
+                        writer.task_complete();
+                    }
+                    _ => {
+                        // Verbose mode: also log other events to stderr
+                        eprintln!("[event] {ev:?}");
+                    }
+                }
+            }
+            Err(e) => {
+                eprintln!("interactive: stream error: {e}");
+                return Err(anyhow::anyhow!("provider error: {e}"));
+            }
+        }
+    }
+
+    Ok(0)
 }

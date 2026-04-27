@@ -20,6 +20,7 @@ pub mod registry;
 pub mod runtime;
 pub mod schema;
 pub mod seams;
+pub mod task;
 
 pub use builtins::{
     DEFAULT_MAX_IMAGE_BYTES, ExecuteCommandsTool, FsReadTool, FsSearchTool, FsWriteTool,
@@ -37,3 +38,4 @@ pub use runtime::context::{ServicesHandle, ToolCallContext};
 pub use schema::{TruncationHints, harden_tool_schema};
 pub use seams::sandbox::{NoOpSandbox, Sandbox, SandboxDenial};
 pub use seams::verifier::{NoOpVerifier, TaskVerifier, VerificationOutcome};
+pub use task::{spawn_task, spawn_tasks_parallel, TaskManager, TaskResult, TaskSpec};

@@ -3,15 +3,18 @@
 //! See .planning/phases/06-session-store/06-CONTEXT.md for decisions DL-1..DL-9.
 #![deny(clippy::unwrap_used, clippy::expect_used)]
 
+pub mod budget;
 pub mod config;
 pub mod error;
 pub mod export;
 pub mod fork;
 pub mod index;
+pub mod sessions; // CLI session management commands
 pub mod snapshot;
 pub mod store;
 pub mod transcript;
 
+pub use budget::TokenBudget;
 pub use config::kay_home;
 pub use error::SessionError;
 pub use export::{ExportManifest, export_session, import_session, replay};

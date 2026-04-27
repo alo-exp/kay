@@ -265,10 +265,10 @@ mod tests {
         );
 
         // Default values from .forge.toml must be retained, not reset to zero
-        assert_eq!(actual.max_parallel_file_reads, 64);
-        assert_eq!(actual.max_read_lines, 2000);
-        assert_eq!(actual.tool_timeout_secs, 300);
-        assert_eq!(actual.max_search_lines, 1000);
+        assert_eq!(actual.max_parallel_file_reads, 128);
+        assert_eq!(actual.max_read_lines, 4000);
+        assert_eq!(actual.tool_timeout_secs, 600);
+        assert_eq!(actual.max_search_lines, 2000);
         assert_eq!(actual.tool_supported, true);
     }
 

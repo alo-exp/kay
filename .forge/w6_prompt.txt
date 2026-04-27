@@ -1,0 +1,202 @@
+ORIENTATION: Kay Project — READ THESE DOCS FIRST before doing any work.
+
+You are working on Kay, a Rust terminal coding agent. Read the following files in order to understand the project:
+
+1. CLAUDE.md — project rules, non-negotiables, commit requirements
+2. .planning/PROJECT.md — vision, core value, requirements
+3. .planning/ROADMAP.md — all phases
+4. docs/ARCHITECTURE.md — crate structure, current state (Phase 8 in progress)
+5. docs/knowledge/2026-04.md — project-specific intelligence (patterns, gotchas, key decisions)
+6. docs/lessons/2026-04.md — portable lessons (Rust async, TDD, delegation)
+
+CRITICAL RULES FROM ORIENTATION:
+- DCO on every commit: Signed-off-by: Shafqat Ullah <shafqat@sourcevo.com>
+- No direct commits to main — branch: phase/08-multi-perspective-verification (already created)
+- TDD iron law: RED commit BEFORE GREEN commit per wave
+- Use targeted `cargo check -p kay-verifier` NOT `cargo check --workspace` (workspace times out)
+- AgentEvent is #[non_exhaustive] — use `_ =>` in match arms
+- `mpsc::Receiver` is single-consumer, cannot resubscribe
+
+OBJECTIVE:
+Implement Wave W-6 of Phase 8: cost ceiling + event ordering integration tests + MultiPerspectiveVerifier critic implementation.
+
+CONTEXT:
+Current branch: phase/08-multi-perspective-verification
+W-5 is COMPLETE (committed 14f9367). Now doing W-6.
+
+Current state of crates/kay-verifier/src/verifier.rs:
+- MultiPerspectiveVerifier struct exists with: provider, cost_cap, config, verifier_cost, stream_sink fields
+- verify() currently returns Pass as stub (W-3 note: "critic calls wired in W-6")
+- Disabled mode path is implemented and tested
+
+Current AgentEvent variants already in crates/kay-tools/src/events.rs:
+- AgentEvent::Verification { critic_role: String, verdict: String, reason: String, cost_usd: f64 }
+- AgentEvent::VerifierDisabled { reason: String, cost_usd: f64 }
+Both are already implemented.
+
+CriticRole::as_str() values: "test_engineer", "qa_engineer", "end_user"
+CriticResponse::from_json(s: &str) already parses {"verdict":"pass|fail","reason":"..."}
+CriticRole::system_prompt() already has prompts for each critic.
+
+DESIRED STATE:
+
+### W-6 RED — Create failing test files
+
+Create crates/kay-verifier/tests/cost_ceiling.rs with these test shapes (will fail as RED):
+
+T2-02a: cost_ceiling=$0.001, first critic costs $0.002 → VerifierDisabled{cost_ceiling_exceeded} emitted; verify() returns Pass
+T2-02b: ceiling=$0.10, 3 critics each $0.03 → all 3 Verification events; total $0.09 < ceiling → Pass
+T2-02c: ceiling=$0.10, critic 2 breaches ($0.06 cumulative) → VerifierDisabled after critic 2; critic 3 NOT called; returns Pass
+T2-02d: verifier_cost AND cost_cap show same cumulative value after critics
+T2-02e: after ceiling breach, zero additional critics (no more Verification events after VerifierDisabled)
+
+Create crates/kay-verifier/tests/event_order.rs with:
+
+T2-03a: Benchmark mode event order: Verification(test_engineer) then Verification(qa_engineer) then Verification(end_user)
+T2-03b: TaskComplete follows all Verification events in stream
+
+Add T4-01 proptest to crates/kay-verifier/src/critic.rs inline #[cfg(test)]:
+```rust
+proptest! {
+    #[test]
+    fn critic_response_parser_never_panics(s in "\\PC*") {
+        let _ = CriticResponse::from_json(&s);
+    }
+}
+```
+
+RED commit message:
+"test(verifier): W-6 RED — failing cost ceiling + event ordering integration tests
+
+T2-02a-e: cost ceiling breach tests (compile, but assertions fail).
+T2-03a-b: event ordering tests (compile, but assertions fail).
+T4-01: proptest parser never-panics (should already pass).
+
+VERIFY-03, VERIFY-04
+
+Signed-off-by: Shafqat Ullah <shafqat@sourcevo.com>"
+
+### W-6 GREEN — Implement MultiPerspectiveVerifier::verify()
+
+Implement the full verify() logic in crates/kay-verifier/src/verifier.rs:
+
+```rust
+async fn verify(&self, task_summary: &str, task_context: &str) -> VerificationOutcome {
+    if matches!(self.config.mode, VerifierMode::Disabled) {
+        return VerificationOutcome::Pass { note: "verifier disabled".into() };
+    }
+
+    let roles = match self.config.mode {
+        VerifierMode::Interactive => vec![CriticRole::TestEngineer],
+        VerifierMode::Benchmark => vec![
+            CriticRole::TestEngineer,
+            CriticRole::QAEngineer,
+            CriticRole::EndUser,
+        ],
+        VerifierMode::Disabled => unreachable!(),
+    };
+
+    let mut total_cost: f64 = 0.0;
+
+    for role in &roles {
+        // Check cost ceiling BEFORE calling critic
+        let current = *self.verifier_cost.lock().unwrap();
+        if current > self.config.cost_ceiling_usd as f64 {
+            (self.stream_sink)(AgentEvent::VerifierDisabled {
+                reason: "cost_ceiling_exceeded".into(),
+                cost_usd: current,
+            });
+            return VerificationOutcome::Pass {
+                note: "cost ceiling exceeded — verifier disabled".into(),
+            };
+        }
+
+        // Call OpenRouter for this critic
+        let messages = vec![/* build messages from task_summary, task_context, role.system_prompt() */];
+        let result = self.provider.complete_structured(&self.config.model, messages).await;
+        
+        match result {
+            Ok((response_text, cost)) => {
+                total_cost += cost;
+                *self.verifier_cost.lock().unwrap() += cost;
+                
+                let verdict_str;
+                let reason_str;
+                match CriticResponse::from_json(&response_text) {
+                    Ok(cr) => {
+                        verdict_str = if cr.is_pass() { "pass" } else { "fail" }.to_string();
+                        reason_str = cr.reason.clone();
+                        
+                        (self.stream_sink)(AgentEvent::Verification {
+                            critic_role: role.as_str().to_string(),
+                            verdict: verdict_str.clone(),
+                            reason: reason_str.clone(),
+                            cost_usd: cost,
+                        });
+                        
+                        if !cr.is_pass() {
+                            return VerificationOutcome::Fail {
+                                reason: format!("{}: {}", role.as_str(), cr.reason),
+                            };
+                        }
+                    }
+                    Err(e) => {
+                        // Parse failure — treat as pass to avoid blocking on bad output
+                        (self.stream_sink)(AgentEvent::Verification {
+                            critic_role: role.as_str().to_string(),
+                            verdict: "pass".into(),
+                            reason: format!("parse error: {e}"),
+                            cost_usd: cost,
+                        });
+                    }
+                }
+            }
+            Err(_) => {
+                // Provider error — fail gracefully, return pass to avoid blocking
+            }
+        }
+    }
+
+    VerificationOutcome::Pass {
+        note: format!("all {} critics passed", roles.len()),
+    }
+}
+```
+
+IMPORTANT: Use OpenRouterProvider's actual API (check crates/kay-provider-openrouter/src/lib.rs for the right method to call for structured text completion). The SSE-based stream_chat method may not be appropriate here — look for a complete() or chat_completion() method that returns (String, f64) for (response_text, cost_usd). If no such method exists, you may need to call stream_chat and accumulate the streamed text.
+
+For wiremock tests, each test:
+1. Starts wiremock::MockServer
+2. Registers mock that returns valid SSE: "data: {\"choices\":[{\"message\":{\"content\":\"{\\\"verdict\\\":\\\"pass\\\",\\\"reason\\\":\\\"ok\\\"}\"}}],\"usage\":{\"total_tokens\":50}}\n\ndata: [DONE]\n\n"
+3. Builds OpenRouterProvider pointed at mock server URL
+4. Builds MultiPerspectiveVerifier with mock provider
+5. Collects events via Arc<Mutex<Vec<AgentEvent>>> sink before moves
+6. Asserts outcome and event sequence
+
+GREEN commit message:
+"feat(verifier): W-6 GREEN — cost ceiling + event ordering integration tests pass
+
+Implements MultiPerspectiveVerifier::verify() with real critic dispatch:
+- Per-critic OpenRouter call via provider
+- Cost accumulation in verifier_cost: Arc<Mutex<f64>>
+- AgentEvent::Verification emitted per verdict (VERIFY-04)
+- AgentEvent::VerifierDisabled emitted on cost ceiling breach (VERIFY-03)
+- Early return Pass on ceiling breach (no additional critics run)
+
+T2-02a-e: cost ceiling breach scenarios pass (wiremock-backed).
+T2-03a-b: Verification event order verified (TestEngineer→QAEngineer→EndUser).
+T4-01: CriticResponse::from_json never panics (proptest 10k cases).
+
+VERIFY-03, VERIFY-04
+
+Signed-off-by: Shafqat Ullah <shafqat@sourcevo.com>"
+
+SUCCESS CRITERIA:
+- cargo test -p kay-verifier exits 0 with all T2-02, T2-03, T4-01 tests passing
+- cargo clippy -p kay-verifier -- -D warnings exits 0
+- Two commits: W-6 RED (failing tests) then W-6 GREEN (passing)
+- No direct commits to main
+
+IMPORTANT: After completing W-6, also update docs/knowledge/2026-04.md and docs/lessons/2026-04.md with anything new you learned (as per docs/doc-scheme.md which says docs must be updated after every task). Keep entries brief — one line per insight.
+
+INJECTED SKILLS: testing-strategy, code-review

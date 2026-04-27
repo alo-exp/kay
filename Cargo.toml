@@ -5,17 +5,23 @@ resolver = "2"
 # adding a crate.
 members = [
     "crates/kay-cli",
+    "crates/kay-config",
+    "crates/kay-context",
     "crates/kay-core",
     "crates/kay-provider-errors",
     "crates/kay-provider-openrouter",
+    "crates/kay-provider-minimax",
     "crates/kay-sandbox-linux",
     "crates/kay-sandbox-macos",
     "crates/kay-sandbox-policy",
     "crates/kay-sandbox-windows",
     "crates/kay-tauri",
+    "crates/kay-template",
+    "crates/kay-json-repair",
     "crates/kay-tools",
     "crates/kay-session",
     "crates/kay-tui",
+    "crates/kay-verifier",
     "crates/forge_tool_macros",
     "crates/forge_template",
     "crates/forge_json_repair",
@@ -41,6 +47,8 @@ members = [
     "crates/forge_repo",
     "crates/forge_api",
     "crates/forge_main",
+    "crates/kay-display",
+    "crates/kay-repo",
 ]
 
 [workspace.package]
@@ -213,6 +221,21 @@ notify-debouncer-mini = "0.4"
 assert_cmd = "2"
 predicates = "3"
 
+# Phase 9 (kay-tauri) additions
+# = pins on RC packages to prevent accidental upgrades; specta version must
+# match exactly what tauri-specta declares in its own Cargo.toml.
+# RC.24 is latest available on crates.io (2026-04-24).
+tauri             = { version = "2.3", features = ["rustls-tls", "wry"] }
+tauri-build       = { version = "2.3" }
+tauri-specta      = { version = "=2.0.0-rc.24", features = ["derive", "typescript"] }
+specta            = { version = "=2.0.0-rc.24", features = ["serde_json"] }  # must match tauri-specta's dep
+specta-typescript = "0.0.11"
+
+# Phase 9.5 (kay-tui) additions
+# ratatui ≥ 0.27 (satisfies spec requirement). Pin minor to avoid accidental
+# breaking changes; bump intentionally per Phase milestone.
+ratatui = "0.30"
+
 # Platform-specific
 windows-sys = { version = "0.61", features = ["Win32_System_Console", "Win32_System_Threading", "Win32_Security", "Win32_System_JobObjects"] }
 landlock    = "0.4"
@@ -223,3 +246,6 @@ lto = true
 codegen-units = 1
 opt-level = 3
 strip = true
+
+[workspace.dependencies.kay-display]
+path = "crates/kay-display"

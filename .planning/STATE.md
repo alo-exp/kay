@@ -1,21 +1,19 @@
 ---
-gsd_state_version: 1.0
-milestone: v0.3.0
-milestone_name: Agent Loop + Canonical CLI
-status: in_progress
-stopped_at: "Phase 7 shipped — PR #13 open (https://github.com/alo-exp/kay/pull/13), branch phase/07-context-engine, 70 tests green, clippy -D warnings clean. Ready for Phase 8."
-last_updated: "2026-04-22T12:00:00Z"
-next_phase: 8
-next_action: "/silver:feature Phase 8: Multi-Perspective Verification (KIRA Critics)"
-last_activity: "2026-04-22 -- Phase 7 SHIPPED. kay-context crate (10 modules): tree-sitter symbol store + SQLite FTS5 + sqlite-vec hybrid retrieval, per-turn ContextBudget, SchemaHardener (ForgeCode hardening), FileWatcher 500ms debounce. 39 commits, 70 tests green. PR #13 open against main. 5 REQs closed: CTX-01..05. Key decisions: sqlite-vec =0.1.10-alpha.3 exact pin, FakeEmbedder always-compiled, Arc<dyn Fn()> watcher, insert_symbol (not upsert), KayContextEngine pub-removed until Phase 8, _ctx_packet unused Phase 7. Full /silver:feature pipeline executed. Security: 7/7 SECURED. Nyquist: 6/6 COVERED. Quality gates: 9/9 adversarial PASS. Code review: 5/5 warnings fixed."
-progress:
-  total_phases: 17
-  completed_phases: 6
-  total_plans: 26
-  completed_plans: 26
-  percent: 100
 ---
-
+gsd_state_version: 1.0
+milestone: v0.5.0
+milestone_name: Phase 12 — TB 2.0 Submission + v1 Hardening
+status: planning
+last_updated: "2026-04-26T00:00:00Z"
+next_phase: 12
+next_action: "Phase 12 W1: EVAL-01a parity baseline — run unmodified fork on TB 2.0 ≥80%"
+last_activity: "2026-04-26 — Phase 12 plan created. W1: EVAL-01a (Harbor + MiniMax ≥80%); W2: kay eval tb2 command; W3: held-out task validation; W4: real-repo eval; W5: v1.0.0 release."
+progress:
+  total_phases: 12
+  completed_phases: 11
+  total_plans: 41
+  completed_plans: 44
+  percent: 73
 # Project State
 
 ## Project Reference
@@ -27,22 +25,25 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 
 ## Current Position
 
-Phase: Phase 4 CLOSED (v0.2.0 signed tag shipped). Active: **Phase 5** (Agent Loop + Canonical CLI — streaming tool-call turn loop, `kay` CLI binary, TUI smoke path).
-Status: Phase 4 SHIPPED 2026-04-21. PR #5 open against main. 10 decisions locked in `.planning/phases/04-sandbox/04-CONTEXT.md`:
-  - D-01 Sandbox backend split: four crates (`kay-sandbox-policy` shared type + three platform crates `kay-sandbox-macos/linux/windows`) so Linux Landlock can't leak into macOS/Windows builds.
-  - D-02 macOS: inline `sandbox-exec -p <profile>` (no tempfile); policy cached once per process by hash.
-  - D-03 Linux: Landlock ruleset v2 with graceful `ENOSYS` fallback to seccomp-BPF-only on kernels <5.13 (emits `AgentEvent::SandboxViolation` at startup — never silently drops enforcement).
-  - D-04 Windows: Job Object with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` + `CreateRestrictedToken(DISABLE_MAX_PRIVILEGE)`; RAII `JobHandle` closes handle on drop → kills entire descendant tree (R-4 closed).
-  - D-05 `SandboxPolicy` struct in `kay-sandbox-policy` crate: serde-deserializable + `default_for_project(root)` helper; `allows_read/write/net(host, port)` predicates; `NetAllow` per-host+port matcher.
-  - D-06 `AgentEvent::SandboxViolation { call_id, tool_name, resource, policy_rule, os_error }` — 5-field variant, `#[non_exhaustive]`. QG-C4: MUST NOT be re-injected into model context (enforced by Phase 5 loop).
-  - D-07 `dispatcher::dispatch()` populated — registry lookup + `tool.invoke(args, ctx, call_id)` with `ToolError::NotFound` for unknown. Each tool self-checks `ctx.sandbox` before acting (no retrofit of tool code).
-  - D-08 `RngSeam` trait populated: `OsRngSeam` wraps rand 0.10 `SysRng::try_fill_bytes` (panics on catastrophic OS entropy failure — documented in source as unavoidable); `DeterministicRng` LCG for tests.
-  - D-09 CI matrix: macos-14 (arm64 M1), ubuntu-latest, windows-latest — all three run the escape suite (real subprocesses attempting out-of-bounds writes/reads/net).
-  - D-10 Escape suite architecture: user-space subprocesses — no root required; subprocess is spawned with sandbox active, asserts kernel denies the operation via exit code + `AgentEvent::SandboxViolation` emission.
-Artifacts: `04-BRAINSTORM.md`, `04-CONTEXT.md`, `04-DEPENDENCIES.md`, `04-PLAN.md`, `04-QUALITY-GATES.md`, `04-TEST-STRATEGY.md`, `04-VERIFICATION.md` (7/7 SC PASS), `04-SECURITY.md` (10-threat model, all NN-compliant), `04-NYQUIST.md` (coverage audit PASS). 60 DCO-signed commits on `phase/04-sandbox`; signed tag `v0.2.0` on HEAD. PR #5 going through final CI verification (DCO check replaced with inline shell script after tim-actions/dco crashed on argv length).
-Last activity: 2026-04-21 -- Phase 4 closure + CI red cleanup. Four CI issues landed in fix commits: (1) Windows HANDLE `job == 0` replaced with `.is_null()` (windows-sys HANDLE is raw pointer); (2) workspace fmt sweep for accumulated debt; (3) unused `use std::sync::Arc` removed from `runtime/dispatcher.rs`; (4) `let pty_pid: Option<i32>` gated `#[cfg(unix)]` because consumers are unix-only. DCO action replaced with inline `git rev-list` shell check because `tim-actions/dco` crashed with "Argument list too long" on 60-commit PR. Next: `/silver:feature Phase 5` after CI is green.
+Phase: **Phase 11 CLOSED (v0.5.0)** — Cross-platform release pipeline shipped.
 
-Progress: [████████░░░░░░] 31% (4 of 13 phases done; Phase 2.5 interim complete; v0.2.0 tag signed)
+**Progress: [██████████████████████░░░░] 73% (11 of 12 phases done; v0.5.0)**
+
+**Phase 12 planned (2026-04-26):** TB 2.0 Submission + v1 Hardening
+
+- W1: EVAL-01a parity baseline (Harbor + MiniMax ≥80%)
+- W2: `kay eval tb2` command
+- W3: Held-out task subset validation
+- W4: Real-repo eval (Rails, React+TS, Rust, Python, monorepo)
+- W5: v1.0.0 signed release
+
+**Phase 11 completed (2026-04-25):** Cross-platform CI (macOS/Windows/Linux), code signing (notarytool + Azure), crates.io publish workflow, Tauri minisign updater.
+
+**Phase 10 completed (2026-04-25):** Multi-Session Manager shipped — spawn/pause/resume/fork/kill sessions from both frontends. OS keyring for API key storage. Settings panel (4 tabs). 8 Tauri commands, 41 tests passing.
+
+**Phase 9 shipped (PR #18, 2026-04-24):** Tauri 2.x desktop shell with specta-typed IPC, Channel streaming, session view with tool-call timeline + token/cost meter, 4h memory canary.
+
+Next: Phase 12 W1 — EVAL-01a baseline run.
 
 ## Performance Metrics
 
@@ -54,19 +55,25 @@ Progress: [████████░░░░░░] 31% (4 of 13 phases done;
 
 **By Phase:**
 
-| Phase | Plans  | Description                       | Notes |
-|-------|--------|-----------------------------------|-------|
-| 01    | 6      | Fork + parity scaffold            | EVAL-01 baseline deferred to EVAL-01a |
-| 02    | 9      | Provider HAL + SSE + retry        | PROV-01..PROV-08 shipped |
-| 02.5  | 4      | kay-core sub-crate split          | 23 workspace crates |
-| 03    | 5      | Tool registry + KIRA core         | v0.1.1 shipped; 174 tests green |
-| 04    | 7w     | Sandbox — 3 platforms             | v0.2.0 shipped; R-4+R-5 closed |
+| Phase | Plans | Description | Notes |
+|-------|-------|-------------|-------|
+| 01 | 6 | Fork + parity scaffold | EVAL-01 baseline deferred to EVAL-01a |
+| 02 | 9 | Provider HAL + SSE + retry | PROV-01..PROV-08 shipped |
+| 02.5 | 4 | kay-core sub-crate split | 23 workspace crates |
+| 03 | 5 | Tool registry + KIRA core | v0.1.1 shipped; 174 tests green |
+| 04 | 7w | Sandbox — 3 platforms | v0.2.0 shipped; R-4+R-5 closed |
+| 05 | TBD | Agent Loop + Canonical CLI | PR #8 shipped; 236 tests green |
+| 06 | TBD | Session Store + Transcript | PR #12 shipped; 91 tests green |
+| 07 | TBD | Context Engine | PR #13 shipped; 70 tests green |
+| 08 | TBD | Multi-Perspective Verification | PR #17 shipped; VERIFY-01..04 closed |
+| 09 | TBD | Tauri Desktop Shell | PR #18 shipped; 4h memory canary |
+| 09.5 | TBD | TUI Frontend (ratatui) | PR #19 shipped; JSONL contract live |
+| 10 | 8 waves | Multi-Session Manager | All 8 waves shipped; 41 tests green |
+| 11 | TBD | Cross-Platform Release Pipeline | CI matrix + code signing + crates.io + Tauri updater |
 
 **Recent Trend:**
 
-- Last 5 phase deliverables: 04-W0 (kay-sandbox-policy scaffold) → 04-W1 (AgentEvent::SandboxViolation) → 04-W2 (RngSeam + dispatch — closed R-5) → 04-W3-W6 (three platform backends + CI matrix) → closure (verify + secure + Nyquist + signed tag v0.2.0).
-- Trend: Phase 4 shipped cleanly under TDD discipline — 6 waves, 68 tests, 10-threat model, 7/7 SC PASS. Key architectural finding: **`JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` is the only reliable cross-platform way to ensure grandchild cleanup on Windows** (R-4). The `JobHandle` RAII wrapper makes this automatic from Rust. On Linux, **Landlock ENOSYS fallback** to seccomp-BPF-only must emit a startup `SandboxViolation` event — silently dropping enforcement is a policy bug that masquerades as a no-op. On macOS, **inline `sandbox-exec -p <profile>`** with per-process SBPL hash caching outperformed the tempfile approach (no filesystem I/O per subprocess). Post-closure CI-red cleanup required 4 fixes: (1) Windows HANDLE `is_null()` (not `== 0` — HANDLE is `*mut c_void`); (2) workspace fmt sweep; (3) unused `Arc` import; (4) `pty_pid` `#[cfg(unix)]` gate. DCO CI action (`tim-actions/dco`) replaced with inline shell loop because it crashes with "Argument list too long" on PRs with many commits.
-
+- Last 10 phase deliverables: Phase 5 (agent loop + CLI) → Phase 6 (session store) → Phase 7 (context engine) → Phase 8 (KIRA critics) → Phase 9 (Tauri shell) → Phase 9.5 (ratatui TUI) → Phase 10 (Multi-Session Manager). All shipped cleanly.
 *Updated after each plan completion*
 
 ## Accumulated Context
@@ -132,13 +139,15 @@ Items acknowledged and carried forward:
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| EVAL | EVAL-01a — run unmodified fork on TB 2.0 ≥80% | Blocked on OpenRouter key + ~$100 budget | Phase 1 (D-OP-01) |
+| EVAL | EVAL-01a — run unmodified fork on TB 2.0 ≥80% | **UNBLOCKED** — MiniMax-M2.7 API key configured (2026-04-25). Use `MINIMAX_API_KEY`. | Phase 1 (D-OP-01); resolved 2026-04-25 |
 | Compile | kay-core 23 × E0583 (forge_* naming) | RESOLVED in plan 02-02 (2026-04-19, commit bb57694 — 23 renames, R100 on every file) | Phase 1 (01-03-SUMMARY §Deferrals) |
 | Compile | kay-core E0432/E0433 (cross-subtree import paths) | FULLY RESOLVED by Phase 2.5 sub-crate split (2026-04-20). Plan 02-05's mechanical rewrite was superseded; sub-crate split makes per-crate `use crate::X` correct by construction. `cargo check --workspace` passes with 0 exclusions. | Phase 2 (02-02/03/04-SUMMARY); resolved in 02.5-VERIFICATION.md |
 | Release signing | GPG/SSH signing of release tags | v0.0.x unsigned carve-out; mandatory v0.1.0+ | Phase 1 (SECURITY.md §Release Signing) |
 
 ## Session Continuity
 
-Last session: 2026-04-21 — Phase 4 shipped (v0.2.0 signed) and CI red cleanup on PR #5. Executed full 19-flow `/silver:feature` pipeline from brainstorm through signed-tag ship. Post-ship cleanup: diagnosed three CI failures (Windows HANDLE pointer-type mismatch, fmt debt, unused imports/variables) + one CI infra failure (tim-actions/dco crashes with argv overflow on 60-commit PRs). All four fixed in two commits (`6498fcc` code fixes, `d1c51b7` inline DCO shell check). Final CI verification in progress: DCO ✅, Lint ✅, Ubuntu ✅, macOS ✅, Windows ⏳. Escape suite ran real kernel-enforced subprocess denials on all three OSes.
-Stopped at: Phase 4 closure complete. PR #5 going green. v0.2.0 signed tag pushed. Awaiting final Windows CI pass, then merge + Phase 5 entry.
-Resume file: `/silver:feature Phase 5: Agent Loop + Canonical CLI` (per `next_action` in frontmatter; chains automatically per standing autonomous directive; Phase 4 artifacts + QG-C4 carry-forward feed Phase 5 planning).
+Last session: 2026-04-26 — Phase 12 plan created (.planning/phases/12-terminal-bench-submission/12-PLAN.md). W1: EVAL-01a parity baseline (Harbor + MiniMax ≥80%); W2: kay eval tb2 command; W3: held-out task validation; W4: real-repo eval (Rails, React+TS, Rust, Python, monorepo); W5: v1.0.0 signed release. ROADMAP.md updated with Phase 1-11 completion. README.md updated to v0.5.0. Branch `phase/10-multi-session-manager`.
+
+Stopped at: Phase 12 planning complete. Committed as 7698c89. Ready for EVAL-01a execution.
+
+Resume action: Phase 12 W1 — run EVAL-01a baseline. MiniMax-M2.7 API key configured (use `MINIMAX_API_KEY` env var). Harbor harness + TB 2.0 Docker images needed. ~$100 budget for eval runs.

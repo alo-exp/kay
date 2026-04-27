@@ -1,0 +1,21 @@
+[package]
+name = "kay-config"
+publish = false
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Kay CLI configuration (Phase 12)"
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+toml_edit = "0.22"
+dirs = "5"
+dotenvy = "0.15"
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = "1"

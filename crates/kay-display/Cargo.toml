@@ -1,0 +1,15 @@
+[package]
+name = "kay-display"
+publish = false
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Streaming markdown display for Kay CLI (Forge-compatible output)"
+
+[dependencies]
+colored = "2"
+regex = "1"
+terminal_size = "0.4"

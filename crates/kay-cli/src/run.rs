@@ -90,13 +90,16 @@ use std::sync::{Arc, Mutex};
 use async_trait::async_trait;
 use clap::Args;
 use forge_domain::{FSRead, FSSearch, FSWrite, NetFetch, ToolOutput};
+use futures::StreamExt;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
+use kay_config::KayConfig;
 use kay_core::control::{control_channel, install_ctrl_c_handler};
 use kay_core::r#loop::{RunTurnArgs, run_turn};
 use kay_core::persona::Persona;
 use kay_provider_errors::ProviderError;
+use kay_provider_minimax::Provider;
 use kay_tools::events_wire::AgentEventWire;
 use kay_tools::{
     AgentEvent, ImageQuota, NoOpSandbox, NoOpVerifier, ServicesHandle, ToolCallContext,
@@ -104,6 +107,7 @@ use kay_tools::{
 };
 
 use crate::exit::ExitCode;
+use crate::render::StreamingWriter;
 
 /// Arguments for `kay run`. T7.5 adds `-p` short alias on
 /// `--prompt` and `allow_hyphen_values` so prompts that begin with
@@ -135,6 +139,18 @@ pub struct RunArgs {
     /// two modes once the OpenRouter adapter is ready.
     #[arg(long, default_value_t = false)]
     pub offline: bool,
+
+    /// Use the live MiniMax API provider (MiniMax-M2.7 by default).
+    /// Reads `MINIMAX_API_KEY` from the environment.
+    /// Falls back to `OPENROUTER_API_KEY` if MINIMAX_API_KEY is unset.
+    /// Mutually exclusive with `--offline`.
+    #[arg(long, default_value_t = false)]
+    pub live: bool,
+
+    /// Model to use with the live provider. Defaults to
+    /// `minimax/MiniMax-M2.7` per Phase 12 EVAL-01a entry gate.
+    #[arg(long, value_name = "MODEL")]
+    pub model: Option<String>,
 
     /// Upper bound on agent turns before the loop exits with code 1
     /// (bounded-loop exit — distinct from 0/2/3/130). Absent =
@@ -205,6 +221,15 @@ pub fn execute(args: RunArgs) -> anyhow::Result<ExitCode> {
         anyhow::bail!("max turns exceeded (budget: 0)");
     }
 
+    // ── Mutual exclusion: --offline and --live ───────────────────
+    if args.offline && args.live {
+        anyhow::bail!("--offline and --live are mutually exclusive");
+    }
+
+    // ── Load Kay configuration ─────────────────────────────────────
+    // Reads from: embedded defaults → ~/.kay/kay.toml → env vars (KAY_*)
+    let config = KayConfig::read().map_err(|e| anyhow::anyhow!("config error: {e}"))?;
+
     // Load the persona synchronously so a bad `--persona` path fails
     // before we pay for the runtime. `PersonaError` is `thiserror`
     // so `?` converts to `anyhow::Error` automatically. The
@@ -225,7 +250,14 @@ pub fn execute(args: RunArgs) -> anyhow::Result<ExitCode> {
         .enable_all()
         .build()?;
 
-    runtime.block_on(run_async(args.prompt, persona, args.resume))
+    runtime.block_on(run_async(
+        args.prompt,
+        persona,
+        args.resume,
+        args.live,
+        args.model,
+        config,
+    ))
 }
 
 /// The async half of `execute` — builds channels, spawns the offline
@@ -260,6 +292,9 @@ async fn run_async(
     prompt: String,
     persona: Persona,
     resume: Option<uuid::Uuid>,
+    live: bool,
+    model: Option<String>,
+    config: KayConfig,
 ) -> anyhow::Result<ExitCode> {
     // ── Channel topology ────────────────────────────────────────
     //
@@ -294,16 +329,19 @@ async fn run_async(
     let (model_tx, model_rx) = mpsc::channel::<Result<AgentEvent, ProviderError>>(32);
     let (event_tx, mut event_rx) = mpsc::channel::<AgentEvent>(32);
 
-    // ── Offline provider ────────────────────────────────────────
-    // Dedicated task so the provider's `send().await` interleaves
-    // cooperatively with the loop's `select!`. Inlining would
-    // serialize production + forwarding and defeat the whole point
-    // of a biased select.
-    // Pre-compute session title from prompt before prompt is moved into the provider task.
+    // ── Provider selection ──────────────────────────────────────
+    //
+    // `live` flag selects the MiniMax (OpenRouter-compatible) provider;
+    // `--offline` (default) selects the in-memory mock provider.
+    // Both providers run as a dedicated tokio task so the loop's biased
+    // `select!` retains priority over the model frame channel.
     let session_title: String = prompt.chars().take(120).collect();
-    // Save a copy for RunTurnArgs::initial_prompt before prompt is moved.
     let initial_prompt = prompt.clone();
-    tokio::spawn(offline_provider(prompt, model_tx));
+    if live {
+        tokio::spawn(live_provider(prompt, model_tx, model, config)).await??;
+    } else {
+        tokio::spawn(offline_provider(prompt, model_tx));
+    }
 
     // ── Empty registry + minimal context ────────────────────────
     // T7.3 offline scenarios never emit `ToolCallComplete`, so the
@@ -416,6 +454,10 @@ async fn run_async(
     let mut stdout = std::io::stdout().lock();
     let mut sandbox_violation_seen = false;
     let mut aborted_seen = false;
+
+    // Use StreamingWriter for clean output (render.rs)
+    let mut writer = StreamingWriter::new();
+
     while let Some(ev) = event_rx.recv().await {
         if matches!(ev, AgentEvent::SandboxViolation { .. }) {
             sandbox_violation_seen = true;
@@ -423,15 +465,22 @@ async fn run_async(
         if matches!(ev, AgentEvent::Aborted { .. }) {
             aborted_seen = true;
         }
-        write!(stdout, "{}", AgentEventWire::from(&ev))?;
-        // `.ok()`: a broken-pipe error here (e.g., `kay run ... |
-        // head -n 1` closes its end after one line) should not be
-        // fatal — the loop will naturally observe the next write
-        // failing via the `?` above, or the event channel dropping
-        // when run_turn exits. Best-effort flush is sufficient;
-        // broken-pipe still routes to `ExitCode::RuntimeError` via
-        // the `?` on `write!` above if the write itself fails.
-        stdout.flush().ok();
+
+        // For live mode: render text deltas cleanly instead of JSONL
+        // For offline/special events: emit full JSONL for compatibility
+        match &ev {
+            AgentEvent::TextDelta { content, .. } if live => {
+                writer.text_delta(content);
+            }
+            AgentEvent::TaskComplete { .. } if live => {
+                writer.task_complete();
+            }
+            _ => {
+                // Non-live or special events: write JSONL
+                write!(stdout, "{}", AgentEventWire::from(&ev))?;
+                stdout.flush().ok();
+            }
+        }
 
         // Phase 6 event-tap: passive fan-out to session transcript (E-2 from 06-BRAINSTORM.md).
         // Zero changes to run_turn / kay-core — drain loop is the sole subscriber. QG-C4 intact.
@@ -476,6 +525,65 @@ async fn run_async(
     } else {
         Ok(ExitCode::Success)
     }
+}
+
+/// Live provider task — streams real `AgentEvent` frames from the MiniMax
+/// native API via `kay_provider_minimax`.
+///
+/// API key resolution: Uses KayConfig which reads from:
+///   1. Environment variable (MINIMAX_API_KEY or OPENROUTER_API_KEY)
+///   2. ~/.kay/kay.toml user config
+///   3. Embedded defaults
+///
+/// Model: CLI `--model` flag > KayConfig default_model > "MiniMax-M2.1"
+///
+/// All send errors are silently dropped — same as `offline_provider`.
+async fn live_provider(
+    prompt: String,
+    model_tx: mpsc::Sender<Result<AgentEvent, ProviderError>>,
+    model_override: Option<String>,
+    config: KayConfig,
+) -> Result<(), ProviderError> {
+    use kay_provider_minimax::{ChatRequest, Message, MiniMaxProviderBuilder};
+
+    // Resolve model: CLI flag > config default > embedded default
+    let model = model_override
+        .or_else(|| config.provider.default_model.clone())
+        .unwrap_or_else(|| "MiniMax-M2.1".to_string());
+
+    let provider = MiniMaxProviderBuilder::default()
+        .allowlist(vec![model.clone()])
+        .build()?;
+
+    // Resolve API settings from config
+    let max_tokens = config.api.max_tokens;
+    let temperature = config.api.temperature.map(|t| t as f32);
+
+    let request = ChatRequest {
+        model: model.clone(),
+        messages: vec![Message {
+            role: "user".to_string(),
+            content: prompt,
+            tool_call_id: None,
+        }],
+        tools: vec![],
+        max_tokens,
+        temperature,
+    };
+
+    let mut stream = provider.chat(request).await?;
+    while let Some(event_result) = stream.next().await {
+        let event = match event_result {
+            Ok(ev) => ev,
+            Err(e) => {
+                // Cannot clone ProviderError, so just return without
+                // notifying the channel (error will surface to caller).
+                return Err(e);
+            }
+        };
+        let _ = model_tx.send(Ok(event)).await;
+    }
+    Ok(())
 }
 
 /// Offline provider task — emits canned `AgentEvent` sequences keyed

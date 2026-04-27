@@ -1,0 +1,9 @@
+This crate incorporates source code derived from ForgeCode
+(https://github.com/antinomyhq/forgecode), Copyright 2025 Tailcall,
+licensed under the Apache License, Version 2.0.
+
+`kay-tools` delegates filesystem, search, fetch, and image-decode
+operations to forge_app::ToolExecutor and forge_services::tool_services
+to preserve byte-identical parity with ForgeCode (Phase 3 D-10).
+
+See the repository-level NOTICE for full attribution.

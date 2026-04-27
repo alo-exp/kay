@@ -23,11 +23,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Sandbox (All Three Platforms)** *(COMPLETE 2026-04-21 — shipped as v0.2.0; PR #5 squash-merged as `1ae2a7f`)* - Per-OS sandbox: macOS `sandbox-exec` (inline SBPL, hash-cached), Linux Landlock v2 + seccomp with graceful ENOSYS fallback emitting SandboxViolation, Windows Job Objects + restricted token (`CreateRestrictedToken` + `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`). 4-crate split (`kay-sandbox-{policy,macos,linux,windows}`); 68-test pyramid incl. 36 real-subprocess escape attempts across 3 OSes; QG-C4 (SandboxViolation MUST NOT re-inject into model context) locked via doc-comment. R-4 grandchild cascade closed via RAII `JobHandle::drop`. DCO CI replaced `tim-actions/dco@f2279e6e` (ARG_MAX crash on multi-commit PRs) with inline bash per-commit loop.
 - [x] **Phase 5: Agent Loop + Canonical CLI** *(COMPLETE 2026-04-22 — PR #8 squash-merged)* - `tokio::select!` loop, frozen `AgentEvent` shape, YAML personas (forge/sage/muse — inherited from ForgeCode), mandatory verification gate, rebranded `forge_main` → `kay-cli` with structured-event JSONL stream (the contract GUI and TUI frontends consume). 236 tests green; 11 REQs closed (LOOP-01..06 + CLI-01/03/04/05/07); QG-C4 event_filter.rs CI gate.
 - [x] **Phase 6: Session Store + Transcript** *(COMPLETE 2026-04-22 — PR #12 squash-merged as 793317c)* - JSONL source-of-truth transcripts + SQLite index, resume/fork, pre-edit snapshots, self-contained session export. `kay-session` crate; 91 tests green; 6 REQs closed (SESS-01..05 + CLI-02); 9/9 adversarial quality gates PASS.
-- [ ] **Phase 7: Context Engine** - tree-sitter symbol store + SQLite hybrid retrieval, explicit context-size budget, ForgeCode schema hardening applied in-context.
-- [ ] **Phase 8: Multi-Perspective Verification (KIRA Critics)** - Test engineer + QA engineer + end-user critics with confidence-gated firing, bounded re-work, and cost ceilings.
-- [ ] **Phase 9: Tauri Desktop Shell** - Tauri 2.x app with specta-typed IPC, `Channel<AgentEvent>` streaming, session view with tool-call timeline + token/cost meter; 4h memory canary. Desktop GUI frontends the `kay-cli` event contract.
-- [ ] **Phase 9.5: TUI Frontend (ratatui)** *(INSERTED 2026-04-19)* - Full-screen ratatui terminal UI consuming the same `kay-cli` JSONL event stream as the Tauri GUI. Multi-pane layout, keyboard-first, SSH-friendly.
-- [ ] **Phase 10: Multi-Session Manager + Project Settings** - Spawn/pause/resume/fork sessions from GUI and TUI, project workspace + keyring binding, model allowlist picker, command-approval dialog, settings panel.
+- [x] **Phase 7: Context Engine** *(COMPLETE 2026-04-22 — PR #13 squash-merged)* - tree-sitter symbol store + SQLite FTS5 + sqlite-vec hybrid retrieval, per-turn ContextBudget, SchemaHardener. `kay-context` crate; 70 tests green; 5 REQs closed (CTX-01..05); 9/9 adversarial QG PASS.
+- [x] **Phase 8: Multi-Perspective Verification (KIRA Critics)** *(COMPLETE 2026-04-23 — PR #17 squash-merged as b21897a2)* - Test engineer + QA engineer + end-user critics with confidence-gated firing, bounded re-work, and cost ceilings. VERIFY-01..04 closed.
+- [x] **Phase 9: Tauri Desktop Shell** *(COMPLETE 2026-04-24 — PR #18 squash-merged)* - Tauri 2.x app with specta-typed IPC, `Channel<AgentEvent>` streaming, session view with tool-call timeline + token/cost meter; 4h memory canary. Desktop GUI frontends the `kay-cli` event contract.
+- [x] **Phase 9.5: TUI Frontend (ratatui)** *(INSERTED 2026-04-19; COMPLETE 2026-04-24 — PR #19 squash-merged)* - Full-screen ratatui terminal UI consuming the same `kay-cli` JSONL event stream as the Tauri GUI. Multi-pane layout, keyboard-first, SSH-friendly.
+- [ ] **Phase 10: Multi-Session Manager + Project Settings** *(planned 2026-04-24)* - Spawn/pause/resume/fork sessions from GUI and TUI, project workspace + keyring binding, model allowlist picker, command-approval dialog, settings panel.
 - [ ] **Phase 11: Cross-Platform Hardening + Release Pipeline** - Signed + notarized bundles for macOS (arm64/x64), Windows (x64), Linux (x64/arm64); `cargo install kay` (standalone CLI); `cargo install kay-tui` (TUI); minisign updater for desktop bundle.
 - [ ] **Phase 12: Terminal-Bench 2.0 Submission + v1 Hardening** - Reproducible Harbor runner, held-out task subset, parallel real-repo eval, official >81.8% TB 2.0 submission with archived reference run.
 
@@ -303,19 +303,20 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Fork, Governance, Infrastructure | 6/6   | Complete | 2026-04-19 |
+| 1. Fork, Governance, Infrastructure | 6/6 | Complete | 2026-04-19 |
 | 2. Provider HAL + Tolerant JSON Parser | 9/9 (02-05 superseded by 2.5) | Complete | 2026-04-20 |
 | 2.5. kay-core sub-crate split *(INSERTED 2026-04-20)* | 4/4 | Complete (verifier PASS 8/8) | 2026-04-20 |
-| 3. Tool Registry + KIRA Core Tools | 0/5 | Planning complete | - |
-| 4. Sandbox (All Three Platforms) | 0/TBD | Not started | - |
-| 5. Agent Loop (Event-Driven Core) | 0/TBD | Not started | - |
-| 6. Session Store + Transcript | 0/TBD | Not started | - |
-| 7. Context Engine | 0/TBD | Not started | - |
-| 8. Multi-Perspective Verification (KIRA Critics) | 0/TBD | Not started | - |
-| 9. Tauri Desktop Shell | 0/TBD | Not started | - |
-| 10. Multi-Session Manager + Project Settings | 0/TBD | Not started | - |
-| 11. Cross-Platform Hardening + Release Pipeline | 0/TBD | Not started | - |
-| 12. Terminal-Bench 2.0 Submission + v1 Hardening | 0/TBD | Not started | - |
+| 3. Tool Registry + KIRA Core Tools | 5/5 | Complete | 2026-04-21 |
+| 4. Sandbox (All Three Platforms) | 7 waves | Complete | 2026-04-21 |
+| 5. Agent Loop (Event-Driven Core) | PR #8 | Complete | 2026-04-22 |
+| 6. Session Store + Transcript | PR #12 | Complete | 2026-04-22 |
+| 7. Context Engine | PR #13 | Complete | 2026-04-22 |
+| 8. Multi-Perspective Verification (KIRA Critics) | PR #17 | Complete | 2026-04-23 |
+| 9. Tauri Desktop Shell | PR #18 | Complete | 2026-04-24 |
+| 9.5 TUI Frontend (ratatui) | PR #19 | Complete | 2026-04-24 |
+| 10. Multi-Session Manager + Project Settings | 8 waves | Complete | 2026-04-25 |
+| 11. Cross-Platform Hardening + Release Pipeline | CI matrix + code signing + crates.io + Tauri updater | Complete | 2026-04-25 |
+| 12. Terminal-Bench 2.0 Submission + v1 Hardening | TBD | Not started | - |
 
 ## Backlog
 

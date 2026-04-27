@@ -1,0 +1,2 @@
+[1m[92m    Blocking[0m waiting for file lock on artifact directory
+TEST1_EXIT_CODE=0

@@ -1,0 +1,79 @@
+OBJECTIVE: Implement Phase 8 waves W-5 through W-7 with full TDD discipline (RED commit then GREEN commit per wave).
+
+CRITICAL: Do NOT run `cargo test -p kay-core`, `cargo test --workspace`, or `cargo check --workspace` — these exceed your tool timeout (they take 5+ minutes). Instead use:
+- `cargo check -p kay-core --tests 2>&1 | tail -5` (compilation only, ~2 min)
+- `cargo test -p kay-core -- <specific_test_name> 2>&1 | tail -10` (targeted test only)
+- `cargo check -p kay-verifier --tests 2>&1 | tail -5` for verifier changes
+- `cargo check -p kay-cli 2>&1 | tail -5` for CLI changes
+
+CONTEXT:
+- Branch: phase/08-multi-perspective-verification; HEAD: b2a110c (W-4 GREEN — just committed)
+- Full plan: .planning/phases/08-multi-perspective-verification/PLAN.md (READ THIS)
+- Test strategy: .planning/phases/08-multi-perspective-verification/08-TEST-STRATEGY.md
+
+KEY ARCHITECTURE (read these files before writing code):
+- crates/kay-core/src/loop.rs — current run_turn, handle_model_event, LoopError
+- crates/kay-tools/src/seams/verifier.rs — TaskVerifier trait, VerificationOutcome (Pass/Fail/Disabled/Pending), NoOpVerifier
+- crates/kay-tools/src/events.rs — AgentEvent (non_exhaustive), existing variants
+- crates/kay-verifier/src/verifier.rs — MultiPerspectiveVerifier, verifier_cost field
+
+MANDATORY RULES:
+1. TDD iron law: RED commit (failing tests, todo!() panics compile but panic) MUST precede GREEN per wave
+2. Every commit: Signed-off-by: Shafqat Ullah <shafqat@sourcevo.com>
+3. AgentEvent is #[non_exhaustive] — only additive variants
+4. TaskVerifier trait must stay dyn-compatible (no generic methods or associated types)
+5. No direct commits to main
+
+WAVE W-5 RED (commit first):
+Files to create/modify:
+- crates/kay-core/src/loop.rs: Add pub enum TurnResult { Pass, Fail(String) } and pub async fn run_with_rework stub that calls todo!()
+- crates/kay-core/tests/rework_loop.rs: Create with 6 failing tests:
+  * test_fail_injects_feedback (todo!())
+  * test_pass_terminates_loop (todo!())
+  * test_max_retries_exhausted (todo!())
+  * test_fail_retry_then_pass (todo!())
+  * test_verifier_disabled_skips_rework (todo!())
+  * test_cost_ceiling_stops_rework (todo!())
+Verify: `cargo check -p kay-core --tests 2>&1 | tail -5` shows no errors (tests compile)
+Commit message: "test(verifier): W-5 RED — failing rework loop tests (todo! stubs)\n\nT2-01a-f: TurnResult + run_with_rework stubs.\n\nVERIFY-02\n\nSigned-off-by: Shafqat Ullah <shafqat@sourcevo.com>"
+
+WAVE W-5 GREEN (implement, then commit):
+Implement run_with_rework in crates/kay-core/src/loop.rs:
+- Takes: run_turn_args + verifier Arc + max_retries: u8 + stream_sink
+- Loop: call run_turn → check last TaskComplete event for Pass/Fail → if Fail, inject feedback as user Message → retry up to max_retries → return TurnResult
+- CycleVerifier helper in tests: toggles between Fail(first N) and Pass
+Verify: `cargo test -p kay-core -- rework_loop 2>&1 | tail -15`
+Commit message: "feat(verifier): W-5 GREEN — run_with_rework bounded retry loop\n\nT2-01a-f: all rework loop tests pass.\n\nVERIFY-02\n\nSigned-off-by: Shafqat Ullah <shafqat@sourcevo.com>"
+
+WAVE W-6 RED:
+- crates/kay-core/tests/verifier_cost.rs: Create with failing tests for cost ceiling
+  * test_cost_ceiling_emits_verifier_disabled (todo!())
+  * test_verifier_cost_accumulates_across_critics (todo!())
+Verify: `cargo check -p kay-core --tests 2>&1 | tail -5`
+Commit message: "test(verifier): W-6 RED — failing cost ceiling tests\n\nT2-02a-b: verifier cost accumulation stubs.\n\nVERIFY-03\n\nSigned-off-by: Shafqat Ullah <shafqat@sourcevo.com>"
+
+WAVE W-6 GREEN:
+- Update MultiPerspectiveVerifier in crates/kay-verifier/src/verifier.rs:
+  * verifier_cost: Arc<Mutex<f64>> accumulates token costs from each critic call
+  * When verifier_cost exceeds config.max_verifier_usd, emit AgentEvent::VerifierDisabled and return VerificationOutcome::Disabled
+Verify: `cargo check -p kay-verifier 2>&1 | tail -5`
+Commit message: "feat(verifier): W-6 GREEN — cost ceiling + VerifierDisabled emission\n\nT2-02a-b: cost ceiling tests pass.\n\nVERIFY-03\n\nSigned-off-by: Shafqat Ullah <shafqat@sourcevo.com>"
+
+WAVE W-7 RED:
+- Rename crates/kay-cli/tests/context_e2e.rs to context_smoke.rs (git mv)
+- Add real E2E test skeleton in context_smoke.rs (compile but todo!())
+- Add tracing::warn! to SymbolKind::from_kind_str unknown arm in kay-context crate
+Verify: `cargo check -p kay-cli 2>&1 | tail -5`
+Commit message: "test(verifier): W-7 RED — E2E smoke test skeleton + SymbolKind warn\n\nBacklog 999.6/999.7 stubs.\n\nSigned-off-by: Shafqat Ullah <shafqat@sourcevo.com>"
+
+WAVE W-7 GREEN:
+- Wire MultiPerspectiveVerifier into crates/kay-cli/src/run.rs (replace NoOpVerifier construction)
+- Complete E2E test in context_smoke.rs
+Verify: `cargo check -p kay-cli 2>&1 | tail -5`
+Commit message: "feat(verifier): W-7 GREEN — MultiPerspectiveVerifier wired in CLI\n\nBacklog 999.6: context_e2e→context_smoke; 999.7: SymbolKind warn.\n\nVERIFY-01 VERIFY-04\n\nSigned-off-by: Shafqat Ullah <shafqat@sourcevo.com>"
+
+SUCCESS CRITERIA:
+- git log --oneline shows 8 commits: W-7 GREEN → W-7 RED → W-6 GREEN → W-6 RED → W-5 GREEN → W-5 RED → W-4 GREEN → e9c94bf
+- No cargo compilation errors in any wave's verify step
+
+INJECTED SKILLS: quality-gates, testing-strategy, code-review

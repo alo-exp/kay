@@ -1,6 +1,6 @@
 [package]
 name = "kay-tui"
-publish = false
+publish = true
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -10,3 +10,25 @@ repository.workspace = true
 description = "Kay terminal UI frontend (full-screen ratatui) over kay-core and kay-cli contracts"
 
 [dependencies]
+# Async + streaming
+tokio = { workspace = true, features = ["process", "io-util", "sync", "rt-multi-thread"] }
+futures = { workspace = true }
+bytes = { workspace = true }
+
+# Error + logging
+anyhow = { workspace = true }
+tracing = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true, features = ["v4", "serde"] }
+
+# Terminal I/O (ratatui backend)
+crossterm = { workspace = true }
+ratatui = { workspace = true, features = ["serde"] }
+
+[dev-dependencies]
+# E2E test helpers (assert_cmd + predicates used across Phase 5-9.5)
+predicates = "3"
+assert_cmd = "2"

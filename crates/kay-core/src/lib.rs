@@ -41,3 +41,7 @@ pub mod persona;
 // `tests/loop.rs`, `tests/loop_dispatcher_integration.rs`, and
 // `tests/loop_property.rs`.
 pub mod r#loop;
+
+// Phase 13: Enhanced planning system with requirements tracking,
+// threat modeling, rollback plans, and quality gates.
+pub mod planner;

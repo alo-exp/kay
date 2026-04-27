@@ -63,10 +63,22 @@ use std::time::Duration;
 
 use assert_cmd::Command;
 use predicates::prelude::*;
+use regex::Regex;
+use std::sync::OnceLock;
 
 // ---------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------
+
+/// Regex for stripping ANSI escape sequences (used in parity tests
+/// where we care about visual content, not terminal color codes).
+static ANSI_REGEX: OnceLock<Regex> = OnceLock::new();
+fn strip_ansi(s: &str) -> String {
+    ANSI_REGEX
+        .get_or_init(|| Regex::new(r"\x1b\[[0-9;]*m").unwrap())
+        .replace_all(s, "")
+        .to_string()
+}
 
 /// Absolute path of the just-compiled `kay` binary. `assert_cmd` resolves
 /// via `CARGO_BIN_EXE_kay` when `[[bin]] name = "kay"` is declared in
@@ -453,14 +465,14 @@ fn interactive_parity_diff() {
     let prompt_expected = prompt_baseline.replace("forge>", "kay>");
 
     assert!(
-        stdout.contains(&banner_expected.trim().to_string()) || banner_expected.trim().is_empty(),
+        strip_ansi(&stdout).contains(&banner_expected.trim()) || banner_expected.trim().is_empty(),
         "CLI-07: kay banner must match ForgeCode parity baseline \
          (brand-swapped). Expected (normalized):\n{}\n\nActual stdout:\n{}",
         banner_expected,
         stdout
     );
     assert!(
-        stdout.contains(prompt_expected.trim()),
+        strip_ansi(&stdout).contains(&prompt_expected.trim()),
         "CLI-07: kay> prompt must appear in interactive startup. \
          Expected:\n{}\n\nActual stdout:\n{}",
         prompt_expected,

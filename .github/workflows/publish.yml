@@ -1,0 +1,94 @@
+# =============================================================================
+# Phase 11 Wave 3: crates.io publish workflow
+# =============================================================================
+# Phase 11 REL-05 — `cargo install kay` from crates.io
+#
+# Runs on: version tags matching 'v[0-9]+.[0-9]+.[0-9]+' (semver tags only)
+# Publishes: kay-cli + kay-tui to crates.io
+#
+# Secrets required:
+#   CARGO_API_TOKEN — crates.io token with publish permission
+# =============================================================================
+
+name: Publish to crates.io
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+# --- Least privilege ---
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+
+  # -------------------------------------------------------------------------
+  # Verify tag is signed (REL-05 gate)
+  # -------------------------------------------------------------------------
+  signed-tag-gate:
+    name: Verify signed tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Restore annotated tag object
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          git fetch origin --force "refs/tags/$TAG:refs/tags/$TAG"
+          git cat-file -t "$TAG"
+      - name: Configure SSH allowed_signers
+        run: |
+          git config gpg.ssh.allowedSignersFile "$GITHUB_WORKSPACE/.github/allowed_signers"
+      - name: Verify tag signature
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          if ! git tag -v "$TAG"; then
+            echo "::error::Tag $TAG is not signed by an authorized signer." >&2
+            exit 1
+          fi
+
+  # -------------------------------------------------------------------------
+  # Publish kay-cli
+  # -------------------------------------------------------------------------
+  publish-cli:
+    name: Publish kay-cli
+    needs: [signed-tag-gate]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+      - name: Publish kay-cli
+        env:
+          CARGO_API_TOKEN: ${{ secrets.CARGO_API_TOKEN }}
+        run: |
+          cargo publish --package kay-cli --token "$CARGO_API_TOKEN"
+
+  # -------------------------------------------------------------------------
+  # Publish kay-tui
+  # -------------------------------------------------------------------------
+  publish-tui:
+    name: Publish kay-tui
+    needs: [signed-tag-gate]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+      - name: Publish kay-tui
+        env:
+          CARGO_API_TOKEN: ${{ secrets.CARGO_API_TOKEN }}
+        run: |
+          cargo publish --package kay-tui --token "$CARGO_API_TOKEN"
