@@ -53,7 +53,9 @@ pub fn resolve_api_key(config: Option<&ConfigAuthSource>) -> Result<ApiKey, Prov
     }
 
     // 2. Config file fallback.
-    if let Some(src) = config && let Some(ref key) = src.api_key {
+    if let Some(src) = config
+        && let Some(ref key) = src.api_key
+    {
         let trimmed = key.trim();
         if !trimmed.is_empty() {
             return Ok(ApiKey(trimmed.to_string()));
@@ -88,6 +90,9 @@ mod unit {
             std::env::remove_var(ENV_MINIMAX_API_KEY);
         }
         let r = resolve_api_key(None);
-        assert!(matches!(r, Err(ProviderError::Auth { reason: AuthErrorKind::Missing })));
+        assert!(matches!(
+            r,
+            Err(ProviderError::Auth { reason: AuthErrorKind::Missing })
+        ));
     }
 }

@@ -94,10 +94,10 @@ use futures::StreamExt;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
+use kay_config::KayConfig;
 use kay_core::control::{control_channel, install_ctrl_c_handler};
 use kay_core::r#loop::{RunTurnArgs, run_turn};
 use kay_core::persona::Persona;
-use kay_config::KayConfig;
 use kay_provider_errors::ProviderError;
 use kay_provider_minimax::Provider;
 use kay_tools::events_wire::AgentEventWire;
@@ -250,7 +250,14 @@ pub fn execute(args: RunArgs) -> anyhow::Result<ExitCode> {
         .enable_all()
         .build()?;
 
-    runtime.block_on(run_async(args.prompt, persona, args.resume, args.live, args.model, config))
+    runtime.block_on(run_async(
+        args.prompt,
+        persona,
+        args.resume,
+        args.live,
+        args.model,
+        config,
+    ))
 }
 
 /// The async half of `execute` — builds channels, spawns the offline
@@ -537,7 +544,7 @@ async fn live_provider(
     model_override: Option<String>,
     config: KayConfig,
 ) -> Result<(), ProviderError> {
-    use kay_provider_minimax::{MiniMaxProviderBuilder, ChatRequest, Message};
+    use kay_provider_minimax::{ChatRequest, Message, MiniMaxProviderBuilder};
 
     // Resolve model: CLI flag > config default > embedded default
     let model = model_override

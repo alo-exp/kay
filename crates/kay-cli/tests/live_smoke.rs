@@ -26,7 +26,7 @@
 #![allow(clippy::unwrap_used)]
 
 use std::env;
-use std::process::{Command, Stdio, Output};
+use std::process::{Command, Output, Stdio};
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -183,9 +183,9 @@ fn offline_regression_test_done_still_exits_zero() {
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     // Check for task_complete event (case-insensitive, with or without quotes)
-    let has_task_complete = stdout
-        .lines()
-        .any(|l| l.to_lowercase().contains("task_complete") || l.contains(r#""type":"TaskComplete""#));
+    let has_task_complete = stdout.lines().any(|l| {
+        l.to_lowercase().contains("task_complete") || l.contains(r#""type":"TaskComplete""#)
+    });
 
     assert!(
         has_task_complete,

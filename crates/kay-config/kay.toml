@@ -2,6 +2,11 @@
 # 
 # This file is embedded in the binary as default configuration.
 # User configuration is loaded from ~/.kay/kay.toml
+#
+# API Key Resolution Priority:
+# 1. Direct api_key in config file
+# 2. Environment variable specified in config (api_key_var)
+# 3. Default environment variable (MINIMAX_API_KEY, OPENROUTER_API_KEY)
 
 [provider]
 # Default model for live API calls
@@ -9,7 +14,9 @@ default_model = "MiniMax-M2.1"
 
 # MiniMax API configuration
 [provider.minimax]
-# API key from environment variable (set in .env or shell)
+# Direct API key (optional - overrides api_key_var)
+# api_key = "your-key-here"
+# Environment variable name containing the API key
 api_key_var = "MINIMAX_API_KEY"
 # MiniMax native endpoint
 endpoint = "https://api.minimax.io/v1/text/chatcompletion_v2"

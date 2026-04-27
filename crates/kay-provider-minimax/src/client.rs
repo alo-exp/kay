@@ -36,13 +36,15 @@ impl MiniMaxClient {
     }
 
     /// Make a streaming POST request and return the raw bytes stream.
-    pub(crate) async fn stream_chat(&self, body: Bytes) -> Result<reqwest::Response, ProviderError> {
+    pub(crate) async fn stream_chat(
+        &self,
+        body: Bytes,
+    ) -> Result<reqwest::Response, ProviderError> {
         let headers = self.build_headers()?;
-        let url = Url::parse(&self.endpoint)
-            .map_err(|_| ProviderError::Http {
-                status: 0,
-                body: format!("invalid endpoint URL: {}", self.endpoint),
-            })?;
+        let url = Url::parse(&self.endpoint).map_err(|_| ProviderError::Http {
+            status: 0,
+            body: format!("invalid endpoint URL: {}", self.endpoint),
+        })?;
         let resp = self
             .client
             .post(url)
@@ -56,10 +58,7 @@ impl MiniMaxClient {
         if !resp.status().is_success() {
             let status = resp.status();
             let body = resp.text().await.unwrap_or_default();
-            return Err(ProviderError::Http {
-                status: status.as_u16(),
-                body,
-            });
+            return Err(ProviderError::Http { status: status.as_u16(), body });
         }
 
         Ok(resp)

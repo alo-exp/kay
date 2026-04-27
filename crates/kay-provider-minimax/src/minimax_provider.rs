@@ -11,7 +11,7 @@ use async_trait::async_trait;
 use bytes::Bytes;
 use futures::Stream;
 
-use crate::auth::{resolve_api_key, ConfigAuthSource};
+use crate::auth::{ConfigAuthSource, resolve_api_key};
 use crate::client::MiniMaxClient;
 use crate::error::ProviderError;
 use crate::event::AgentEvent;
@@ -77,18 +77,15 @@ impl MiniMaxProviderBuilder {
     /// Build the provider. Fails if endpoint is missing or API key cannot
     /// be resolved.
     pub fn build(self) -> Result<MiniMaxProvider, ProviderError> {
-        let endpoint = self.endpoint.unwrap_or_else(|| {
-            "https://api.minimax.io/v1/text/chatcompletion_v2".to_string()
-        });
+        let endpoint = self
+            .endpoint
+            .unwrap_or_else(|| "https://api.minimax.io/v1/text/chatcompletion_v2".to_string());
 
         let api_key = resolve_api_key(self.auth.as_ref())?;
 
         let client = MiniMaxClient::try_new(endpoint, api_key)?;
 
-        Ok(MiniMaxProvider {
-            client,
-            allowlist: Arc::new(self.allowlist),
-        })
+        Ok(MiniMaxProvider { client, allowlist: Arc::new(self.allowlist) })
     }
 }
 
@@ -186,7 +183,8 @@ impl MiniMaxEventStream {
         // Parse SSE lines and translate to AgentEvents
         let stream = SseEventStream::new(bytes_stream);
 
-        let inner = Box::pin(stream) as Pin<Box<dyn Stream<Item = Result<AgentEvent, ProviderError>> + Send + 'static>>;
+        let inner = Box::pin(stream)
+            as Pin<Box<dyn Stream<Item = Result<AgentEvent, ProviderError>> + Send + 'static>>;
 
         MiniMaxEventStream { inner }
     }
@@ -195,7 +193,10 @@ impl MiniMaxEventStream {
 impl Stream for MiniMaxEventStream {
     type Item = Result<AgentEvent, ProviderError>;
 
-    fn poll_next(mut self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> std::task::Poll<Option<Self::Item>> {
+    fn poll_next(
+        mut self: Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Option<Self::Item>> {
         self.inner.as_mut().poll_next(cx)
     }
 }
@@ -209,18 +210,17 @@ struct SseEventStream<S> {
 
 impl<S: Stream<Item = Result<Bytes, reqwest::Error>> + Unpin> SseEventStream<S> {
     fn new(inner: S) -> Self {
-        SseEventStream {
-            inner,
-            buffer: Vec::new(),
-            done: false,
-        }
+        SseEventStream { inner, buffer: Vec::new(), done: false }
     }
 }
 
 impl<S: Stream<Item = Result<Bytes, reqwest::Error>> + Unpin> Stream for SseEventStream<S> {
     type Item = Result<AgentEvent, ProviderError>;
 
-    fn poll_next(mut self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Option<Self::Item>> {
+    fn poll_next(
+        mut self: Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+    ) -> Poll<Option<Self::Item>> {
         // If we're done, return None
         if self.done {
             return Poll::Ready(None);
@@ -266,9 +266,7 @@ impl<S: Stream<Item = Result<Bytes, reqwest::Error>> + Unpin> Stream for SseEven
                 Poll::Ready(Some(Ok(AgentEvent::TaskComplete {
                     call_id: uuid::Uuid::new_v4().to_string(),
                     verified: true,
-                    outcome: kay_tools::VerificationOutcome::Pass {
-                        note: "stream ended".into(),
-                    },
+                    outcome: kay_tools::VerificationOutcome::Pass { note: "stream ended".into() },
                 })))
             }
             Poll::Pending => Poll::Pending,

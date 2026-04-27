@@ -5410,9 +5410,12 @@ dependencies = [
  "futures",
  "gix",
  "insta",
+ "kay-config",
  "kay-context",
  "kay-core",
+ "kay-display",
  "kay-provider-errors",
+ "kay-provider-minimax",
  "kay-provider-openrouter",
  "kay-session",
  "kay-tools",
@@ -5433,6 +5436,19 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "uuid",
+]
+
+[[package]]
+name = "kay-config"
+version = "0.1.0"
+dependencies = [
+ "dirs 5.0.1",
+ "dotenvy",
+ "pretty_assertions",
+ "serde",
+ "thiserror 2.0.18",
+ "toml_edit 0.22.27",
+ "tracing",
 ]
 
 [[package]]
@@ -5495,12 +5511,56 @@ dependencies = [
 ]
 
 [[package]]
+name = "kay-display"
+version = "0.1.0"
+dependencies = [
+ "colored 2.2.0",
+ "regex",
+ "terminal_size",
+]
+
+[[package]]
+name = "kay-json-repair"
+version = "0.1.0"
+dependencies = [
+ "pretty_assertions",
+ "regex",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "kay-provider-errors"
 version = "0.1.0"
 dependencies = [
  "reqwest 0.12.28",
  "serde_json",
  "thiserror 2.0.18",
+]
+
+[[package]]
+name = "kay-provider-minimax"
+version = "0.1.0"
+dependencies = [
+ "async-stream",
+ "async-trait",
+ "bytes",
+ "futures",
+ "kay-provider-errors",
+ "kay-tools",
+ "mockito",
+ "pin-project",
+ "pretty_assertions",
+ "proptest",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-stream",
+ "tokio-util",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]
@@ -5586,6 +5646,7 @@ dependencies = [
 name = "kay-session"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "assert_cmd",
  "chrono",
  "dirs 5.0.1",
@@ -5642,6 +5703,14 @@ dependencies = [
  "tokio-util",
  "tracing",
  "uuid",
+]
+
+[[package]]
+name = "kay-template"
+version = "0.1.0"
+dependencies = [
+ "pretty_assertions",
+ "serde",
 ]
 
 [[package]]

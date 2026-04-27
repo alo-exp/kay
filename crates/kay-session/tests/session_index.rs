@@ -3,8 +3,10 @@
 // Verifies create_session, list_sessions, close_session, resume_session,
 // mark_session_lost round-trip correctly with temp directories.
 
-use kay_session::{create_session, list_sessions, close_session, mark_session_lost,
-                  resume_session, SessionStore, SessionStatus};
+use kay_session::{
+    SessionStatus, SessionStore, close_session, create_session, list_sessions, mark_session_lost,
+    resume_session,
+};
 
 #[test]
 fn create_session_inserts_row_and_opens_transcript() {
@@ -12,7 +14,14 @@ fn create_session_inserts_row_and_opens_transcript() {
     let store = SessionStore::open(tmp.path()).unwrap();
     let cwd = std::path::PathBuf::from("/tmp");
 
-    let session = create_session(&store, "Test Session", "forge", "minimax/MiniMax-M2.7", &cwd).unwrap();
+    let session = create_session(
+        &store,
+        "Test Session",
+        "forge",
+        "minimax/MiniMax-M2.7",
+        &cwd,
+    )
+    .unwrap();
 
     assert!(!session.id.is_nil());
     assert_eq!(session.turn_count, 0);
@@ -27,7 +36,8 @@ fn list_sessions_returns_created_session() {
     let store = SessionStore::open(tmp.path()).unwrap();
     let cwd = std::path::PathBuf::from("/tmp");
 
-    let session = create_session(&store, "List Test", "forge", "minimax/MiniMax-M2.7", &cwd).unwrap();
+    let session =
+        create_session(&store, "List Test", "forge", "minimax/MiniMax-M2.7", &cwd).unwrap();
     drop(session);
 
     let sessions = list_sessions(&store, 10).unwrap();
@@ -43,7 +53,8 @@ fn close_session_updates_status() {
     let store = SessionStore::open(tmp.path()).unwrap();
     let cwd = std::path::PathBuf::from("/tmp");
 
-    let session = create_session(&store, "Close Test", "forge", "minimax/MiniMax-M2.7", &cwd).unwrap();
+    let session =
+        create_session(&store, "Close Test", "forge", "minimax/MiniMax-M2.7", &cwd).unwrap();
     close_session(&store, &session.id, SessionStatus::Complete).unwrap();
     drop(session);
 
@@ -59,7 +70,8 @@ fn resume_session_reopens_transcript() {
     let store = SessionStore::open(tmp.path()).unwrap();
     let cwd = std::path::PathBuf::from("/tmp");
 
-    let session = create_session(&store, "Resume Test", "forge", "minimax/MiniMax-M2.7", &cwd).unwrap();
+    let session =
+        create_session(&store, "Resume Test", "forge", "minimax/MiniMax-M2.7", &cwd).unwrap();
     let id = session.id;
     drop(session);
 
@@ -87,7 +99,8 @@ fn mark_session_lost_updates_status() {
     let store = SessionStore::open(tmp.path()).unwrap();
     let cwd = std::path::PathBuf::from("/tmp");
 
-    let session = create_session(&store, "Lost Test", "forge", "minimax/MiniMax-M2.7", &cwd).unwrap();
+    let session =
+        create_session(&store, "Lost Test", "forge", "minimax/MiniMax-M2.7", &cwd).unwrap();
     mark_session_lost(&store, &session.id).unwrap();
     drop(session);
 

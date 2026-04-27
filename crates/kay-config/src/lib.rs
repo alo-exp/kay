@@ -59,6 +59,9 @@ pub struct ProviderConfig {
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct ProviderSettings {
+    /// Direct API key (overrides api_key_var).
+    #[serde(default)]
+    pub api_key: Option<String>,
     /// Environment variable name containing the API key.
     #[serde(default)]
     pub api_key_var: Option<String>,
@@ -192,11 +195,10 @@ impl KayConfig {
             return Ok(KayConfig::default());
         }
 
-        let contents = std::fs::read_to_string(&path)
-            .map_err(|e| ConfigError::ReadError(e.to_string()))?;
+        let contents =
+            std::fs::read_to_string(&path).map_err(|e| ConfigError::ReadError(e.to_string()))?;
 
-        toml_edit::de::from_str(&contents)
-            .map_err(|e| ConfigError::ParseError(e.to_string()))
+        toml_edit::de::from_str(&contents).map_err(|e| ConfigError::ParseError(e.to_string()))
     }
 
     /// Reads configuration from environment variables.
@@ -262,29 +264,41 @@ impl KayConfig {
     /// Gets the resolved API key for the specified provider.
     ///
     /// Priority:
-    /// 1. Environment variable specified in config
-    /// 2. Directly from environment
+    /// 1. Direct api_key from config
+    /// 2. Environment variable specified in config
+    /// 3. Directly from environment
     pub fn get_api_key(&self, provider: &str) -> Result<String, ConfigError> {
-        // Determine the env var name
-        let env_var = match provider {
-            "minimax" => self
-                .provider
-                .minimax
-                .as_ref()
-                .and_then(|p| p.api_key_var.clone())
-                .unwrap_or_else(|| "MINIMAX_API_KEY".to_string()),
-            "openrouter" => self
-                .provider
-                .openrouter
-                .as_ref()
-                .and_then(|p| p.api_key_var.clone())
-                .unwrap_or_else(|| "OPENROUTER_API_KEY".to_string()),
-            _ => provider.to_uppercase() + "_API_KEY",
+        // Get provider settings
+        let settings = match provider {
+            "minimax" => self.provider.minimax.as_ref(),
+            "openrouter" => self.provider.openrouter.as_ref(),
+            _ => None,
         };
 
-        // Try to get from environment
-        std::env::var(&env_var)
-            .map_err(|_| ConfigError::ApiKeyNotFound(env_var))
+        // Priority 1: Direct api_key from config
+        if let Some(Some(key)) = settings.map(|s| s.api_key.clone()) {
+            if !key.is_empty() {
+                return Ok(key);
+            }
+        }
+
+        // Priority 2: Environment variable from config
+        if let Some(Some(var_name)) = settings.map(|s| s.api_key_var.clone()) {
+            if !var_name.is_empty() {
+                if let Ok(key) = std::env::var(&var_name) {
+                    return Ok(key);
+                }
+            }
+        }
+
+        // Priority 3: Default environment variable
+        let env_var = match provider {
+            "minimax" => "MINIMAX_API_KEY",
+            "openrouter" => "OPENROUTER_API_KEY",
+            _ => return Err(ConfigError::ApiKeyNotFound(provider.to_string())),
+        };
+
+        std::env::var(env_var).map_err(|_| ConfigError::ApiKeyNotFound(env_var.to_string()))
     }
 
     /// Gets the API endpoint for the specified provider.

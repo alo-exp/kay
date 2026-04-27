@@ -113,9 +113,25 @@ impl MiniMaxChunk {
     }
 
     /// Extract the answer delta from the delta field.
-    /// ONLY returns `delta.content`, NOT `delta.reasoning_content`.
-    /// Reasoning content is intentionally ignored to avoid confusing output.
+    /// NOTE: MiniMax only sends content in `delta.reasoning_content`, NOT `delta.content`.
+    /// We emit reasoning_content to get the actual answer text.
     fn answer_delta(&self) -> Option<String> {
+        // Try reasoning_content (MiniMax puts answer text here)
+        if let Some(reasoning) = self
+            .choices
+            .as_ref()?
+            .first()?
+            .delta
+            .as_ref()?
+            .reasoning_content
+            .clone()
+        {
+            if !reasoning.is_empty() {
+                return Some(reasoning);
+            }
+        }
+
+        // Fallback to delta.content (typically empty for MiniMax)
         self.choices
             .as_ref()?
             .first()?
@@ -170,7 +186,9 @@ mod unit {
         // Final chunk with message.content should emit the content
         let json = r#"{"id":"abc","choices":[{"finish_reason":"stop","message":{"content":"Final answer"}}]}"#;
         let event = MiniMaxTranslator::translate(json).unwrap();
-        assert!(matches!(event, Some(AgentEvent::TextDelta { content }) if content == "Final answer"));
+        assert!(
+            matches!(event, Some(AgentEvent::TextDelta { content }) if content == "Final answer")
+        );
     }
 
     #[test]

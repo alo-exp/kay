@@ -1,0 +1,3 @@
+=== Compile-only check (--no-run) ===
+Started: Sun 26 Apr 2026 08:36:02 AEST
+.forge/nextest-compile.sh: line 8: 83839 Killed: 9               cargo nextest run --workspace --no-run 2>&1

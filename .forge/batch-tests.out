@@ -1,0 +1,40 @@
+=== Testing kay-cli (may take a few minutes) ===
+[1m[92m    Blocking[0m waiting for file lock on artifact directory
+
+=== Testing kay-provider-openrouter ===
+
+=== Testing kay-sandbox-macos ===
+
+=== Testing kay-tui ===
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.41s
+
+[1m[92m     Running[0m tests/ui_smoke.rs (target/debug/deps/ui_smoke-2aed0233621a5e05)
+
+running 15 tests
+test app_accumulates_usage_metrics ... ok
+test app_forks_session_on_f_key ... ok
+test app_handles_text_delta ... ok
+test app_handles_tool_call_start ... ok
+test app_kills_session_on_x_key ... ok
+test app_navigation_updates_selection ... ok
+test app_pauses_session_on_p_key ... ok
+test app_quits_on_q_key ... ok
+test app_resumes_session_on_r_key ... ok
+test app_routes_unknown_event_types ... ok
+test app_shows_help_on_question_mark ... ok
+test app_spawns_session_on_n_key ... ok
+test app_stop_works ... ok
+test app_toggles_settings_on_s_key ... ok
+test app_tracks_active_tool_lifecycle ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[1m[92m   Doc-tests[0m kay_tui
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+=== All batch tests complete: Sun 26 Apr 2026 09:17:06 AEST ===

@@ -16,11 +16,10 @@ fn open_creates_sessions_db_in_temp_dir() {
 fn open_sets_wal_journal_mode() {
     let tmp = tempfile::tempdir().unwrap();
     let store = SessionStore::open(tmp.path()).unwrap();
-    let mode: String = store.conn.query_row(
-        "PRAGMA journal_mode",
-        [],
-        |row| row.get(0),
-    ).unwrap();
+    let mode: String = store
+        .conn
+        .query_row("PRAGMA journal_mode", [], |row| row.get(0))
+        .unwrap();
     assert_eq!(mode.to_lowercase(), "wal");
     drop(store);
 }
@@ -37,11 +36,10 @@ fn sessions_dir_returns_correct_path() {
 fn sessions_table_exists_after_open() {
     let tmp = tempfile::tempdir().unwrap();
     let store = SessionStore::open(tmp.path()).unwrap();
-    let count: i64 = store.conn.query_row(
-        "SELECT COUNT(*) FROM sessions",
-        [],
-        |row| row.get(0),
-    ).unwrap();
+    let count: i64 = store
+        .conn
+        .query_row("SELECT COUNT(*) FROM sessions", [], |row| row.get(0))
+        .unwrap();
     assert_eq!(count, 0);
     drop(store);
 }
@@ -50,11 +48,10 @@ fn sessions_table_exists_after_open() {
 fn schema_version_is_1_after_first_open() {
     let tmp = tempfile::tempdir().unwrap();
     let store = SessionStore::open(tmp.path()).unwrap();
-    let version: i64 = store.conn.query_row(
-        "SELECT version FROM schema_version",
-        [],
-        |row| row.get(0),
-    ).unwrap();
+    let version: i64 = store
+        .conn
+        .query_row("SELECT version FROM schema_version", [], |row| row.get(0))
+        .unwrap();
     assert_eq!(version, 1);
     drop(store);
 }
@@ -66,11 +63,10 @@ fn second_open_does_not_recreate_schema() {
     drop(store1);
     // Re-open — should not panic and should preserve data
     let store2 = SessionStore::open(tmp.path()).unwrap();
-    let count: i64 = store2.conn.query_row(
-        "SELECT COUNT(*) FROM sessions",
-        [],
-        |row| row.get(0),
-    ).unwrap();
+    let count: i64 = store2
+        .conn
+        .query_row("SELECT COUNT(*) FROM sessions", [], |row| row.get(0))
+        .unwrap();
     assert_eq!(count, 0);
     drop(store2);
 }

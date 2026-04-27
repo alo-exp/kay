@@ -295,4 +295,37 @@ mod tests {
         let r = MarkdownRenderer::new();
         assert_eq!(r.render_inline("`code`"), "\x1b[1;97mcode\x1b[0m");
     }
+
+    #[test]
+    fn test_inline_italic() {
+        let r = MarkdownRenderer::new();
+        assert_eq!(r.render_inline("*italic*"), "\x1b[3mitalic\x1b[0m");
+    }
+
+    #[test]
+    fn test_inline_links() {
+        let r = MarkdownRenderer::new();
+        // Links [text](url) should render as dimmed text
+        let result = r.render_inline("[click here](https://example.com)");
+        assert!(result.contains("click here"), "Link text should be present");
+        // The URL should be stripped
+        assert!(!result.contains("https://"), "URL should be stripped from output");
+    }
+
+    #[test]
+    fn test_table_row() {
+        let r = MarkdownRenderer::new();
+        // Table row should be detected
+        assert!(MarkdownRenderer::is_table_row("| Name | Age |"));
+        // Separator row should be detected
+        assert!(MarkdownRenderer::is_table_row("|---|---|"));
+    }
+
+    #[test]
+    fn test_table_separator() {
+        let r = MarkdownRenderer::new();
+        // Separator rows should render without error
+        assert!(MarkdownRenderer::is_table_row("|---|---|"));
+        assert!(MarkdownRenderer::is_table_row("|:--|--:|--:|"));
+    }
 }
