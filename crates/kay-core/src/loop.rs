@@ -409,7 +409,7 @@ async fn handle_model_event(
     // NotFound` → a surfaced error event) is a Wave-4-later task;
     // a silent drop here is the minimum T4.3-green semantics.
     if let Some((id, name, arguments)) = tool_call {
-        let _ = dispatch(registry, &ToolName::new(&name), arguments, tool_ctx, &id).await;
+        let _ = dispatch(registry, &ToolName::new(&name), arguments, tool_ctx, &id, None).await;
     }
 
     // Verify gate closes the turn. Placed AFTER forward+dispatch so
