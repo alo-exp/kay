@@ -3,7 +3,7 @@ use include_dir::{Dir, include_dir};
 use forge_embed::{files, register_templates};
 use handlebars::Handlebars;
 
-static TEMPLATE_DIR: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/../templates");
+static TEMPLATE_DIR: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/../../templates");
 
 #[test]
 fn templates_register_without_panic() {

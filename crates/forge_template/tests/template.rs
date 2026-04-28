@@ -3,13 +3,13 @@ use forge_template::Element;
 
 #[test]
 fn element_constructs_without_panic() {
-    // Construct a simple Element and verify its debug representation is non-empty
+    // Construct a simple Element and verify it renders without panic
     let e = Element::new("div");
-    let debug_str = format!("{:?}", e);
+    let rendered = e.render();
     assert!(
-        !debug_str.is_empty(),
-        "Element Debug should not be empty, got: {}",
-        debug_str
+        rendered.contains("div"),
+        "Element should contain tag name, got: {}",
+        rendered
     );
 }
 

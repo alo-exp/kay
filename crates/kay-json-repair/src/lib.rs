@@ -3,7 +3,7 @@
 //! Repairs malformed JSON by trying to fix common issues.
 //! Based on principles from Forge's JSON repair implementation.
 
-use serde::Value;
+use serde_json::Value;
 
 /// Result of JSON repair attempt
 pub struct RepairResult {

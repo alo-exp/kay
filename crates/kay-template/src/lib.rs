@@ -45,34 +45,53 @@ impl Template {
     }
 
     /// Render with conditional blocks
-    /// Syntax: {{#if KEY}}...{{{/if KEY}}
+    /// Syntax: {{#if KEY}}...{{/if KEY}}
+    ///
+    /// For each variable in `self.variables`:
+    /// - If value is truthy (non-empty): replace `{{#if KEY}}...{{/if KEY}}`
+    ///   with `...` (the inner content only).
+    /// - If value is falsy (empty/None): replace the entire block with `""`.
+    ///
+    /// Conditionals are processed iteratively — each match is replaced in
+    /// isolation, allowing multiple independent blocks to coexist without
+    /// index-shifting issues. Blocks are processed in insertion order.
     pub fn render_with_conditionals(&self) -> String {
         let mut result = self.content.clone();
-        
-        // Simple conditional: {{#if KEY}}content{{/if KEY}}
-        // If KEY exists and is non-empty, include content
-        // Otherwise remove the conditional block
+
         for (key, value) in &self.variables {
+            // {{#if KEY}} in template → format string "{{{{#if {}}}}}" (each {{ produces one {)
             let start_tag = format!("{{{{#if {}}}}}", key);
             let end_tag = format!("{{{{/if {}}}}}", key);
-            
-            if value.is_empty() {
-                // Remove conditional block
-                if let Some(start_pos) = result.find(&start_tag) {
-                    if let Some(end_pos) = result.find(&end_tag) {
-                        let end_after = end_pos + end_tag.len();
-                        result = format!(
-                            "{}{}",
-                            &result[..start_pos],
-                            &result[end_after..]
-                        );
+
+            let start_pos = result.find(&start_tag);
+            if let Some(start) = start_pos {
+                let inner_start = start + start_tag.len();
+                let remaining = &result[inner_start..];
+                if let Some(end) = remaining.find(&end_tag) {
+                    let actual_end = inner_start + end;
+                    let inner_content = &result[inner_start..actual_end];
+
+                    if value.is_empty() {
+                        // Remove entire block including tags
+                        result = result[..start].to_string()
+                            + &result[actual_end + end_tag.len()..];
+                    } else {
+                        // Keep only inner content (strip tags)
+                        result = result[..start].to_string()
+                            + inner_content
+                            + &result[actual_end + end_tag.len()..];
                     }
                 }
             }
         }
-        
-        // Now render variables
-        self.render()
+
+        // Now substitute remaining {{VAR}} placeholders.
+        for (key, value) in &self.variables {
+            let placeholder = format!("{{{{{}}}}}", key);
+            result = result.replace(&placeholder, value);
+        }
+
+        result
     }
 }
 
@@ -97,7 +116,7 @@ mod tests {
 
     #[test]
     fn test_multiple_variables() {
-        let template = Template::new("{{greeting}}, {{name}}!");
+        let _template = Template::new("{{greeting}}, {{name}}!");
         let mut vars = HashMap::new();
         vars.insert("greeting".to_string(), "Hello".to_string());
         vars.insert("name".to_string(), "Alice".to_string());
@@ -109,7 +128,8 @@ mod tests {
     fn test_conditional() {
         let mut template = Template::new("Hello{{#if name}}, {{name}}{{/if name}}!");
         template.set("name", "");
-        assert_eq!(template.render_with_conditionals(), "Hello!");
+        let result = template.render_with_conditionals();
+        assert_eq!(result, "Hello!");
         
         let mut template2 = Template::new("Hello{{#if name}}, {{name}}{{/if name}}!");
         template2.set("name", "World");

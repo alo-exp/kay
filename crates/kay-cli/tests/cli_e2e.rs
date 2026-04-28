@@ -255,7 +255,7 @@ fn exit_code_130_on_sigint_nix() {
     // startup chain runs in ~30 ms. Under `cargo test`'s parallel
     // harness, nine E2E tests spawn the kay binary simultaneously;
     // the process-fork + dyld + rustc-debug-info-load sequence can
-    // balloon past 500 ms under that contention. We use 1500 ms —
+    // balloon past 500 ms under that contention. We use 2000 ms —
     // still imperceptible to a human operator, still dwarfed by
     // the 2 s cooperative-abort grace window documented in
     // `kay_core::control`, and empirically stable across 100+
@@ -269,7 +269,7 @@ fn exit_code_130_on_sigint_nix() {
     // manifests as `ExitStatus::code() == None` with
     // `status.signal() == Some(2)` — the `.code() == Some(130)`
     // assertion below catches it directly.
-    thread::sleep(Duration::from_millis(1500));
+    thread::sleep(Duration::from_millis(2000));
 
     // Shell out to `kill -INT`. Avoids pulling `nix` or raw libc
     // into kay-cli dev-deps just for one test.

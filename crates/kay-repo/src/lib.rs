@@ -9,4 +9,7 @@ pub mod git;
 pub mod repo;
 
 pub use git::{GitStatus, GitDiff, GitLog, GitBranch};
-pub use repo::{Repository, Workspace, FileInfo, FileType};
+pub use repo::{Workspace, FileInfo, FileType, CrateInfo};
+
+/// Placeholder for Repository (not yet implemented)
+pub struct Repository;

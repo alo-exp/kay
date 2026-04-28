@@ -13,3 +13,4 @@ pub mod session_manager;
 pub mod state;
 pub mod subprocess;
 pub mod ui;
+pub mod widgets;

@@ -9,7 +9,7 @@
 //!   Body: `{"model": "MiniMax-M2.1", "messages": [...], "stream": true}`
 //!
 //! Streaming response format (each chunk on its own line):
-//! ```
+//! ```ignore
 //! data: {"id":"...","choices":[{"index":0,"delta":{"content":"Hi"}}],"..."}
 //! data: {"id":"...","choices":[{"index":0,"delta":{"content":" there"}}],...}
 //! ```

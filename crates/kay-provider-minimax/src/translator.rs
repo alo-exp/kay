@@ -1,7 +1,7 @@
 //! Translates MiniMax JSON-SSE chunks into `AgentEvent` frames.
 //!
 //! MiniMax streaming format (each line prefixed with `data: `):
-//! ```
+//! ```ignore
 //! data: {"id":"...","choices":[{"index":0,"delta":{"content":"Hi"}}],"object":"chat.completion.chunk"}
 //! ```
 //!
@@ -42,11 +42,10 @@ impl MiniMaxTranslator {
 
         // Handle completion markers
         if chunk.is_done() {
-            // Don't emit final message.content — delta.content already streamed
-            // The final chunk's message.content is the complete answer, but if
-            // streaming worked, delta.content already covered it. Emitting both
-            // would cause duplication. Only emit if there's content AND no streaming
-            // delta was sent (edge case for very short responses).
+            // Emit final message.content if present (e.g. for short responses without streaming delta)
+            if let Some(content) = chunk.final_message() {
+                return Ok(Some(AgentEvent::TextDelta { content }));
+            }
             return Ok(None); // Stream ended, caller will emit TaskComplete
         }
 
@@ -113,25 +112,9 @@ impl MiniMaxChunk {
     }
 
     /// Extract the answer delta from the delta field.
-    /// NOTE: MiniMax only sends content in `delta.reasoning_content`, NOT `delta.content`.
-    /// We emit reasoning_content to get the actual answer text.
+    /// NOTE: Only emit `delta.content`, NOT `delta.reasoning_content` (chain-of-thought is ignored).
     fn answer_delta(&self) -> Option<String> {
-        // Try reasoning_content (MiniMax puts answer text here)
-        if let Some(reasoning) = self
-            .choices
-            .as_ref()?
-            .first()?
-            .delta
-            .as_ref()?
-            .reasoning_content
-            .clone()
-        {
-            if !reasoning.is_empty() {
-                return Some(reasoning);
-            }
-        }
-
-        // Fallback to delta.content (typically empty for MiniMax)
+        // Only emit delta.content (not reasoning_content per MiniMax API)
         self.choices
             .as_ref()?
             .first()?

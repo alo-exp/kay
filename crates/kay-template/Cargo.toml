@@ -10,6 +10,7 @@ repository.workspace = true
 description = "Simple template engine for Kay CLI"
 
 [dependencies]
+regex = { workspace = true }
 serde = { workspace = true }
 
 [dev-dependencies]

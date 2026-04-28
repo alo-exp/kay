@@ -51,7 +51,7 @@ kay-sandbox-linux   = { path = "../kay-sandbox-linux" }
 kay-sandbox-windows = { path = "../kay-sandbox-windows" }
 
 [dev-dependencies]
-tauri             = { workspace = true, features = ["compression"] }
+tauri             = { workspace = true, features = ["compression", "test"] }
 tauri-specta      = { workspace = true }
 sysinfo           = { workspace = true }
 mockall           = "0.13"

@@ -78,3 +78,5 @@ arboard = { workspace = true }
 pretty_assertions = { workspace = true }
 insta             = { workspace = true }
 fake              = { workspace = true }
+assert_cmd        = { workspace = true }
+predicates        = { workspace = true }

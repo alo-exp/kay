@@ -125,6 +125,10 @@ impl<S: SkillFetchService + ShellService> SystemPrompt<S> {
                 tool_names,
                 extensions,
                 agents: vec![],
+                agent: Some(forge_domain::AgentContext {
+                    agent_name: Some(agent.id.to_string()),
+                    description: agent.description.clone(),
+                }),
                 config: None,
             };
 

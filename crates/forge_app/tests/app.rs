@@ -1,4 +1,4 @@
-use forge_app::workspace_status::{SyncPaths, SyncProgressCounter};
+use forge_app::{SyncPaths, SyncProgressCounter};
 
 #[test]
 fn sync_paths_constructs() {

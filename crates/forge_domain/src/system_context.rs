@@ -4,6 +4,16 @@ use serde_json::{Map, Value};
 
 use crate::{Agent, Environment, File, Model, Skill};
 
+/// Optional fields for agent-specific template rendering.
+/// These are populated at the application layer when building system prompts.
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AgentContext {
+    /// The agent's name (from Agent.id or Agent.title).
+    pub agent_name: Option<String>,
+    /// The agent's description (from Agent.description).
+    pub description: Option<String>,
+}
+
 /// Statistics for a file extension
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ExtensionStat {
@@ -135,6 +145,10 @@ pub struct SystemContext {
     /// List of available agents for task delegation
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub agents: Vec<Agent>,
+
+    /// Agent-specific template fields (agent_name, description).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub agent: Option<AgentContext>,
 
     /// Template configuration for tool descriptions
     #[serde(skip_serializing_if = "Option::is_none")]
