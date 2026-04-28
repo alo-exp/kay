@@ -1,0 +1,79 @@
+# Kay Desktop UI Smoke Tests
+# WebDriverIO e2e tests for Kay Tauri desktop application
+#
+# Requires: Tauri app to be built, tauri-driver for the current platform
+#
+# Note: These tests require a GUI environment to run.
+# In CI, this is typically handled by macOS runners which have a display.
+
+name: UI Smoke
+
+on:
+  push:
+    branches: [main, 'phase/**']
+  pull_request:
+    branches: [main]
+
+# Cancel in-progress runs when a new run is triggered
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ui-smoke:
+    name: Kay Desktop UI Smoke Tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest]
+        # Note: Windows and Linux tauri-driver support varies
+        # Currently testing on macOS which has best support
+        include:
+          - os: macos-latest
+            platform: darwin-arm64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: crates/kay-tauri/ui/pnpm-lock.yaml
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install npm dependencies
+        working-directory: crates/kay-tauri/ui
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Kay Tauri app
+        run: cargo build -p kay-tauri --locked
+
+      - name: Install Playwright browsers (for webdriver setup)
+        working-directory: crates/kay-tauri/ui
+        run: pnpm exec playwright install chromium
+
+      - name: Run UI smoke tests
+        working-directory: crates/kay-tauri/ui
+        run: pnpm exec wdio run wdio.conf.ts
+        timeout-minutes: 10
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-smoke-reports-${{ matrix.os }}
+          path: crates/kay-tauri/ui/test-reports/
+          retention-days: 7

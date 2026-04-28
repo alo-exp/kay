@@ -87,6 +87,7 @@ export function PromptInput({ onStart, onStop, status }: Props) {
           </select>
           {status === 'running' ? (
             <button
+              data-testid="stop-session-btn"
               onClick={onStop}
               style={{
                 padding: '8px 16px',
@@ -101,6 +102,7 @@ export function PromptInput({ onStart, onStop, status }: Props) {
             </button>
           ) : (
             <button
+              data-testid="start-session-btn"
               onClick={handleSubmit}
               disabled={!prompt.trim()}
               style={{
