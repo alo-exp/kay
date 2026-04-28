@@ -99,7 +99,7 @@ oauth2 = { version = "5.0", features = ["reqwest"] }
 reedline = "0.47.0"
 crossterm = "0.29.0"
 nu-ansi-term = "0.50"
-clap_complete = "4.5"
+clap_complete = "4.6"
 console = "0.15"
 colored = "2"
 fzf-wrapped = "0.1"
@@ -135,9 +135,9 @@ fake = { version = "5.1.0", features = ["derive"] }
 lazy_static = "1.5.0"
 
 # Database
-diesel = { version = "2.3.7", features = ["sqlite", "r2d2", "chrono"] }
+diesel = { version = "2.3.8", features = ["sqlite", "r2d2", "chrono"] }
 libsqlite3-sys = { version = "0.36.0", features = ["bundled"] }
-diesel_migrations = "2.2.0"
+diesel_migrations = "2.3.2"
 
 # Utilities
 dirs = "5"
@@ -152,7 +152,7 @@ sha2 = "0.10"
 hex = "0.4"
 infer = "0.19.0"
 open = "5"
-whoami = "2.1.0"
+whoami = "2.1.2"
 machineid-rs = "1.2.4"
 sysinfo = "0.35"
 gix = { version = "0.70", default-features = false, features = ["max-performance-safe"] }
@@ -160,7 +160,7 @@ update-informer = "1.2.0"
 cacache = { version = "13.1.0", default-features = false, features = ["tokio-runtime"] }
 rmcp = { version = "0.10", features = ["client", "transport-sse-client-reqwest", "transport-child-process", "transport-streamable-http-client-reqwest", "auth"] }
 tiny_http = "0.12"
-posthog-rs = "0.5.0"
+posthog-rs = "0.5.3"
 tracing-appender = "0.2"
 grep-searcher = "0.1"
 grep-regex = "0.1"
