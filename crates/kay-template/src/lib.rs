@@ -16,10 +16,7 @@ pub struct Template {
 impl Template {
     /// Create a new template from string content
     pub fn new(content: &str) -> Self {
-        Self {
-            content: content.to_string(),
-            variables: HashMap::new(),
-        }
+        Self { content: content.to_string(), variables: HashMap::new() }
     }
 
     /// Set a variable for substitution
@@ -35,12 +32,12 @@ impl Template {
     /// Render the template with current variables
     pub fn render(&self) -> String {
         let mut result = self.content.clone();
-        
+
         for (key, value) in &self.variables {
             let placeholder = format!("{{{{{}}}}}", key);
             result = result.replace(&placeholder, value);
         }
-        
+
         result
     }
 
@@ -73,8 +70,8 @@ impl Template {
 
                     if value.is_empty() {
                         // Remove entire block including tags
-                        result = result[..start].to_string()
-                            + &result[actual_end + end_tag.len()..];
+                        result =
+                            result[..start].to_string() + &result[actual_end + end_tag.len()..];
                     } else {
                         // Keep only inner content (strip tags)
                         result = result[..start].to_string()
@@ -123,8 +120,11 @@ mod tests {
         let mut vars = HashMap::new();
         vars.insert("greeting".to_string(), "Hello".to_string());
         vars.insert("name".to_string(), "Alice".to_string());
-        
-        assert_eq!(render_template("{{greeting}}, {{name}}!", &vars), "Hello, Alice!");
+
+        assert_eq!(
+            render_template("{{greeting}}, {{name}}!", &vars),
+            "Hello, Alice!"
+        );
     }
 
     #[test]
@@ -133,7 +133,7 @@ mod tests {
         template.set("name", "");
         let result = template.render_with_conditionals();
         assert_eq!(result, "Hello!");
-        
+
         let mut template2 = Template::new("Hello{{#if name}}, {{name}}{{/if name}}!");
         template2.set("name", "World");
         assert_eq!(template2.render_with_conditionals(), "Hello, World!");
