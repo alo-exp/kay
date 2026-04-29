@@ -231,18 +231,22 @@ impl<S: Stream<Item = Result<Bytes, reqwest::Error>> + Unpin> Stream for SseEven
             if let Some(pos) = self.buffer.iter().position(|&b| b == b'\n') {
                 let line = self.buffer.drain(..=pos).collect::<Vec<u8>>();
                 // Parse the line
-                if let Ok(line_str) = String::from_utf8(line) {
-                    let line = line_str.trim();
-                    if line.starts_with("data:") {
-                        let data = line.strip_prefix("data:").unwrap_or("").trim();
-                        // Translate to AgentEvent
-                        match crate::translator::MiniMaxTranslator::translate(data) {
-                            Ok(Some(event)) => return Poll::Ready(Some(Ok(event))),
-                            Ok(None) => {
-                                // Skip this line, continue processing
-                            }
-                            Err(e) => return Poll::Ready(Some(Err(e))),
+                let line = match String::from_utf8(line) {
+                    Ok(s) => s.trim().to_string(),
+                    Err(_) => {
+                        tracing::warn!("Skipping non-UTF8 line from MiniMax stream");
+                        continue;
+                    }
+                };
+                if line.starts_with("data:") {
+                    let data = line.strip_prefix("data:").unwrap_or("").trim();
+                    // Translate to AgentEvent
+                    match crate::translator::MiniMaxTranslator::translate(data) {
+                        Ok(Some(event)) => return Poll::Ready(Some(Ok(event))),
+                        Ok(None) => {
+                            // Skip this line, continue processing
                         }
+                        Err(e) => return Poll::Ready(Some(Err(e))),
                     }
                 }
                 continue;

@@ -77,9 +77,7 @@ export function App() {
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [activeSettingsTab, setActiveSettingsTab] = useState<'session' | 'model' | 'verifier' | 'sandbox'>('session');
 
-  // Model picker state (used by PromptInput)
-  const { selectedModel, selectedTier, onModelSelect, onTierChange } = useModelPicker();
-  void selectedModel; void selectedTier; void onModelSelect; void onTierChange;
+  const FLUSH_INTERVAL_MS = 16; // ~60fps batching
 
   // Command approval state
   const {
@@ -104,7 +102,7 @@ export function App() {
           dispatch({ type: 'EVENTS_BATCH', events: [...batch] });
           batch.length = 0;
         }
-      }, 16);
+      }, FLUSH_INTERVAL_MS);
     };
 
     channel.onmessage = (ev) => {

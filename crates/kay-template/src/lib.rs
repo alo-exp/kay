@@ -63,8 +63,8 @@ impl Template {
             let start_tag = format!("{{{{#if {}}}}}", key);
             let end_tag = format!("{{{{/if {}}}}}", key);
 
-            let start_pos = result.find(&start_tag);
-            if let Some(start) = start_pos {
+            // Process ALL occurrences of this conditional (not just first)
+            while let Some(start) = result.find(&start_tag) {
                 let inner_start = start + start_tag.len();
                 let remaining = &result[inner_start..];
                 if let Some(end) = remaining.find(&end_tag) {
@@ -81,6 +81,9 @@ impl Template {
                             + inner_content
                             + &result[actual_end + end_tag.len()..];
                     }
+                } else {
+                    // No end tag found, stop processing this key
+                    break;
                 }
             }
         }
