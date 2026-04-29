@@ -79,9 +79,9 @@ thiserror = "2"
 
 # Serialization/Data
 serde_yml = "0.0.12"
-toml_edit = { version = "0.22", features = ["serde"] }
+toml_edit = { version = "0.25", features = ["serde"] }
 base64 = "0.22"
-merge = "0.1"
+merge = "0.2"
 convert_case = "0.11.0"
 uuid = { version = "1", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
@@ -108,13 +108,13 @@ reedline = "0.47.0"
 crossterm = "0.29.0"
 nu-ansi-term = "0.50"
 clap_complete = "4.5"
-console = "0.15"
-colored = "2"
+console = "0.16"
+colored = "3"
 fzf-wrapped = "0.1"
-rustyline = "15"
+rustyline = "18"
 terminal_size = "0.4"
 arboard = { version = "3.4", default-features = false }
-enable-ansi-support = "0.2"
+enable-ansi-support = "0.3"
 
 # Parsing/Text
 nom = "8.0.0"
@@ -123,8 +123,8 @@ html2md = "0.2"
 handlebars = "6"
 gray_matter = "0.3.2"
 strip-ansi-escapes = "0.2"
-similar = { version = "2", features = ["inline"] }
-termimad = "0.30"
+similar = { version = "3", features = ["inline"] }
+termimad = "0.34"
 syntect = "5"
 two-face = "0.5.1"
 unicode-width = "0.2"
@@ -148,7 +148,7 @@ libsqlite3-sys = { version = "0.36.0", features = ["bundled"] }
 diesel_migrations = "2.2.0"
 
 # Utilities
-dirs = "5"
+dirs = "6"
 dotenvy = "0.15"
 tempfile = "3"
 url = { version = "2", features = ["serde"] }
@@ -156,14 +156,14 @@ http = "1"
 bytes = "1"
 humantime = "2.1.0"
 num-format = "0.4"
-sha2 = "0.10"
+sha2 = "0.11"
 hex = "0.4"
 infer = "0.19.0"
 open = "5"
 whoami = "2.1.0"
 machineid-rs = "1.2.4"
-sysinfo = "0.35"
-gix = { version = "0.70", default-features = false, features = ["max-performance-safe"] }
+sysinfo = "0.38"
+gix = { version = "0.83", default-features = false, features = ["max-performance-safe"] }
 update-informer = "1.2.0"
 cacache = { version = "13.1.0", default-features = false, features = ["tokio-runtime"] }
 rmcp = { version = "0.10", features = ["client", "transport-sse-client-reqwest", "transport-child-process", "transport-streamable-http-client-reqwest", "auth"] }
@@ -175,7 +175,7 @@ grep-regex = "0.1"
 ignore = "0.4"
 rand = "0.10.0"
 indicatif = "0.18.4"
-async-openai = { version = "0.34", default-features = false, features = ["response-types"] }
+async-openai = { version = "0.36", default-features = false, features = ["response-types"] }
 config = "0.15"
 
 # AWS/Cloud
@@ -201,19 +201,19 @@ proptest = "1"
 # Phase 3 (kay-tools) additions
 portable-pty = "0.9"
 subtle = "2.6"
-nix = { version = "0.29", features = ["signal"] }
+nix = { version = "0.31", features = ["signal"] }
 tokio-util = { version = "0.7", features = ["rt"] }
 
 # Phase 7 (kay-context) additions
 rusqlite              = { version = "0.38", features = ["bundled"] }
-tree-sitter           = "0.23"
-tree-sitter-rust      = "0.23"
+tree-sitter           = "0.26"
+tree-sitter-rust      = "0.24"
 tree-sitter-typescript = "0.23"
-tree-sitter-python    = "0.23"
-tree-sitter-go        = "0.23"
+tree-sitter-python    = "0.25"
+tree-sitter-go        = "0.25"
 sqlite-vec            = "=0.1.9"
-notify                = "6.1"
-notify-debouncer-mini = "0.4"
+notify                = "8.2"
+notify-debouncer-mini = "0.7"
 
 # Phase 5 (kay-cli) additions
 # assert_cmd + predicates pair for subprocess E2E tests of the `kay` binary
