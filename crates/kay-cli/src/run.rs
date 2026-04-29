@@ -99,9 +99,10 @@ use kay_core::persona::Persona;
 use kay_provider_errors::ProviderError;
 use kay_tools::events_wire::AgentEventWire;
 use kay_tools::{
-    AgentEvent, ImageQuota, NoOpSandbox, NoOpVerifier, ServicesHandle, ToolCallContext,
+    AgentEvent, ImageQuota, NoOpSandbox, ServicesHandle, ToolCallContext,
     ToolRegistry, VerificationOutcome,
 };
+use kay_verifier::{MultiPerspectiveVerifier, VerifierConfig};
 
 use crate::exit::ExitCode;
 
@@ -321,7 +322,18 @@ async fn run_async(
         Arc::new(ImageQuota::new(u32::MAX, u32::MAX)),
         CancellationToken::new(),
         Arc::new(NoOpSandbox),
-        Arc::new(NoOpVerifier),
+        Arc::new(MultiPerspectiveVerifier::new(
+            Arc::new(
+                kay_provider_openrouter::OpenRouterProvider::builder()
+                    .endpoint("http://localhost:9999".to_string())
+                    .api_key("not-used-in-offline".to_string())
+                    .build()
+                    .expect("verifier provider builder"),
+            ),
+            Arc::new(kay_provider_openrouter::CostCap::uncapped()),
+            VerifierConfig::default(),
+            Arc::new(|_ev: AgentEvent| {}),
+        )),
         0, // nesting_depth: top-level turn (sage_query depth is per-call)
         Arc::new(Mutex::new(String::new())),
     );
