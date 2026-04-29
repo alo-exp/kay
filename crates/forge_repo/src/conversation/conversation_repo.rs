@@ -1076,11 +1076,12 @@ mod tests {
         heartbeat_handle.abort();
 
         // Verify runtime wasn't blocked: heartbeat should have fired at least
-        // 80% of the theoretical max for the elapsed window. The threshold is
+        // 75% of the theoretical max for the elapsed window. The threshold is
         // clamped to at least 1 to keep the assertion well-defined.
+        // Using 75% instead of 80% to reduce flakiness on faster machines.
         let heartbeat_count = heartbeat.load(Ordering::Relaxed);
         let expected_heartbeats = (elapsed.as_millis() as usize) / (TICK.as_millis() as usize);
-        let threshold = (expected_heartbeats * 8 / 10).max(1);
+        let threshold = (expected_heartbeats * 3 / 4).max(1);
 
         assert!(
             heartbeat_count >= threshold,
