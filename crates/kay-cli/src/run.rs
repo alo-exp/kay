@@ -94,7 +94,7 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use kay_core::control::{control_channel, install_ctrl_c_handler};
-use kay_core::r#loop::{RunTurnArgs, run_turn};
+use kay_core::r#loop::{RunTurnArgs, run_turn, run_with_rework};
 use kay_core::persona::Persona;
 use kay_provider_errors::ProviderError;
 use kay_tools::events_wire::AgentEventWire;
@@ -346,7 +346,7 @@ async fn run_async(
     // LoopError is an empty `#[non_exhaustive]` enum today so the
     // inner `?` is vacuously true at runtime but satisfies the
     // type checker.
-    let handle = tokio::spawn(run_turn(RunTurnArgs {
+    let handle = tokio::spawn(run_with_rework(RunTurnArgs {
         persona,
         control_rx,
         model_rx,

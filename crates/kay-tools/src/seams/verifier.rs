@@ -29,28 +29,27 @@ pub struct NoOpVerifier;
 #[async_trait::async_trait]
 impl TaskVerifier for NoOpVerifier {
     async fn verify(&self, _task_summary: &str, _task_context: &str) -> VerificationOutcome {
-        VerificationOutcome::Pending {
-            reason: "Multi-perspective verification wired in Phase 8 (VERIFY-01..04)".into(),
+        VerificationOutcome::Pass {
+            note: "NoOpVerifier: real MultiPerspectiveVerifier wired in Phase 8".into(),
         }
     }
 }
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn noop_verifier_returns_pending() {
+    async fn noop_verifier_returns_pass() {
         let v = NoOpVerifier;
         let outcome = v.verify("I finished the task", "").await;
         match outcome {
-            VerificationOutcome::Pending { reason } => {
+            VerificationOutcome::Pass { note } => {
                 assert!(
-                    reason.contains("Phase 8"),
-                    "Pending reason must mention Phase 8: {reason}"
+                    note.contains("NoOpVerifier"),
+                    "Pass note must reference NoOpVerifier: {note}"
                 );
             }
-            other => panic!("expected Pending, got: {other:?}"),
+            other => panic!("expected Pass, got: {other:?}"),
         }
     }
 
@@ -68,23 +67,25 @@ mod tests {
 
     #[tokio::test]
     async fn noop_verifier_never_returns_fail() {
-        // Symmetric to the Pass invariant: Phase 3 stub must remain Pending-only.
+        // Invariant: NoOpVerifier must only produce Pass or Pending,
+        // never Fail ( Fail means the task was rejected, which a no-op
+        // stub should not do — the real verifier makes that decision).
         let v = NoOpVerifier;
         let outcome = v.verify("anything", "").await;
         assert!(
             !matches!(outcome, VerificationOutcome::Fail { .. }),
-            "NoOpVerifier must never emit Fail in Phase 3"
+            "NoOpVerifier must never emit Fail"
         );
     }
-
     #[tokio::test]
     async fn noop_verifier_accepts_task_context_arg() {
-        // Phase 8 expanded signature — will fail to compile until verifier.rs updated (W-3 RED)
+        // Phase 8 expanded signature — validates that NoOpVerifier
+        // implements the full TaskVerifier interface.
         let v = NoOpVerifier;
         let outcome = v.verify("summary", "tool context string").await;
         match outcome {
-            VerificationOutcome::Pending { .. } => {}
-            other => panic!("expected Pending, got: {other:?}"),
+            VerificationOutcome::Pass { .. } => {}
+            other => panic!("expected Pass, got: {other:?}"),
         }
     }
 }
