@@ -1,7 +1,7 @@
 // project_settings.rs — Phase 10 project settings (kay-tauri).
 // See: docs/superpowers/specs/2026-04-24-phase10-multi-session-manager-design.md
 //
-// WAVE 4 (RED): ProjectSettings struct stub. Real implementation in GREEN wave.
+// WAVE 4 (GREEN): ProjectSettings struct with VerifierPolicy, SandboxPolicy, ModelTier.
 
 use serde::{Deserialize, Serialize};
 use specta::Type;
