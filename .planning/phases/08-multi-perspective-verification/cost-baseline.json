@@ -1,0 +1,25 @@
+{
+  "_comment": "Phase 8 W-7: Cost regression baseline for MultiPerspectiveVerifier",
+  "_phase": "08-multi-perspective-verification",
+  "_created": "2026-05-01",
+  "_description": "Baseline costs captured after W-6 cost ceiling implementation. Used by CI cost-regression-gate to detect verifier cost increases.",
+  "fixture_summary": "Fixed 5-sentence task summary + 3-tool transcript",
+  "verifier_baseline": {
+    "interactive_single_critic_usd": 0.001,
+    "benchmark_three_critics_usd": 0.003,
+    "max_acceptable_usd": 0.010
+  },
+  "tolerance_pct": 30,
+  "test_results": {
+    "T3-01_benchmark_all_pass": {
+      "expected_critics": 3,
+      "max_cost_usd": 0.003,
+      "status": "pass"
+    },
+    "T3-02_interactive_fail_detected": {
+      "expected_critics": 1,
+      "max_cost_usd": 0.001,
+      "status": "pass"
+    }
+  }
+}

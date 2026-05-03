@@ -1,6 +1,6 @@
 [package]
 name = "kay-cli"
-publish = true
+publish = false
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -46,20 +46,6 @@ forge_domain = { path = "../forge_domain" }
 # ProviderError>>`) the agent loop consumes, matching kay-core's signature.
 # Offline scenarios never produce errors, but the channel type needs it.
 kay-provider-errors = { path = "../kay-provider-errors" }
-
-# MiniMax (OpenRouter-compatible) provider for live smoke testing (M12 Phase 2).
-# Wired behind `kay run --live` flag. Not required for offline E2E tests.
-kay-provider-openrouter = { path = "../kay-provider-openrouter" }
-
-# MiniMax native provider for Phase 12 EVAL-01a baseline run.
-# Handles MiniMax's JSON-over-SSE streaming format.
-kay-provider-minimax = { path = "../kay-provider-minimax" }
-
-# Kay configuration (Phase 12): TOML config file + env var resolution.
-kay-config = { path = "../kay-config" }
-
-# Kay display (Phase 13): Forge-compatible streaming markdown output.
-kay-display = { path = "../kay-display" }
 
 # Serialization (JSONL event stream + YAML persona loader)
 serde = { workspace = true }
@@ -118,7 +104,5 @@ predicates = { workspace = true }
 tempfile = { workspace = true }
 insta = { workspace = true }
 pretty_assertions = { workspace = true }
-# ANSI escape sequence stripping for parity tests (visual content, not color codes)
-regex = { workspace = true }
 # Phase 8 smoke test (context_smoke.rs): VerifierConfig/VerifierMode type access
 kay-verifier = { path = "../kay-verifier" }

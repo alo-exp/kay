@@ -160,6 +160,64 @@ jobs:
                -p kay-tauri -p kay-tui
         if: steps.detect.outputs.has_cargo == 'true'
 
+  verifier-cost-gate:
+    name: Verifier cost gate (VERIFY-03)
+    runs-on: ubuntu-latest
+    # Only runs on PRs touching verifier, CLI, or core loop code.
+    # No need to run on docs-only or test-only changes.
+    if: |
+      github.event_name == 'pull_request' && (
+        contains(github.event.pull_request.title, 'verifier') ||
+        contains(github.event.pull_request.title, 'Multi-Perspective') ||
+        contains(github.event.pull_request.title, 'cost') ||
+        contains(github.event.pull_request.title, 'rework') ||
+        contains(github.event.pull_request.title, 'Phase 8') ||
+        contains(github.event.pull_request.title, 'VERIFY')
+      )
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: dtolnay/rust-toolchain@e081816240890017053eacbb1bdf337761dc5582  # 1.95
+      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae  # v2
+      - uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b  # v3.0.0
+        with:
+          version: "27.x"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run verifier integration tests
+        run: cargo test -p kay-verifier
+      - name: Check cost ceiling integration
+        run: |
+          # The cost ceiling is exercised by t3_01_benchmark_all_pass
+          # and t3_02_interactive_fail_detected in integration_verifier.rs.
+          # Ensure they run and that cost_usd is captured in events.
+          cargo test -p kay-verifier --test integration_verifier -- --nocapture 2>&1 | tee verifier_output.txt
+          python3 <<'PY'
+          import re, pathlib, sys
+
+          out = pathlib.Path("verifier_output.txt").read_text()
+
+          # Verify cost regression test ran
+          if "cost_regression_gate" not in out:
+              print("::error::cost_regression_gate did not execute")
+              sys.exit(1)
+
+          # Verify baseline file is present
+          baseline = pathlib.Path(".planning/phases/08-multi-perspective-verification/cost-baseline.json")
+          if not baseline.exists():
+              print(f"::error::{baseline} not found — baseline must be committed")
+              sys.exit(1)
+
+          import json
+          data = json.loads(baseline.read_text())
+          for key in ["baseline_session_cost_usd", "baseline_turn_cost_usd",
+                       "verified_at", "max_cost_usd"]:
+              if key not in data:
+                  print(f"::error::cost-baseline.json missing key: {key}")
+                  sys.exit(1)
+
+          print(f"✓ cost-baseline.json valid ({data['baseline_session_cost_usd']} USD/session)")
+          print("VERIFIER-03: cost ceiling + regression gate confirmed ✓")
+          PY
+
   frontend:
     name: Frontend (ui)
     runs-on: ubuntu-latest

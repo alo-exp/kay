@@ -96,15 +96,16 @@ use tokio_util::sync::CancellationToken;
 
 use kay_config::KayConfig;
 use kay_core::control::{control_channel, install_ctrl_c_handler};
-use kay_core::r#loop::{RunTurnArgs, run_turn};
+use kay_core::r#loop::{RunTurnArgs, run_turn, run_with_rework};
 use kay_core::persona::Persona;
 use kay_provider_errors::ProviderError;
 use kay_provider_minimax::Provider;
 use kay_tools::events_wire::AgentEventWire;
 use kay_tools::{
-    AgentEvent, ImageQuota, NoOpSandbox, NoOpVerifier, ServicesHandle, ToolCallContext,
+    AgentEvent, ImageQuota, NoOpSandbox, ServicesHandle, ToolCallContext,
     ToolRegistry, VerificationOutcome,
 };
+use kay_verifier::{MultiPerspectiveVerifier, VerifierConfig};
 
 use crate::exit::ExitCode;
 use crate::render::StreamingWriter;
@@ -359,7 +360,18 @@ async fn run_async(
         Arc::new(ImageQuota::new(u32::MAX, u32::MAX)),
         CancellationToken::new(),
         Arc::new(NoOpSandbox),
-        Arc::new(NoOpVerifier),
+        Arc::new(MultiPerspectiveVerifier::new(
+            Arc::new(
+                kay_provider_openrouter::OpenRouterProvider::builder()
+                    .endpoint("http://localhost:9999".to_string())
+                    .api_key("not-used-in-offline".to_string())
+                    .build()
+                    .expect("verifier provider builder"),
+            ),
+            Arc::new(kay_provider_openrouter::CostCap::uncapped()),
+            VerifierConfig::default(),
+            Arc::new(|_ev: AgentEvent| {}),
+        )),
         0, // nesting_depth: top-level turn (sage_query depth is per-call)
         Arc::new(Mutex::new(String::new())),
     );
@@ -372,7 +384,7 @@ async fn run_async(
     // LoopError is an empty `#[non_exhaustive]` enum today so the
     // inner `?` is vacuously true at runtime but satisfies the
     // type checker.
-    let handle = tokio::spawn(run_turn(RunTurnArgs {
+    let handle = tokio::spawn(run_with_rework(RunTurnArgs {
         persona,
         control_rx,
         model_rx,
