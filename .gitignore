@@ -22,7 +22,6 @@ dist
 .vite
 
 # Editors
-.vscode/settings.json
 .idea/
 *.swp
 *~
@@ -52,3 +51,6 @@ keystore/
 .planning/local/
 .silver-bullet/
 .claude/
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore

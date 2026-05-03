@@ -1,7 +1,7 @@
 // command_approval.rs — Phase 10 command approval flow (kay-tauri).
 // See: docs/superpowers/specs/2026-04-24-phase10-multi-session-manager-design.md
 //
-// WAVE 5 (RED): ApprovalStore stub. Real implementation in GREEN wave.
+// WAVE 5 (GREEN): ApprovalStore implementation with ApprovalDecision, SandboxStatus, ApprovalRequest.
 
 use std::collections::HashMap;
 use std::sync::RwLock;

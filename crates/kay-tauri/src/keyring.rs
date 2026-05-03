@@ -1,7 +1,7 @@
 // keyring.rs — Phase 10 OS keychain integration (kay-tauri).
 // See: docs/superpowers/specs/2026-04-24-phase10-multi-session-manager-design.md
 //
-// WAVE 4 (RED): OsKeyring trait stub. Real implementation in GREEN wave.
+// WAVE 4 (GREEN): OsKeyring full implementation (MacOS/Linux/Windows).
 
 use serde::{Deserialize, Serialize};
 use specta::Type;
