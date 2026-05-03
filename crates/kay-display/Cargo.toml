@@ -10,6 +10,6 @@ repository.workspace = true
 description = "Streaming markdown display for Kay CLI (Forge-compatible output)"
 
 [dependencies]
-colored = "2"
+colored = "3"
 regex = "1"
 terminal_size = "0.4"
