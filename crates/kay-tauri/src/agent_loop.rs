@@ -12,11 +12,12 @@ use tokio_util::sync::CancellationToken;
 
 use forge_domain::{FSRead, FSSearch, FSWrite, NetFetch, ToolOutput};
 use kay_core::control::{ControlMsg, control_channel};
-use kay_core::r#loop::{RunTurnArgs, run_turn};
+use kay_core::r#loop::{RunTurnArgs, run_with_rework};
 use kay_core::persona::Persona;
 use kay_provider_errors::ProviderError;
+use kay_verifier::{MultiPerspectiveVerifier, VerifierConfig};
 use kay_tools::{
-    AgentEvent, ImageQuota, NoOpSandbox, NoOpVerifier, ServicesHandle, ToolCallContext,
+    AgentEvent, ImageQuota, NoOpSandbox, ServicesHandle, ToolCallContext,
     ToolRegistry,
 };
 
@@ -53,7 +54,7 @@ pub async fn run_agent_loop(
         Arc::new(ImageQuota::new(u32::MAX, u32::MAX)),
         CancellationToken::new(),
         Arc::new(NoOpSandbox),
-        Arc::new(NoOpVerifier),
+        Arc::new(MultiPerspectiveVerifier::new(VerifierConfig::default())),
         0,
         Arc::new(Mutex::new(String::new())),
     );
@@ -67,7 +68,7 @@ pub async fn run_agent_loop(
     // Offline echo provider — Phase 10 swaps in OpenRouter transport.
     tokio::spawn(offline_provider(prompt.clone(), model_tx));
 
-    let _ = run_turn(RunTurnArgs {
+    let _ = run_with_rework(RunTurnArgs {
         persona,
         control_rx,
         model_rx,
@@ -77,7 +78,7 @@ pub async fn run_agent_loop(
         context_engine: Arc::new(kay_context::engine::NoOpContextEngine),
         context_budget: kay_context::budget::ContextBudget::default(),
         initial_prompt: prompt,
-        verifier_config: Default::default(),
+        verifier_config: VerifierConfig::default(),
     })
     .await;
 }
