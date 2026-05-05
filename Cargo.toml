@@ -64,7 +64,7 @@ homepage = "https://github.com/alo-exp/kay"
 description = "Open-source terminal coding agent — Rust fork of ForgeCode with KIRA harness and Tauri desktop UI"
 
 [workspace.dependencies]
-tokio = { version = "1.51", features = ["rt-multi-thread", "macros", "io-util", "process", "signal", "sync", "fs", "time"] }
+tokio = { version = "1.52", features = ["rt-multi-thread", "macros", "io-util", "process", "signal", "sync", "fs", "time"] }
 reqwest = { version = "0.12.23", default-features = false, features = ["json", "rustls-tls", "hickory-dns", "http2", "stream", "gzip", "brotli"] }
 reqwest-eventsource = "0.6"
 rustls = "0.23"
@@ -107,7 +107,7 @@ oauth2 = { version = "5.0", features = ["reqwest"] }
 reedline = "0.47.0"
 crossterm = "0.29.0"
 nu-ansi-term = "0.50"
-clap_complete = "4.5"
+clap_complete = "4.6"
 console = "0.15"
 colored = "2"
 fzf-wrapped = "0.1"
@@ -143,9 +143,9 @@ fake = { version = "5.1.0", features = ["derive"] }
 lazy_static = "1.5.0"
 
 # Database
-diesel = { version = "2.3.7", features = ["sqlite", "r2d2", "chrono"] }
+diesel = { version = "2.3.9", features = ["sqlite", "r2d2", "chrono"] }
 libsqlite3-sys = { version = "0.36.0", features = ["bundled"] }
-diesel_migrations = "2.2.0"
+diesel_migrations = "2.3.2"
 
 # Utilities
 dirs = "5"
@@ -160,7 +160,7 @@ sha2 = "0.10"
 hex = "0.4"
 infer = "0.19.0"
 open = "5"
-whoami = "2.1.0"
+whoami = "2.1.2"
 machineid-rs = "1.2.4"
 sysinfo = "0.35"
 gix = { version = "0.70", default-features = false, features = ["max-performance-safe"] }
