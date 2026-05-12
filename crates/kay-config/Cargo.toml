@@ -11,8 +11,8 @@ description = "Kay CLI configuration (Phase 12)"
 
 [dependencies]
 serde = { workspace = true, features = ["derive"] }
-toml_edit = "0.22"
-dirs = "5"
+toml_edit = "0.25"
+dirs = "6"
 dotenvy = "0.15"
 thiserror = { workspace = true }
 tracing = { workspace = true }
