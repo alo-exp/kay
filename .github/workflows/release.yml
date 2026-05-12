@@ -104,7 +104,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Detect Cargo workspace
         id: detect
@@ -139,7 +139,7 @@ jobs:
 
       - name: Upload kay-cli binary
         if: steps.detect.outputs.has_cargo == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: kay-cli-${{ matrix.target }}
           path: target/${{ matrix.target }}/release/kay
@@ -155,7 +155,7 @@ jobs:
 
       - name: Upload kay-tui binary
         if: steps.detect.outputs.has_cargo == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: kay-tui-${{ matrix.target }}
           path: target/${{ matrix.target }}/release/kay-tui
@@ -165,13 +165,13 @@ jobs:
       # Build kay-tauri (desktop shell) — Tauri bundler
       # -------------------------------------------------------------------------
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         if: steps.detect.outputs.has_cargo == 'true'
         with:
           version: ${{ env.NODE_VERSION }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         if: steps.detect.outputs.has_cargo == 'true'
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -320,7 +320,7 @@ jobs:
       # Upload artifacts
       # -------------------------------------------------------------------------
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: kay-${{ matrix.target }}-artifacts
           path: |
@@ -338,10 +338,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts/
           pattern: kay-*
@@ -373,7 +373,7 @@ jobs:
           ls -la SHA256*
 
       - name: Upload SHA attestations
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sha-attestations
           path: artifacts/SHA256SUMS*
@@ -391,12 +391,12 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts/
           pattern: kay-*
